@@ -7,7 +7,7 @@ const apiKeyMiddleware = async (req, res, next) => {
     return res.status(401).json({ message: "API key required" });
   }
 
-  const apiKey = await ApiKey.findOne({ key });
+  const apiKey = await ApiKey.findOne({ key, isActive: true });
 
   if (!apiKey) {
     return res.status(403).json({ message: "Invalid API key" });

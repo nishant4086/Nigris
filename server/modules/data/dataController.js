@@ -1,6 +1,7 @@
 import Collection from "../../models/Collection.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import mongoose from "mongoose";
+import { checkCollectionAccess } from "../../utils/checkAccess.js";
 
 const collectionModels = {};
 
@@ -48,14 +49,12 @@ export const createData = asyncHandler(async (req, res) => {
   const { collectionId } = req.params;
   const data = req.body;
 
-  const collection = await Collection.findById(collectionId);
-  if (!collection) {
-    return res.status(404).json({ error: "Collection not found" });
+  const access = await checkCollectionAccess(collectionId, req.user?.userId);
+  if (access.error) {
+    return res.status(access.status).json({ error: access.error });
   }
 
-  if (collection.createdBy.toString() !== req.user.userId.toString()) {
-    return res.status(403).json({ error: "Not authorized to create data in this collection" });
-  }
+  const collection = access.collection;
 
   if (!collection.fields || collection.fields.length === 0) {
     return res.status(400).json({ error: "Collection has no fields defined" });
@@ -82,14 +81,12 @@ export const createData = asyncHandler(async (req, res) => {
 export const getData = asyncHandler(async (req, res) => {
   const { collectionId } = req.params;
 
-  const collection = await Collection.findById(collectionId);
-  if (!collection) {
-    return res.status(404).json({ error: "Collection not found" });
+  const access = await checkCollectionAccess(collectionId, req.user?.userId);
+  if (access.error) {
+    return res.status(access.status).json({ error: access.error });
   }
 
-  if (collection.createdBy.toString() !== req.user.userId.toString()) {
-    return res.status(403).json({ error: "Not authorized to access this collection" });
-  }
+  const collection = access.collection;
 
   const collectionModel = getOrCreateCollectionModel(collectionId, collection.fields);
   const data = await collectionModel.find();

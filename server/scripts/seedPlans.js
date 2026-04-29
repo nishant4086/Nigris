@@ -12,9 +12,21 @@ const seedPlans = async () => {
     await Plan.deleteMany();
 
     await Plan.insertMany([
-      { name: "free", requestLimit: 100, price: 0 },
-      { name: "pro", requestLimit: 10000, price: 499 },
-      { name: "enterprise", requestLimit: 1000000, price: 1999 },
+      { name: "free", requestLimit: 100, price: 0, currency: "inr", stripePriceId: null },
+      {
+        name: "pro",
+        requestLimit: 10000,
+        price: 499,
+        currency: "inr",
+        stripePriceId: process.env.STRIPE_PRICE_PRO || null,
+      },
+      {
+        name: "enterprise",
+        requestLimit: 1000000,
+        price: 1999,
+        currency: "inr",
+        stripePriceId: process.env.STRIPE_PRICE_ENTERPRISE || null,
+      },
     ]);
 
     console.log("✅ Plans seeded successfully");

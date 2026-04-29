@@ -3,9 +3,10 @@ import mongoose from "mongoose";
 const apiKeySchema = new mongoose.Schema(
   {
     user: {
-  type: mongoose.Schema.Types.ObjectId,
-  ref: "User"
-},
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     key: {
       type: String,
       required: true,
@@ -22,6 +23,11 @@ const apiKeySchema = new mongoose.Schema(
       type: String,
     },
 
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+
     limit: {
       type: Number,
       default: 100,
@@ -30,6 +36,11 @@ const apiKeySchema = new mongoose.Schema(
     usage: {
       type: Number,
       default: 0,
+    },
+
+    lastUsedAt: {
+      type: Date,
+      default: null,
     },
 
     resetAt: {

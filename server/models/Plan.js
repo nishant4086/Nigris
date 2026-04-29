@@ -16,6 +16,14 @@ const planSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  currency: {
+    type: String,
+    default: "inr",
+  },
+  stripePriceId: {
+    type: String,
+    default: null,
+  },
 });
 
 export default mongoose.model("Plan", planSchema);

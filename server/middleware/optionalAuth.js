@@ -7,7 +7,10 @@ export default (req, res, next) => {
     try {
       const token = auth.split(" ")[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = decoded;
+      req.user = {
+        ...decoded,
+        userId: decoded.userId || decoded.id,
+      };
     } catch (err) {
       req.user = null;
     }

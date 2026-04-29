@@ -1,10 +1,10 @@
-const request = require('supertest');
-const app = require('../app'); // Adjust the path as necessary
+import request from "supertest";
+import app from "../app.js";
 
-describe('App Tests', () => {
-    test('hello world!', async () => {
-        const response = await request(app).get('/');
-        expect(response.statusCode).toBe(200);
-        expect(response.text).toBe('Hello World');
-    });
+describe("App health", () => {
+  test("GET / returns ok", async () => {
+    const res = await request(app).get("/");
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ status: "ok" });
+  });
 });

@@ -28,17 +28,46 @@ const userSchema = new mongoose.Schema(
       default: "user"
     },
     plan: {
-  type: String,
-  enum: ["free", "pro", "enterprise"],
-  default: "free",
-},
+      type: String,
+      enum: ["free", "pro", "enterprise"],
+      default: "free",
+    },
+    planStatus: {
+      type: String,
+      enum: [
+        "active",
+        "canceled",
+        "trialing",
+        "past_due",
+        "incomplete",
+        "incomplete_expired",
+        "unpaid"
+      ],
+      default: "active"
+    },
+    planRenewsAt: {
+      type: Date,
+      default: null
+    },
+    stripeCustomerId: {
+      type: String,
+      default: null
+    },
+    stripeSubscriptionId: {
+      type: String,
+      default: null
+    },
+    stripePriceId: {
+      type: String,
+      default: null
+    }
   },
   { timestamps: true }
 );
 
-userSchema.pre("save", async function (next) {
+userSchema.pre("save", async function () {
   if (!this.isModified("password")) {
-    return next();
+    return;
   }
   
   const salt = await bcrypt.genSalt(10);

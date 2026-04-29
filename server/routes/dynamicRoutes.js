@@ -6,14 +6,12 @@ import {
   deleteDynamic,
 } from "../modules/dynamic/dynamicController.js";
 import optionalAuth from "../middleware/optionalAuth.js";
-import apiKeyMiddleware from "../middleware/apiKeyMiddleware.js";
-import rateLimiter from "../middleware/rateLimitMiddleware.js";
+import publicApiKeyMiddleware from "../middleware/publicApiKeyMiddleware.js";
 
 const router = express.Router();
 
-// global middleware
-router.use(apiKeyMiddleware);
-router.use(rateLimiter);
+// global middleware for public dynamic routes
+router.use(publicApiKeyMiddleware);
 
 // single registration per route
 router.get("/:slug", optionalAuth, getDynamic);

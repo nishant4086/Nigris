@@ -1,64 +1,126 @@
 import request from "supertest";
 import jwt from "jsonwebtoken";
 import app from "../app.js";
-
-// import User from "../models/User.js";
-// import Collection from "../models/Collection.js";
-// import Product from "../models/Product.js";
+import User from "../models/User.js";
+import Project from "../models/Project.js";
+import Collection from "../models/Collection.js";
+import ApiKey from "../models/ApiKey.js";
+import Plan from "../models/Plan.js";
 
 const signToken = (user) =>
-  jwt.sign({ id: user._id.toString() }, process.env.JWT_SECRET, { expiresIn: "1h" });
-
-describe("Dynamic routes access", () => {
-  let owner, otherUser, ownerToken;
-  // let publicCollection, privateCollection;
-
-  beforeEach(async () => {
-    // seed:
-    // 1) owner user
-    // 2) other user
-    // 3) public collection with slug=products, visibility=public
-    // 4) private collection with slug=products, visibility=private
-    // 5) owner owns both
-    ownerToken = signToken(owner);
+  jwt.sign({ userId: user._id.toString() }, process.env.JWT_SECRET, {
+    expiresIn: "1h",
   });
 
-  test("Public collection: GET /api/products works without token", async () => {
-    const res = await request(app).get("/api/products");
+describe("Dynamic routes access", () => {
+  let owner;
+  let otherUser;
+  let ownerToken;
+  let otherToken;
+  let project;
+  let apiKey;
+
+  beforeEach(async () => {
+    await Plan.create({ name: "free", requestLimit: 100, price: 0 });
+
+    owner = await User.create({
+      name: "Owner",
+      email: "owner@test.com",
+      password: "Password123",
+    });
+    otherUser = await User.create({
+      name: "Other",
+      email: "other@test.com",
+      password: "Password123",
+    });
+
+    ownerToken = signToken(owner);
+    otherToken = signToken(otherUser);
+
+    project = await Project.create({ name: "Project", user: owner._id });
+    apiKey = await ApiKey.create({
+      user: owner._id,
+      project: project._id,
+      key: "test_key_123",
+      name: "Default",
+      limit: 100,
+      usage: 0,
+      resetAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    });
+  });
+
+  test("Public collection: GET works without token", async () => {
+    await Collection.create({
+      name: "Products",
+      slug: "products",
+      project: project._id,
+      createdBy: owner._id,
+      isPublic: true,
+    });
+
+    const res = await request(app)
+      .get("/api/products")
+      .set("x-api-key", apiKey.key);
+
     expect(res.status).toBe(200);
   });
 
-  test("Private collection: GET /api/products without token -> 403", async () => {
-    // set products collection visibility private
-    const res = await request(app).get("/api/products");
+  test("Private collection: GET without token -> 403", async () => {
+    await Collection.create({
+      name: "Products",
+      slug: "products",
+      project: project._id,
+      createdBy: owner._id,
+      isPublic: false,
+    });
+
+    const res = await request(app)
+      .get("/api/products")
+      .set("x-api-key", apiKey.key);
+
     expect(res.status).toBe(403);
   });
 
-  test("Private collection: GET /api/products with token -> works", async () => {
-    // set products collection visibility private
+  test("Private collection: GET with token -> 200", async () => {
+    await Collection.create({
+      name: "Products",
+      slug: "products",
+      project: project._id,
+      createdBy: owner._id,
+      isPublic: false,
+    });
+
     const res = await request(app)
       .get("/api/products")
+      .set("x-api-key", apiKey.key)
       .set("Authorization", `Bearer ${ownerToken}`);
+
     expect(res.status).toBe(200);
   });
 
-  test("Write: POST /api/products only owner allowed", async () => {
-    const res = await request(app)
+  test("Write: POST only owner allowed", async () => {
+    await Collection.create({
+      name: "Products",
+      slug: "products",
+      project: project._id,
+      createdBy: owner._id,
+      isPublic: false,
+    });
+
+    const allowed = await request(app)
       .post("/api/products")
+      .set("x-api-key", apiKey.key)
       .set("Authorization", `Bearer ${ownerToken}`)
       .send({ name: "New Product", price: 99 });
 
-    expect([200, 201]).toContain(res.status);
-  });
+    expect([200, 201]).toContain(allowed.status);
 
-  test("Write: POST /api/products non-owner denied", async () => {
-    const otherToken = signToken(otherUser);
-
-    const res = await request(app)
+    const denied = await request(app)
       .post("/api/products")
+      .set("x-api-key", apiKey.key)
       .set("Authorization", `Bearer ${otherToken}`)
       .send({ name: "Hack Product", price: 99 });
 
-    expect(res.status).toBe(403);
+    expect(denied.status).toBe(403);
   });
 });

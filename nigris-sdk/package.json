@@ -1,0 +1,30 @@
+{
+  "name": "nigris",
+  "version": "1.0.0",
+  "description": "JavaScript SDK for the Nigris public API",
+  "type": "module",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "example.js"
+  ],
+  "scripts": {
+    "example": "node example.js"
+  },
+  "keywords": [
+    "nigris",
+    "sdk",
+    "api",
+    "axios"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.8.4"
+  }
+}
