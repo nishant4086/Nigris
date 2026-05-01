@@ -1,0 +1,9 @@
+node_modules/
+.env
+.env.*
+tests/
+example.js
+USAGE.md
+.DS_Store
+*.log
+coverage/

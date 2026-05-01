@@ -1,15 +1,9 @@
 # Nigris SDK
 
-JavaScript SDK for the Nigris public API.
+Official JavaScript SDK for the [Nigris](https://nigris-client.vercel.app) API — a headless backend-as-a-service for managing collections, entries, and data.
 
-## Features
-
-- API key authentication via `x-api-key`
-- Full CRUD operations for entries
-- Pagination with customizable page/limit
-- Dynamic filtering on entry data fields
-- Axios-based error normalization
-- Optional custom `baseURL` and timeout
+[![npm version](https://img.shields.io/npm/v/nigris)](https://www.npmjs.com/package/nigris)
+[![license](https://img.shields.io/npm/l/nigris)](./LICENSE)
 
 ## Install
 
@@ -17,160 +11,117 @@ JavaScript SDK for the Nigris public API.
 npm install nigris
 ```
 
-## Usage
-
-### Create Entry
+## Quick Start
 
 ```js
 import Nigris from "nigris";
 
-const client = new Nigris("API_KEY");
+const client = new Nigris("your-api-key");
 
+// Create an entry
 const entry = await client.create("collectionId", {
   name: "Alice Johnson",
   email: "alice@example.com",
   age: 28,
 });
 
-console.log(entry.data); // { _id, collectionId, data: {...}, ... }
+console.log(entry);
 ```
 
-### List Entries (with Pagination)
+## API Reference
+
+### Initialize
 
 ```js
-// Get first 10 entries
-const result = await client.list("collectionId");
-console.log(result.data.length);          // Array of entries
-console.log(result.pagination.total);     // Total count
-console.log(result.pagination.pages);     // Total pages
+import Nigris from "nigris";
 
-// Get page 2 with 20 per page
+const client = new Nigris("API_KEY", {
+  baseURL: "https://nigris-1.onrender.com/api/public", // default
+  timeout: 10000, // default (ms)
+});
+```
+
+### Create Entry
+
+```js
+const entry = await client.create("collectionId", {
+  name: "Alice",
+  email: "alice@example.com",
+});
+```
+
+### List Entries
+
+```js
+// Basic listing
+const result = await client.list("collectionId");
+console.log(result.data);       // Array of entries
+console.log(result.pagination); // { total, page, limit, pages }
+
+// With pagination
 const page2 = await client.list("collectionId", {
   page: 2,
   limit: 20,
 });
-```
 
-### List with Filtering
-
-```js
-// Filter by email
+// With filters
 const filtered = await client.list("collectionId", {
-  filters: {
-    email: "alice@example.com",
-  },
-});
-
-// Multiple filters (AND logic)
-const engineering = await client.list("collectionId", {
-  page: 1,
-  limit: 10,
-  filters: {
-    department: "Engineering",
-    city: "New York",
-  },
+  filters: { department: "Engineering", city: "New York" },
 });
 ```
 
 ### Update Entry
 
 ```js
-// Merge new data with existing entry
-const updated = await client.entries.update("entryId", {
+// Merges new data with existing entry (non-destructive)
+const updated = await client.update("entryId", {
   age: 29,
   city: "Boston",
 });
-
-// Original fields (name, email) are preserved
-console.log(updated.data.name);  // "Alice Johnson" (unchanged)
-console.log(updated.data.age);   // 29 (updated)
 ```
 
 ### Delete Entry
 
 ```js
-const result = await client.entries.delete("entryId");
-console.log(result.success);  // true
-console.log(result.message);  // "Entry deleted successfully"
+const result = await client.delete("entryId");
+// { success: true, message: "Entry deleted successfully" }
 ```
 
-## Namespace Usage
+### Namespace Syntax
 
-All methods available via namespace:
+All methods are also available under `client.entries.*`:
 
 ```js
-// Create
 await client.entries.create(collectionId, data);
-
-// List with pagination/filtering
 await client.entries.list(collectionId, options);
-
-// Update (merge data)
-await client.entries.update(entryId, updates);
-
-// Delete
+await client.entries.update(entryId, data);
 await client.entries.delete(entryId);
 ```
 
-## Options
+## Schema Validation
 
-```js
-new Nigris("API_KEY", {
-  baseURL: "https://your-ngrok-url/api/public",  // Default: http://localhost:8000/api/public
-  timeout: 15000,                                  // Default: 10000ms
-});
-```
+The SDK automatically validates your data against the collection's schema before sending requests. If a required field is missing or has the wrong type, you get a clear error before the API call is made.
 
 ## Error Handling
 
-If a request fails, the SDK throws a `NigrisError` with useful fields:
+Errors are thrown as `NigrisError` with structured fields:
 
 ```js
 try {
   await client.create("collectionId", data);
 } catch (error) {
-  console.error(error.status);  // HTTP status code
-  console.error(error.data);    // Response body
-  console.error(error.code);    // Error code if available
-  console.error(error.message); // Error message
+  console.error(error.message); // Human-readable message
+  console.error(error.status);  // HTTP status code (e.g. 400, 404)
+  console.error(error.data);    // Response body from server
+  console.error(error.code);    // Error code (e.g. "ECONNREFUSED")
 }
 ```
 
-## Example
+## Requirements
 
-Complete example with all operations:
+- Node.js 16+
+- An API key from the [Nigris dashboard](https://nigris-client.vercel.app/dashboard/api-keys)
 
-```bash
-NIGRIS_API_KEY=your_key NIGRIS_COLLECTION_ID=your_collection_id npm run example
-```
+## License
 
-## Pagination Defaults
-
-- **Page:** 1
-- **Limit:** 10
-- **Max Limit:** 100 (capped automatically)
-- **Invalid values:** Automatically corrected to defaults
-
----
-
-## 📖 Full Documentation
-
-For complete usage guide, examples, and API reference, see:
-
-- **[USAGE.md](./USAGE.md)** - Comprehensive usage guide with examples
-- **[ENTRIES_API.md](../server/ENTRIES_API.md)** - Complete REST API documentation
-- **[example.js](./example.js)** - Working CRUD workflow example
-
----
-
-## ✨ Status
-
-**Production Ready** - All CRUD operations tested and working.
-
-- ✅ Full CRUD (Create, Read, Update, Delete)
-- ✅ Pagination & Filtering  
-- ✅ Data Merge on Update
-- ✅ Error Handling
-- ✅ Input Validation
-- ✅ Namespace Support (`client.entries.*`)
-- ✅ Direct Function Exports
+[MIT](./LICENSE)

@@ -1,30 +1,52 @@
 {
   "name": "nigris",
   "version": "1.0.0",
-  "description": "JavaScript SDK for the Nigris public API",
+  "description": "Official JavaScript SDK for the Nigris API — CRUD operations, pagination, filtering, and schema validation for your collections.",
   "type": "module",
   "main": "src/index.js",
   "module": "src/index.js",
   "exports": {
-    ".": "./src/index.js"
+    ".": "./src/index.js",
+    "./client": "./src/client.js",
+    "./entries": "./src/methods/entries.js",
+    "./validate": "./src/utils/validate.js"
   },
   "files": [
     "src",
     "README.md",
-    "example.js"
+    "LICENSE"
   ],
   "scripts": {
     "example": "node example.js",
-    "test:validation": "node tests/validation.test.js"
+    "test": "node tests/validation.test.js"
   },
   "keywords": [
     "nigris",
     "sdk",
     "api",
-    "axios"
+    "backend",
+    "saas",
+    "crud",
+    "collections",
+    "entries",
+    "headless-cms",
+    "baas",
+    "api-client"
   ],
-  "author": "",
+  "author": "Nishant Rankawat",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nishant4086/Nigris.git",
+    "directory": "nigris-sdk"
+  },
+  "homepage": "https://github.com/nishant4086/Nigris/tree/main/nigris-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/nishant4086/Nigris/issues"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "dependencies": {
     "axios": "^1.8.4"
   }

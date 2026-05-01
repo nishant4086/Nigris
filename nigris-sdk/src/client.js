@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const DEFAULT_BASE_URL = "http://localhost:8000/api/public";
+const DEFAULT_BASE_URL = "https://nigris-1.onrender.com/api/public";
 const DEFAULT_TIMEOUT = 10000;
 
 class NigrisError extends Error {
