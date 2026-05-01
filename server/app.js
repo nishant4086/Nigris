@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import rateLimit from "express-rate-limit";
-import helmet from "helmet";
+import { helmet } from "react-helmet";
 import compression from "compression";
 
 import authRoutes from "./routes/authRoutes.js";
