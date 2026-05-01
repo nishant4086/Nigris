@@ -1,4 +1,4 @@
-import redis from "../config/redis.js";
+import redis, { isRedisAvailable } from "../config/redis.js";
 
 const PLAN_MULTIPLIERS = {
   free: 1,
@@ -8,6 +8,11 @@ const PLAN_MULTIPLIERS = {
 
 export const redisRateLimit = (baseLimit, windowSeconds) => {
   return async (req, res, next) => {
+    // If Redis is unavailable, skip rate limiting and allow the request
+    if (!redis || !isRedisAvailable) {
+      return next();
+    }
+
     try {
       const apiKey = req.apiKey?.key;
 

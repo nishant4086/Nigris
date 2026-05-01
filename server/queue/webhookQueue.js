@@ -1,4 +1,7 @@
 import { Queue } from "bullmq";
 import connection from "../config/redis.js";
 
-export const webhookQueue = new Queue("webhookQueue", { connection });
+// Only create the queue if Redis is available
+export const webhookQueue = connection
+  ? new Queue("webhookQueue", { connection })
+  : null;

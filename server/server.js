@@ -12,9 +12,10 @@ process.on("uncaughtException", (err) => {
 });
 
 process.on("unhandledRejection", (err) => {
-  console.error("UNHANDLED REJECTION! 💥 Shutting down...");
+  console.error("UNHANDLED REJECTION! ⚠️");
   console.error(err);
-  process.exit(1); // Optional: in a real environment you might attempt a graceful shutdown first
+  // Don't crash – allow the server to continue handling requests
+  // Redis/BullMQ connection failures should not take down the whole server
 });
 
 const startServer = async () => {

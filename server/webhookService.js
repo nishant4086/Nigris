@@ -2,6 +2,10 @@ import { webhookQueue } from "./queue/webhookQueue.js";
 
 export const triggerWebhook = async (event, payload, projectId) => {
   try {
+    if (!webhookQueue) {
+      console.warn("[Webhook] Queue unavailable (Redis down) – skipping webhook for:", event);
+      return;
+    }
     // Non-blocking: pushes to BullMQ queue
     await webhookQueue.add(
       "processWebhook",

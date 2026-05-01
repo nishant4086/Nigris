@@ -134,6 +134,9 @@ export const retryWebhook = asyncHandler(async (req, res) => {
 
   // Push new targeted job to BullMQ
   const { webhookQueue } = await import("../../queue/webhookQueue.js");
+  if (!webhookQueue) {
+    return res.status(503).json({ error: "Webhook queue is temporarily unavailable. Please try again later." });
+  }
   await webhookQueue.add("processWebhook", {
     event: log.event,
     data: log.payload,

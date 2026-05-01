@@ -66,14 +66,21 @@ const processJob = async (job) => {
   return `Successfully processed ${webhooks.length} webhooks`;
 };
 
-export const webhookWorker = new Worker("webhookQueue", processJob, {
-  connection,
-});
+// Only start the worker if Redis is available
+if (connection) {
+  const webhookWorker = new Worker("webhookQueue", processJob, {
+    connection,
+  });
 
-webhookWorker.on("completed", (job, returnvalue) => {
-  console.log(`[BullMQ] Webhook job ${job.id} completed: ${returnvalue}`);
-});
+  webhookWorker.on("completed", (job, returnvalue) => {
+    console.log(`[BullMQ] Webhook job ${job.id} completed: ${returnvalue}`);
+  });
 
-webhookWorker.on("failed", (job, err) => {
-  console.error(`[BullMQ] Webhook job ${job.id} failed:`, err.message);
-});
+  webhookWorker.on("failed", (job, err) => {
+    console.error(`[BullMQ] Webhook job ${job.id} failed:`, err.message);
+  });
+
+  console.log("[BullMQ] Webhook worker started");
+} else {
+  console.warn("[BullMQ] Webhook worker NOT started – Redis unavailable");
+}
