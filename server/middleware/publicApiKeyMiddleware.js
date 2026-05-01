@@ -18,7 +18,7 @@ const publicApiKeyMiddleware = async (req, res, next) => {
     req.apiKey = apiKey;
 
     // load project and attach
-    const project = await Project.findById(apiKey.project);
+    const project = await Project.findById(apiKey.project).populate("user", "plan");
     if (!project) {
       return res.status(404).json({ message: "Project not found" });
     }

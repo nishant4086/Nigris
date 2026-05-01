@@ -18,6 +18,7 @@ function getOrCreateCollectionModel(collectionId, fields) {
     let fieldType = String;
     if (field.type === "number") fieldType = Number;
     if (field.type === "boolean") fieldType = Boolean;
+    // text, image, and video map to String (URL)
 
     schema.add({
       [field.name]: {
@@ -87,11 +88,61 @@ export const getData = asyncHandler(async (req, res) => {
   }
 
   const collection = access.collection;
-
   const collectionModel = getOrCreateCollectionModel(collectionId, collection.fields);
-  const data = await collectionModel.find();
 
-  res.json(data);
+  // Pagination
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 10));
+  const skip = (page - 1) * limit;
+
+  // Sorting
+  const sortField = req.query.sortBy || "createdAt";
+  const sortOrder = req.query.order === "asc" ? 1 : -1;
+  const sort = { [sortField]: sortOrder };
+
+  // Safe filtering — only allow known collection fields
+  const filter = {};
+  const allowedFields = collection.fields.map((f) => f.name);
+  const fieldTypeMap = {};
+  for (const f of collection.fields) {
+    fieldTypeMap[f.name] = f.type;
+  }
+
+  for (const key of Object.keys(req.query)) {
+    if (!allowedFields.includes(key)) continue;
+
+    let value = req.query[key];
+
+    // Block NoSQL injection — reject objects/arrays
+    if (typeof value === "object") continue;
+    // Block keys containing $ or .
+    if (typeof value === "string" && (value.includes("$") || value.includes("."))) continue;
+
+    // Cast based on field type
+    const fieldType = fieldTypeMap[key];
+    if (fieldType === "number") {
+      const num = Number(value);
+      if (!isNaN(num)) filter[key] = num;
+    } else if (fieldType === "boolean") {
+      filter[key] = value === "true";
+    } else {
+      // Case-insensitive text match
+      filter[key] = { $regex: value, $options: "i" };
+    }
+  }
+
+  const [data, total] = await Promise.all([
+    collectionModel.find(filter).sort(sort).skip(skip).limit(limit).lean(),
+    collectionModel.countDocuments(filter),
+  ]);
+
+  res.json({
+    total,
+    page,
+    pages: Math.ceil(total / limit) || 1,
+    limit,
+    data,
+  });
 });
 
 export const updateData = asyncHandler(async (req, res) => {

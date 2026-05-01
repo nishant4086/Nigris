@@ -9,7 +9,7 @@ const fieldSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ["text", "number", "boolean"],
+    enum: ["text", "number", "boolean", "image", "video"],
     default: "text",
   },
   required: {

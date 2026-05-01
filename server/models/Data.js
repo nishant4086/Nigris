@@ -8,6 +8,13 @@ const dataSchema = new mongoose.Schema(
       required: true,
     },
 
+    project: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Project",
+      required: true,
+      index: true,
+    },
+
     data: {
       type: Object,
       required: true,

@@ -60,6 +60,29 @@ const userSchema = new mongoose.Schema(
     stripePriceId: {
       type: String,
       default: null
+    },
+    razorpaySubscriptionId: {
+      type: String,
+      default: null,
+    },
+    subscriptionStatus: {
+      type: String,
+      enum: [
+        "created",
+        "authenticated",
+        "active",
+        "halted",
+        "cancelled",
+        "completed",
+        "expired",
+        "pending",
+        null,
+      ],
+      default: null,
+    },
+    nextBillingDate: {
+      type: Date,
+      default: null,
     }
   },
   { timestamps: true }

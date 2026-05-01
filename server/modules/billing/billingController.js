@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import Stripe from "stripe";
 import User from "../../models/User.js";
 import ApiKey from "../../models/ApiKey.js";
@@ -7,6 +8,7 @@ import {
   getPlanByPriceId,
   getStripePriceIdForPlan,
 } from "../../utils/planUtils.js";
+import getRazorpayInstance from "../../config/razorpay.js";
 
 const getStripeClient = () => {
   if (!process.env.STRIPE_SECRET_KEY) {
@@ -224,6 +226,367 @@ export const handleStripeWebhook = async (req, res) => {
 
     res.json({ received: true });
   } catch (error) {
+    res.status(500).send(`Webhook handler error: ${error.message}`);
+  }
+};
+
+// ─── RAZORPAY ────────────────────────────────────────────
+
+export const createRazorpayOrder = asyncHandler(async (req, res) => {
+  const userId = req.user?.userId;
+  const { plan } = req.body || {};
+
+  if (!userId) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  if (!plan || plan === "free") {
+    return res.status(400).json({ error: "A paid plan is required" });
+  }
+
+  const planDoc = await getPlanByName(plan);
+  if (!planDoc) {
+    return res.status(404).json({ error: "Plan not found" });
+  }
+
+  if (planDoc.price <= 0) {
+    return res.status(400).json({ error: "Cannot create order for free plan" });
+  }
+
+  const razorpay = getRazorpayInstance();
+
+  const order = await razorpay.orders.create({
+    amount: planDoc.price * 100, // Convert to paise
+    currency: (planDoc.currency || "INR").toUpperCase(),
+    receipt: `rcpt_${userId}_${Date.now()}`,
+    notes: {
+      userId,
+      plan: planDoc.name,
+    },
+  });
+
+  res.json({
+    orderId: order.id,
+    amount: order.amount,
+    currency: order.currency,
+    key: process.env.RAZORPAY_KEY_ID,
+  });
+});
+
+export const verifyRazorpayPayment = asyncHandler(async (req, res) => {
+  const userId = req.user?.userId;
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature, plan } =
+    req.body || {};
+
+  if (!userId) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+    return res.status(400).json({ error: "Missing payment details" });
+  }
+
+  if (!plan) {
+    return res.status(400).json({ error: "Plan is required" });
+  }
+
+  // Generate expected signature using HMAC SHA256
+  const expectedSignature = crypto
+    .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+    .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+    .digest("hex");
+
+  if (expectedSignature !== razorpay_signature) {
+    return res.status(400).json({ error: "Payment verification failed" });
+  }
+
+  // Signature is valid — upgrade the user
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  const upgradedPlan = await applyPlanToUser(user, plan, {
+    status: "active",
+    renewsAt: null,
+  });
+
+  if (!upgradedPlan) {
+    return res.status(404).json({ error: "Plan not found in database" });
+  }
+
+  res.json({
+    success: true,
+    plan: upgradedPlan.name,
+    message: `Successfully upgraded to ${upgradedPlan.name}`,
+  });
+});
+
+// ─── RAZORPAY SUBSCRIPTIONS ─────────────────────────────
+
+const getRazorpayPlanId = (planId) => {
+  const map = {
+    pro_monthly: process.env.RAZORPAY_PLAN_PRO_MONTHLY,
+    pro_yearly: process.env.RAZORPAY_PLAN_PRO_YEARLY,
+  };
+  return map[planId] || planId;
+};
+
+export const createRazorpaySubscription = asyncHandler(async (req, res) => {
+  const userId = req.user?.userId;
+  const { planId } = req.body || {};
+
+  if (!userId) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  if (!planId) {
+    return res.status(400).json({ error: "planId is required" });
+  }
+
+  // Resolve the Razorpay plan_id at runtime
+  const razorpayPlanId = getRazorpayPlanId(planId);
+
+  if (!razorpayPlanId || razorpayPlanId === "null") {
+    return res.status(400).json({ error: "Invalid plan" });
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  const razorpay = getRazorpayInstance();
+
+  let subscription;
+  try {
+    subscription = await razorpay.subscriptions.create({
+      plan_id: razorpayPlanId,
+      customer_notify: 1,
+      total_count: planId.includes("yearly") ? 5 : 12,
+      notes: {
+        userId: user._id.toString(),
+        userEmail: user.email,
+      },
+    });
+  } catch (err) {
+    console.error("Razorpay subscription error:", err.error || err.message || err);
+    const msg = err.error?.description || err.message || "Failed to create subscription";
+    return res.status(err.statusCode || 500).json({ error: msg });
+  }
+
+  res.json({
+    subscriptionId: subscription.id,
+    key: process.env.RAZORPAY_KEY_ID,
+  });
+});
+
+export const verifyRazorpaySubscription = asyncHandler(async (req, res) => {
+  const userId = req.user?.userId;
+  const {
+    razorpay_payment_id,
+    razorpay_subscription_id,
+    razorpay_signature,
+    plan,
+  } = req.body || {};
+
+  if (!userId) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  if (!razorpay_payment_id || !razorpay_subscription_id || !razorpay_signature) {
+    return res.status(400).json({ error: "Missing payment details" });
+  }
+
+  // For subscriptions: HMAC of payment_id|subscription_id
+  const expectedSignature = crypto
+    .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+    .update(`${razorpay_payment_id}|${razorpay_subscription_id}`)
+    .digest("hex");
+
+  if (expectedSignature !== razorpay_signature) {
+    return res.status(400).json({ error: "Payment verification failed" });
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  const planName = plan || "pro";
+  const upgradedPlan = await applyPlanToUser(user, planName, {
+    status: "active",
+  });
+
+  if (!upgradedPlan) {
+    return res.status(404).json({ error: "Plan not found" });
+  }
+
+  user.razorpaySubscriptionId = razorpay_subscription_id;
+  user.subscriptionStatus = "active";
+  await user.save();
+
+  res.json({
+    success: true,
+    plan: upgradedPlan.name,
+    message: `Successfully subscribed to ${upgradedPlan.name}`,
+  });
+});
+
+export const cancelRazorpaySubscription = asyncHandler(async (req, res) => {
+  const userId = req.user?.userId;
+
+  if (!userId) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  if (!user.razorpaySubscriptionId) {
+    return res.status(400).json({ error: "No active subscription found" });
+  }
+
+  const razorpay = getRazorpayInstance();
+
+  try {
+    await razorpay.subscriptions.cancel(user.razorpaySubscriptionId);
+  } catch (err) {
+    // If subscription is already cancelled on Razorpay, proceed
+    if (!err.statusCode || err.statusCode !== 400) {
+      throw err;
+    }
+  }
+
+  await applyPlanToUser(user, "free", {
+    status: "canceled",
+    renewsAt: null,
+  });
+
+  user.razorpaySubscriptionId = null;
+  user.subscriptionStatus = "cancelled";
+  user.nextBillingDate = null;
+  await user.save();
+
+  res.json({
+    success: true,
+    message: "Subscription cancelled. Downgraded to free plan.",
+  });
+});
+
+export const handleRazorpayWebhook = async (req, res) => {
+  const signature = req.headers["x-razorpay-signature"];
+
+  if (!signature) {
+    return res.status(400).send("Missing Razorpay signature");
+  }
+
+  const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    return res.status(500).send("RAZORPAY_WEBHOOK_SECRET is not configured");
+  }
+
+  // Verify webhook signature
+  const expectedSignature = crypto
+    .createHmac("sha256", webhookSecret)
+    .update(req.body) // req.body is raw Buffer from express.raw()
+    .digest("hex");
+
+  if (expectedSignature !== signature) {
+    return res.status(400).send("Invalid webhook signature");
+  }
+
+  let event;
+  try {
+    event = JSON.parse(req.body.toString());
+  } catch {
+    return res.status(400).send("Invalid JSON");
+  }
+
+  const eventType = event.event;
+  const payload = event.payload;
+
+  try {
+    switch (eventType) {
+      case "subscription.activated": {
+        const sub = payload.subscription?.entity;
+        const userId = sub?.notes?.userId;
+        if (userId) {
+          const user = await User.findById(userId);
+          if (user) {
+            user.subscriptionStatus = "active";
+            user.razorpaySubscriptionId = sub.id;
+            if (sub.charge_at) {
+              user.nextBillingDate = new Date(sub.charge_at * 1000);
+            }
+            await user.save();
+
+            await applyPlanToUser(user, "pro", { status: "active" });
+          }
+        }
+        break;
+      }
+
+      case "subscription.charged": {
+        const sub = payload.subscription?.entity;
+        const userId = sub?.notes?.userId;
+        if (userId) {
+          const user = await User.findById(userId);
+          if (user) {
+            user.subscriptionStatus = "active";
+            if (sub.charge_at) {
+              user.nextBillingDate = new Date(sub.charge_at * 1000);
+            }
+            await user.save();
+          }
+        }
+        break;
+      }
+
+      case "subscription.completed":
+      case "subscription.cancelled": {
+        const sub = payload.subscription?.entity;
+        const userId = sub?.notes?.userId;
+        if (userId) {
+          const user = await User.findById(userId);
+          if (user) {
+            user.subscriptionStatus = "cancelled";
+            user.razorpaySubscriptionId = null;
+            user.nextBillingDate = null;
+            await user.save();
+
+            await applyPlanToUser(user, "free", {
+              status: "canceled",
+              renewsAt: null,
+            });
+          }
+        }
+        break;
+      }
+
+      case "subscription.halted": {
+        const sub = payload.subscription?.entity;
+        const userId = sub?.notes?.userId;
+        if (userId) {
+          const user = await User.findById(userId);
+          if (user) {
+            user.subscriptionStatus = "halted";
+            user.planStatus = "past_due";
+            await user.save();
+          }
+        }
+        break;
+      }
+
+      default:
+        break;
+    }
+
+    res.json({ received: true });
+  } catch (error) {
+    console.error("Razorpay webhook error:", error.message);
     res.status(500).send(`Webhook handler error: ${error.message}`);
   }
 };

@@ -14,7 +14,8 @@
     "example.js"
   ],
   "scripts": {
-    "example": "node example.js"
+    "example": "node example.js",
+    "test:validation": "node tests/validation.test.js"
   },
   "keywords": [
     "nigris",

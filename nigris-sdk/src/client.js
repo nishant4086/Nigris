@@ -63,6 +63,9 @@ export default class NigrisClient {
 
     this.baseURL = baseURL;
     this.timeout = timeout;
+    this.schemaCache = new Map();
+    this.entryCollectionCache = new Map();
+    this.entryCache = new Map();
   }
 
   async request(config) {
@@ -75,4 +78,4 @@ export default class NigrisClient {
   }
 }
 
-export { DEFAULT_BASE_URL, DEFAULT_TIMEOUT, NigrisError, formatAxiosError };
+export { DEFAULT_BASE_URL, DEFAULT_TIMEOUT, NigrisError, formatAxiosError, NigrisClient };

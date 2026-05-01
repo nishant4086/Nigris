@@ -2,183 +2,201 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import Card from "@/components/ui/Card";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  CartesianGrid,
+} from "recharts";
 
-type UsageItem = {
-  id: string;
-  name?: string;
-  project?: string;
-  usage: number;
-  limit: number;
-  remaining: number;
-  resetAt?: string | null;
-  isActive: boolean;
+type DailyData = {
+  time: string;
+  count: number;
 };
 
-type UsageSummary = {
-  totalUsage: number;
-  totalLimit: number;
-  remaining: number;
-  nextResetAt?: string | null;
+type EndpointData = {
+  endpoint: string;
+  count: number;
+};
+
+type Project = {
+  _id: string;
+  name: string;
 };
 
 export default function UsagePage() {
-  const [usage, setUsage] = useState<UsageItem[]>([]);
-  const [summary, setSummary] = useState<UsageSummary>({
-    totalUsage: 0,
-    totalLimit: 0,
-    remaining: 0,
-    nextResetAt: null,
-  });
+  const [summary, setSummary] = useState({ totalRequests: 0, successCount: 0, errorCount: 0, avgResponseTime: 0 });
+  const [daily, setDaily] = useState<DailyData[]>([]);
+  const [endpoints, setEndpoints] = useState<EndpointData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    let active = true;
+  // Filters state
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProject, setSelectedProject] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
+  // Fetch projects on mount
+  useEffect(() => {
+    api.get("/projects")
+      .then((res) => setProjects(res.data))
+      .catch((err) => console.error("Failed to load projects", err));
+  }, []);
+
+  // Fetch usage when filters change
+  useEffect(() => {
     const fetchUsage = async () => {
       setLoading(true);
       setError("");
       try {
-        const [usageRes, summaryRes] = await Promise.all([
-          api.get("/keys/usage"),
-          api.get("/keys/summary"),
+        const params = new URLSearchParams();
+        if (selectedProject) params.append("projectId", selectedProject);
+        if (startDate) params.append("startDate", startDate);
+        if (endDate) params.append("endDate", endDate);
+        
+        const q = params.toString() ? `?${params.toString()}` : "";
+        const timeQ = params.toString() ? `?${params.toString()}&groupBy=day` : "?groupBy=day";
+
+        const [sumRes, timeRes, topRes] = await Promise.all([
+          api.get(`/usage/summary${q}`),
+          api.get(`/usage/timeseries${timeQ}`),
+          api.get(`/usage/top-endpoints${q}`)
         ]);
 
-        if (active) {
-          setUsage(Array.isArray(usageRes.data) ? usageRes.data : []);
-          setSummary({
-            totalUsage: summaryRes.data?.totalUsage || 0,
-            totalLimit: summaryRes.data?.totalLimit || 0,
-            remaining: summaryRes.data?.remaining || 0,
-            nextResetAt: summaryRes.data?.nextResetAt || null,
-          });
-        }
-      } catch {
-        if (active) {
-          setUsage([]);
-          setSummary({ totalUsage: 0, totalLimit: 0, remaining: 0, nextResetAt: null });
-          setError("Failed to load usage data");
-        }
+        setSummary(sumRes.data);
+        setDaily(timeRes.data);
+        setEndpoints(topRes.data);
+      } catch (err: any) {
+        setError(err.response?.data?.error || "Failed to load usage data. Please try again later.");
+        console.error("Failed to fetch usage", err);
       } finally {
-        if (active) setLoading(false);
+        setLoading(false);
       }
     };
 
-    void fetchUsage();
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const refreshUsage = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const [usageRes, summaryRes] = await Promise.all([
-        api.get("/keys/usage"),
-        api.get("/keys/summary"),
-      ]);
-      setUsage(Array.isArray(usageRes.data) ? usageRes.data : []);
-      setSummary({
-        totalUsage: summaryRes.data?.totalUsage || 0,
-        totalLimit: summaryRes.data?.totalLimit || 0,
-        remaining: summaryRes.data?.remaining || 0,
-        nextResetAt: summaryRes.data?.nextResetAt || null,
-      });
-    } catch {
-      setUsage([]);
-      setError("Failed to load usage data");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const resetLabel = summary.nextResetAt
-    ? new Date(summary.nextResetAt).toLocaleDateString()
-    : "-";
+    fetchUsage();
+  }, [selectedProject, startDate, endDate]);
 
   return (
-    <div>
-      <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+    <div className="p-6 space-y-6">
+      
+      {/* 🎛 FILTERS */}
+      <div className="bg-white shadow rounded-2xl p-6 flex flex-wrap gap-4 items-center">
         <div>
-          <h1 className="text-2xl font-bold">Usage Dashboard</h1>
-          <p className="text-sm text-slate-500">
-            Track request usage, limits, remaining quota, and reset dates.
-          </p>
+          <label className="block text-sm text-gray-500 mb-1">Project</label>
+          <select 
+            className="border p-2 rounded-md bg-gray-50"
+            value={selectedProject} 
+            onChange={(e) => setSelectedProject(e.target.value)}
+          >
+            <option value="">All Projects</option>
+            {projects.map(p => (
+              <option key={p._id} value={p._id}>{p.name}</option>
+            ))}
+          </select>
         </div>
-        <button
-          type="button"
-          onClick={refreshUsage}
-          disabled={loading}
-          className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          Refresh
-        </button>
+        <div>
+          <label className="block text-sm text-gray-500 mb-1">Start Date</label>
+          <input 
+            type="date" 
+            className="border p-2 rounded-md bg-gray-50"
+            value={startDate} 
+            onChange={(e) => setStartDate(e.target.value)} 
+          />
+        </div>
+        <div>
+          <label className="block text-sm text-gray-500 mb-1">End Date</label>
+          <input 
+            type="date" 
+            className="border p-2 rounded-md bg-gray-50"
+            value={endDate} 
+            onChange={(e) => setEndDate(e.target.value)} 
+          />
+        </div>
       </div>
 
+      {/* 🚨 ERROR ALERT */}
       {error && (
-        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
+        <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-200">
+          <strong>Error:</strong> {error}
         </div>
       )}
 
-      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
-        <Card title="Total usage" value={summary.totalUsage} />
-        <Card title="Total limit" value={summary.totalLimit} />
-        <Card title="Remaining" value={summary.remaining} />
-        <Card title="Next reset" value={resetLabel} />
-      </div>
-
+      {/* ⏳ LOADING SKELETON */}
       {loading ? (
-        <p className="text-sm text-slate-500">Loading usage...</p>
-      ) : usage.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
-          No usage yet. Create an API key and call a collection endpoint to start tracking requests.
+        <div className="animate-pulse space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {[1,2,3,4].map(i => <div key={i} className="bg-gray-200 h-24 rounded-2xl"></div>)}
+          </div>
+          <div className="bg-gray-200 h-80 rounded-2xl"></div>
+          <div className="bg-gray-200 h-80 rounded-2xl"></div>
         </div>
       ) : (
-        <div className="space-y-4">
-          {usage.map((item) => {
-            const percent = item.limit
-              ? Math.min((item.usage / item.limit) * 100, 100)
-              : 0;
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* 🔢 TOTAL CARD */}
+            <div className="bg-white shadow rounded-2xl p-6">
+              <h2 className="text-gray-500 text-sm">Total Requests</h2>
+              <p className="text-3xl font-bold">{summary.totalRequests}</p>
+            </div>
+            {/* ✅ SUCCESS CARD */}
+            <div className="bg-white shadow rounded-2xl p-6">
+              <h2 className="text-gray-500 text-sm">Success</h2>
+              <p className="text-3xl font-bold text-green-600">{summary.successCount}</p>
+            </div>
+            {/* ❌ ERROR CARD */}
+            <div className="bg-white shadow rounded-2xl p-6">
+              <h2 className="text-gray-500 text-sm">Errors</h2>
+              <p className="text-3xl font-bold text-red-600">{summary.errorCount}</p>
+            </div>
+            {/* ⏱ RESPONSE TIME CARD */}
+            <div className="bg-white shadow rounded-2xl p-6">
+              <h2 className="text-gray-500 text-sm">Avg Response Time</h2>
+              <p className="text-3xl font-bold text-blue-600">{summary.avgResponseTime}ms</p>
+            </div>
+          </div>
 
-            return (
-              <div
-                key={item.id}
-                className="bg-white p-4 rounded-xl shadow"
-              >
-                <div className="flex justify-between mb-2">
-                  <div>
-                    <p className="font-semibold">{item.name || "Untitled key"}</p>
-                    <p className="text-sm text-gray-500">
-                      Project: {item.project || "Unknown project"}
-                    </p>
-                  </div>
+          {/* 📈 DAILY CHART */}
+          <div className="bg-white shadow rounded-2xl p-6">
+            <h2 className="text-lg font-semibold mb-4">Usage Over Time</h2>
+            {daily.length === 0 ? (
+              <div className="flex items-center justify-center h-[300px] text-gray-400">No Data</div>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={daily}>
+                  <XAxis dataKey="time" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="count" stroke="#4f46e5" strokeWidth={3} />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </div>
 
-                  <p className="text-sm">
-                    {item.usage} / {item.limit}
-                  </p>
-                </div>
-
-                <div className="w-full bg-gray-200 h-2 rounded">
-                  <div
-                    className="bg-black h-2 rounded"
-                    style={{ width: `${percent}%` }}
-                  />
-                </div>
-
-                <div className="flex justify-between mt-2 text-sm text-gray-500">
-                  <span>Remaining: {item.remaining}</span>
-                  <span>
-                    Reset: {item.resetAt ? new Date(item.resetAt).toLocaleDateString() : "-"}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+          {/* 📊 ENDPOINTS CHART */}
+          <div className="bg-white shadow rounded-2xl p-6">
+            <h2 className="text-lg font-semibold mb-4">Top Endpoints</h2>
+            {endpoints.length === 0 ? (
+              <div className="flex items-center justify-center h-[300px] text-gray-400">No Data</div>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={endpoints}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="endpoint" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="#4f46e5" />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </>
       )}
     </div>
   );

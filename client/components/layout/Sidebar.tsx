@@ -34,6 +34,9 @@ export default function Sidebar() {
         <Link href="/dashboard/plans" className={linkClass("/dashboard/plans")}>
           Plans
         </Link>
+        <Link href="/dashboard/billing" className={linkClass("/dashboard/billing")}>
+          Billing
+        </Link>
       </nav>
     </div>
   );

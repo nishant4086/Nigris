@@ -19,7 +19,7 @@ type Collection = {
 
 type FieldInput = {
   name: string;
-  type: "text" | "number" | "boolean";
+  type: "text" | "number" | "boolean" | "image" | "video";
   required: boolean;
 };
 
@@ -221,6 +221,8 @@ export default function CollectionsPage() {
               <option value="text">Text</option>
               <option value="number">Number</option>
               <option value="boolean">Boolean</option>
+              <option value="image">Image</option>
+              <option value="video">Video</option>
             </select>
             <label className="flex items-center gap-2 text-sm text-gray-600">
               <input
@@ -315,12 +317,20 @@ export default function CollectionsPage() {
                     </p>
                   )}
                 </div>
-                <button
-                  onClick={() => deleteCollection(collection._id)}
-                  className="text-sm text-red-500"
-                >
-                  Delete
-                </button>
+                <div className="flex gap-3">
+                  <a
+                    href={`/dashboard/collections/${collection._id}`}
+                    className="text-sm text-indigo-600 hover:underline"
+                  >
+                    View Data
+                  </a>
+                  <button
+                    onClick={() => deleteCollection(collection._id)}
+                    className="text-sm text-red-500"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             ))}
           </div>
