@@ -2,8 +2,9 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import rateLimit from "express-rate-limit";
-import { helmet } from "react-helmet";
+import helmet from "helmet";
 import compression from "compression";
+import morgan from "morgan";
 
 import authRoutes from "./routes/authRoutes.js";
 import projectRoutes from "./routes/projectRoutes.js";
@@ -28,6 +29,7 @@ const app = express();
 
 // ─── PRODUCTION HARDENING ────────────────────────────────
 app.use(helmet());
+app.use(morgan("combined"));
 app.use(compression());
 
 // Trust proxy for Render/Vercel (required for rate limiting behind reverse proxy)
@@ -100,6 +102,10 @@ app.use("/api", limiter);
 
 app.get("/", (req, res) => {
   res.json({ status: "ok", message: "Server is running" });
+});
+
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ status: "healthy", uptime: process.uptime() });
 });
 
 app.use("/api/auth", authRoutes);
