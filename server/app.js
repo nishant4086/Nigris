@@ -27,10 +27,11 @@ dotenv.config();
 
 const app = express();
 
-// Trust proxy for Render/Vercel (required for rate limiting behind reverse proxy)
+// Trust proxy (important for Render)
 app.set("trust proxy", 1);
 
-// ─── CORS (must be FIRST, before helmet/compression) ─────
+
+// ================== ✅ CORS FIX ==================
 const allowedOrigins = [
   "http://localhost:3000",
   ...(process.env.CLIENT_URL
@@ -38,39 +39,61 @@ const allowedOrigins = [
     : [])
 ];
 
+console.log("Allowed Origins:", allowedOrigins);
+
 const corsOptions = {
   origin: (origin, callback) => {
-    console.log("Origin:", origin);
+    console.log("Incoming Origin:", origin);
 
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.log("Blocked CORS:", origin);
-      callback(null, false);
+      console.log("Blocked by CORS:", origin);
+      callback(null, false); // ❗ error throw नहीं करना
     }
   },
   credentials: true,
 };
 
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
-// ─── PRODUCTION HARDENING ────────────────────────────────
+// ❌ REMOVE this (causes crash)
+// app.options("*", cors(corsOptions));
+
+
+// ================== SECURITY ==================
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
   })
 );
+
 app.use(morgan("combined"));
 app.use(compression());
 
+
+// ================== RATE LIMIT ==================
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10000,
   message: "Too many requests from this IP",
 });
-app.use("/api/billing/webhook", express.raw({ type: "application/json" }), handleStripeWebhook);
-app.use("/api/billing/razorpay-webhook", express.raw({ type: "application/json" }), handleRazorpayWebhook);
 
+
+// ================== WEBHOOK RAW ==================
+app.use(
+  "/api/billing/webhook",
+  express.raw({ type: "application/json" }),
+  handleStripeWebhook
+);
+
+app.use(
+  "/api/billing/razorpay-webhook",
+  express.raw({ type: "application/json" }),
+  handleRazorpayWebhook
+);
+
+
+// ================== BODY PARSER ==================
 const publicJsonParser = express.json({ limit: "100kb" });
 const globalJsonParser = express.json({ limit: "10mb" });
 const publicUrlParser = express.urlencoded({ limit: "100kb", extended: true });
@@ -90,23 +113,21 @@ app.use((req, res, next) => {
   }
 });
 
-// Sanitize inputs to prevent NoSQL injection safely
+
+// ================== SANITIZE ==================
 app.use((req, res, next) => {
   if (req.body) req.body = mongoSanitize.sanitize(req.body);
   if (req.params) req.params = mongoSanitize.sanitize(req.params);
   if (req.query) {
     const cleanQuery = mongoSanitize.sanitize(req.query);
-    // Express req.query is a getter, so we mutate the object in-place
-    for (const key in req.query) {
-      if (Object.prototype.hasOwnProperty.call(req.query, key)) {
-        delete req.query[key];
-      }
-    }
+    for (const key in req.query) delete req.query[key];
     Object.assign(req.query, cleanQuery);
   }
   next();
 });
 
+
+// ================== ROUTES ==================
 app.use("/api", limiter);
 
 app.get("/", (req, res) => {
@@ -126,23 +147,19 @@ app.use("/api/plans", planRoutes);
 app.use("/api/billing", billingRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/upload", uploadRoutes);
-
-// Protected Analytics API
 app.use("/api/usage", usageRoutes);
-
-// Public API (API-key authenticated) routes
 app.use("/api/public", publicRoutes);
-
-// Webhooks API (API-key authenticated)
 app.use("/api/webhooks", webhookRoutes);
-
-// Dynamic routes (moved under /api/public to avoid API-key use on /api)
 app.use("/api/public", dynamicRoutes);
 
+
+// ================== 404 ==================
 app.use((req, res) => {
   res.status(404).json({ error: "Route not found" });
 });
 
+
+// ================== ERROR ==================
 app.use(errorMiddleware);
 
 export default app;
