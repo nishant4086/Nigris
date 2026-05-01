@@ -42,9 +42,10 @@ const limiter = rateLimit({
 });
 
 // Support multiple allowed origins (e.g. localhost + Vercel domain)
-const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:3000")
-  .split(",")
-  .map((o) => o.trim());
+const allowedOrigins = [
+  "http://localhost:3000",
+  ...(process.env.CLIENT_URL ? process.env.CLIENT_URL.split(",").map((o) => o.trim()) : [])
+];
 
 const corsOptions = {
   origin: (origin, callback) => {
