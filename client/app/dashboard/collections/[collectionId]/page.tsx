@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { api } from "@/lib/api";
+import { api, getApiErrorMessage } from "@/lib/api";
 
 type Field = { name: string; type: string; required: boolean };
 
@@ -47,9 +47,8 @@ export default function CollectionDataPage() {
         setTotal(res.data.total || 0);
         setPages(res.data.pages || 1);
       })
-      .catch((err) => {
-        const msg = err?.response?.data?.error || "Failed to load data";
-        setError(msg);
+      .catch((err: unknown) => {
+        setError(getApiErrorMessage(err, "Failed to load data"));
         setData([]);
       })
       .finally(() => setLoading(false));
@@ -74,8 +73,8 @@ export default function CollectionDataPage() {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setFormData((prev) => ({ ...prev, [fieldName]: res.data.url }));
-    } catch (err: any) {
-      alert(err.response?.data?.error || "Upload failed");
+    } catch (err) {
+      alert(getApiErrorMessage(err, "Upload failed"));
     } finally {
       setUploadingField(null);
     }
@@ -89,8 +88,8 @@ export default function CollectionDataPage() {
       setIsModalOpen(false);
       setFormData({});
       loadData();
-    } catch (err: any) {
-      alert(err.response?.data?.error || "Failed to add entry");
+    } catch (err) {
+      alert(getApiErrorMessage(err, "Failed to add entry"));
     } finally {
       setSubmitting(false);
     }

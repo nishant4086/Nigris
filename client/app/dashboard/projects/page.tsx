@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { api } from "@/lib/api";
+import { api, getApiErrorMessage } from "@/lib/api";
 
 type Project = {
   _id: string;
@@ -89,12 +89,7 @@ export default function ProjectsPage() {
       }
       await loadProjects();
     } catch (err) {
-      const message =
-        err && typeof err === "object" && "response" in err
-          ? (err as { response?: { data?: { error?: string; message?: string } } }).response?.data?.error ||
-            (err as { response?: { data?: { error?: string; message?: string } } }).response?.data?.message
-          : null;
-      setError(message || "Failed to create project");
+      setError(getApiErrorMessage(err, "Failed to create project"));
     } finally {
       setSaving(false);
     }
@@ -113,12 +108,7 @@ export default function ProjectsPage() {
         return nextProjects;
       });
     } catch (err) {
-      const message =
-        err && typeof err === "object" && "response" in err
-          ? (err as { response?: { data?: { error?: string; message?: string } } }).response?.data?.error ||
-            (err as { response?: { data?: { error?: string; message?: string } } }).response?.data?.message
-          : null;
-      setError(message || "Failed to delete project");
+      setError(getApiErrorMessage(err, "Failed to delete project"));
     } finally {
       setDeletingId(null);
     }

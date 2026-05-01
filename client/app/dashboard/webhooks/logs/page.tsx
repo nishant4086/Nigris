@@ -2,12 +2,24 @@
 
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { getApiErrorMessage } from "@/lib/api";
 
 export default function WebhookLogsPage() {
-  const [logs, setLogs] = useState([]);
+  type WebhookLog = {
+    _id: string;
+    status: string;
+    event: string;
+    url: string;
+    responseCode?: number;
+    errorMessage?: string;
+    retryCount?: number;
+    lastRetryAt?: string;
+  };
+
+  const [logs, setLogs] = useState<WebhookLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [apiKey, setApiKey] = useState("");
-  const [retryingId, setRetryingId] = useState(null);
+  const [retryingId, setRetryingId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
 
   const fetchLogs = async () => {
@@ -23,13 +35,13 @@ export default function WebhookLogsPage() {
       });
       setLogs(res.data.data || []);
     } catch (err) {
-      setMessage("Failed to fetch logs: " + (err.response?.data?.error || err.message));
+      setMessage("Failed to fetch logs: " + getApiErrorMessage(err, "Unknown error"));
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRetry = async (logId) => {
+  const handleRetry = async (logId: string) => {
     setRetryingId(logId);
     setMessage("");
     try {
@@ -40,7 +52,7 @@ export default function WebhookLogsPage() {
       // Refresh logs after a short delay to allow worker to process
       setTimeout(fetchLogs, 2000);
     } catch (err) {
-      setMessage("❌ Retry failed: " + (err.response?.data?.error || err.message));
+      setMessage("❌ Retry failed: " + getApiErrorMessage(err, "Unknown error"));
     } finally {
       setRetryingId(null);
     }
@@ -110,7 +122,7 @@ export default function WebhookLogsPage() {
                   {log.status === "failed" && (
                     <button 
                       onClick={() => handleRetry(log._id)}
-                      disabled={retryingId === log._id || log.retryCount >= 5}
+                      disabled={retryingId === log._id || (log.retryCount ?? 0) >= 5}
                       className="text-indigo-400 hover:text-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm transition"
                     >
                       {retryingId === log._id ? "Retrying..." : "Retry"}

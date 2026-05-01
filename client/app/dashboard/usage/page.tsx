@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import { api, getApiErrorMessage } from "@/lib/api";
 import {
   LineChart,
   Line,
@@ -72,8 +72,8 @@ export default function UsagePage() {
         setSummary(sumRes.data);
         setDaily(timeRes.data);
         setEndpoints(topRes.data);
-      } catch (err: any) {
-        setError(err.response?.data?.error || "Failed to load usage data. Please try again later.");
+      } catch (err) {
+        setError(getApiErrorMessage(err, "Failed to load usage data. Please try again later."));
         console.error("Failed to fetch usage", err);
       } finally {
         setLoading(false);
