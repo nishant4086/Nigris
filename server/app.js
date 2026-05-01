@@ -33,23 +33,27 @@ app.set("trust proxy", 1);
 // ─── CORS (must be FIRST, before helmet/compression) ─────
 const allowedOrigins = [
   "http://localhost:3000",
-  ...(process.env.CLIENT_URL ? process.env.CLIENT_URL.split(",").map((o) => o.trim()) : [])
+  ...(process.env.CLIENT_URL
+    ? process.env.CLIENT_URL.split(",").map((o) => o.trim())
+    : [])
 ];
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, etc.)
+    console.log("Origin:", origin);
+
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error("Not allowed by CORS"));
+      console.log("Blocked CORS:", origin);
+      callback(null, false);
     }
   },
   credentials: true,
 };
 
 app.use(cors(corsOptions));
-
+app.options("*", cors(corsOptions));
 // ─── PRODUCTION HARDENING ────────────────────────────────
 app.use(
   helmet({
