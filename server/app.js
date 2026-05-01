@@ -27,24 +27,14 @@ dotenv.config();
 
 const app = express();
 
-// ─── PRODUCTION HARDENING ────────────────────────────────
-app.use(helmet());
-app.use(morgan("combined"));
-app.use(compression());
-
 // Trust proxy for Render/Vercel (required for rate limiting behind reverse proxy)
 app.set("trust proxy", 1);
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10000,
-  message: "Too many requests from this IP",
-});
-
-// Support multiple allowed origins (e.g. localhost + Vercel domain)
-const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:3000")
-  .split(",")
-  .map((o) => o.trim());
+// ─── CORS (must be FIRST, before helmet/compression) ─────
+const allowedOrigins = [
+  "http://localhost:3000",
+  ...(process.env.CLIENT_URL ? process.env.CLIENT_URL.split(",").map((o) => o.trim()) : [])
+];
 
 const corsOptions = {
   origin: (origin, callback) => {
@@ -59,6 +49,21 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
+// ─── PRODUCTION HARDENING ────────────────────────────────
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
+app.use(morgan("combined"));
+app.use(compression());
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10000,
+  message: "Too many requests from this IP",
+});
 app.use("/api/billing/webhook", express.raw({ type: "application/json" }), handleStripeWebhook);
 app.use("/api/billing/razorpay-webhook", express.raw({ type: "application/json" }), handleRazorpayWebhook);
 
