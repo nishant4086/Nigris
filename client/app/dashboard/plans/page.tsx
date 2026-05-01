@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { api } from "@/lib/api";
+import { api, getApiErrorMessage } from "@/lib/api";
 import { loadRazorpayScript } from "@/lib/loadRazorpay";
 
 type Plan = {
@@ -98,12 +98,14 @@ function PlansContent() {
               plan: "pro",
             });
             setNotice(verifyRes.data.message || "Successfully subscribed!");
+            // Refetch plans to update isCurrent
             const plansRes = await api.get("/plans");
             setPlans(Array.isArray(plansRes.data) ? plansRes.data : []);
-          } catch (verifyErr: any) {
+            // Reload after a brief delay so dashboard state refreshes
+            setTimeout(() => window.location.reload(), 1500);
+          } catch (verifyErr) {
             setError(
-              verifyErr?.response?.data?.error ||
-              "Payment verification failed. Contact support if charged."
+              getApiErrorMessage(verifyErr, "Payment verification failed. Contact support if charged.")
             );
           } finally {
             setBusyPlan(null);
@@ -124,8 +126,8 @@ function PlansContent() {
         setBusyPlan(null);
       });
       rzp.open();
-    } catch (err: any) {
-      setError(err?.response?.data?.error || "Failed to start checkout");
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Failed to start checkout"));
       setBusyPlan(null);
     }
   };

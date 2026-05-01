@@ -278,6 +278,8 @@ export const verifyRazorpayPayment = asyncHandler(async (req, res) => {
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature, plan } =
     req.body || {};
 
+  console.log("[Billing] verifyRazorpayPayment called:", { userId, razorpay_order_id, razorpay_payment_id, plan });
+
   if (!userId) {
     return res.status(401).json({ error: "Unauthorized" });
   }
@@ -297,6 +299,7 @@ export const verifyRazorpayPayment = asyncHandler(async (req, res) => {
     .digest("hex");
 
   if (expectedSignature !== razorpay_signature) {
+    console.error("[Billing] Payment signature mismatch for user:", userId);
     return res.status(400).json({ error: "Payment verification failed" });
   }
 
@@ -314,6 +317,8 @@ export const verifyRazorpayPayment = asyncHandler(async (req, res) => {
   if (!upgradedPlan) {
     return res.status(404).json({ error: "Plan not found in database" });
   }
+
+  console.log("[Billing] ✅ User upgraded:", { userId, plan: upgradedPlan.name, previousPlan: user.plan });
 
   res.json({
     success: true,
@@ -390,6 +395,8 @@ export const verifyRazorpaySubscription = asyncHandler(async (req, res) => {
     plan,
   } = req.body || {};
 
+  console.log("[Billing] verifyRazorpaySubscription called:", { userId, razorpay_subscription_id, plan });
+
   if (!userId) {
     return res.status(401).json({ error: "Unauthorized" });
   }
@@ -405,6 +412,7 @@ export const verifyRazorpaySubscription = asyncHandler(async (req, res) => {
     .digest("hex");
 
   if (expectedSignature !== razorpay_signature) {
+    console.error("[Billing] Subscription signature mismatch for user:", userId);
     return res.status(400).json({ error: "Payment verification failed" });
   }
 
@@ -425,6 +433,8 @@ export const verifyRazorpaySubscription = asyncHandler(async (req, res) => {
   user.razorpaySubscriptionId = razorpay_subscription_id;
   user.subscriptionStatus = "active";
   await user.save();
+
+  console.log("[Billing] ✅ Subscription verified:", { userId, plan: upgradedPlan.name, subscriptionId: razorpay_subscription_id });
 
   res.json({
     success: true,
@@ -477,14 +487,18 @@ export const cancelRazorpaySubscription = asyncHandler(async (req, res) => {
 });
 
 export const handleRazorpayWebhook = async (req, res) => {
+  console.log("[Billing] Razorpay webhook received");
+
   const signature = req.headers["x-razorpay-signature"];
 
   if (!signature) {
+    console.error("[Billing] Webhook missing x-razorpay-signature header");
     return res.status(400).send("Missing Razorpay signature");
   }
 
   const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
   if (!webhookSecret) {
+    console.error("[Billing] RAZORPAY_WEBHOOK_SECRET not set in env");
     return res.status(500).send("RAZORPAY_WEBHOOK_SECRET is not configured");
   }
 
@@ -495,6 +509,7 @@ export const handleRazorpayWebhook = async (req, res) => {
     .digest("hex");
 
   if (expectedSignature !== signature) {
+    console.error("[Billing] Webhook signature mismatch — check RAZORPAY_WEBHOOK_SECRET");
     return res.status(400).send("Invalid webhook signature");
   }
 
@@ -507,12 +522,14 @@ export const handleRazorpayWebhook = async (req, res) => {
 
   const eventType = event.event;
   const payload = event.payload;
+  console.log("[Billing] Webhook event:", eventType);
 
   try {
     switch (eventType) {
       case "subscription.activated": {
         const sub = payload.subscription?.entity;
         const userId = sub?.notes?.userId;
+        console.log("[Billing] subscription.activated for userId:", userId);
         if (userId) {
           const user = await User.findById(userId);
           if (user) {
@@ -524,6 +541,9 @@ export const handleRazorpayWebhook = async (req, res) => {
             await user.save();
 
             await applyPlanToUser(user, "pro", { status: "active" });
+            console.log("[Billing] ✅ User plan updated to pro via webhook:", userId);
+          } else {
+            console.error("[Billing] User not found for webhook userId:", userId);
           }
         }
         break;
@@ -584,9 +604,10 @@ export const handleRazorpayWebhook = async (req, res) => {
         break;
     }
 
+    console.log("[Billing] Webhook processed successfully:", eventType);
     res.json({ received: true });
   } catch (error) {
-    console.error("Razorpay webhook error:", error.message);
+    console.error("[Billing] Razorpay webhook error:", error.message, error.stack);
     res.status(500).send(`Webhook handler error: ${error.message}`);
   }
 };
