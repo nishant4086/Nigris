@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
+import { api, getApiErrorMessage } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,7 +15,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const isSignup = mode === "signup";
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (isSignup) {
@@ -42,8 +42,7 @@ export default function LoginPage() {
       localStorage.setItem("token", res.data.token);
       router.replace("/dashboard");
     } catch (err) {
-      const msg = err?.response?.data?.error || "Invalid credentials";
-      setError(msg);
+      setError(getApiErrorMessage(err, "Invalid credentials"));
     } finally {
       setLoading(false);
     }
@@ -77,17 +76,13 @@ export default function LoginPage() {
       localStorage.setItem("token", res.data.token);
       router.replace("/dashboard");
     } catch (err) {
-      const msg =
-        err?.response?.data?.error ||
-        err?.response?.data?.message ||
-        "Registration failed";
-      setError(msg);
+      setError(getApiErrorMessage(err, "Registration failed"));
     } finally {
       setLoading(false);
     }
   };
 
-  const switchMode = (nextMode) => {
+  const switchMode = (nextMode: string) => {
     setMode(nextMode);
     setError("");
   };

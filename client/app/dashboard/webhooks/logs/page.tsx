@@ -1,21 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, SetStateAction } from "react";
 import axios from "axios";
 import { getApiErrorMessage } from "@/lib/api";
 
-export default function WebhookLogsPage() {
-  type WebhookLog = {
-    _id: string;
-    status: string;
-    event: string;
-    url: string;
-    responseCode?: number;
-    errorMessage?: string;
-    retryCount?: number;
-    lastRetryAt?: string;
-  };
+type WebhookLog = {
+  _id: string;
+  status: "success" | "failed";
+  event: string;
+  url: string;
+  responseCode?: number;
+  errorMessage?: string;
+  retryCount: number;
+  lastRetryAt?: string;
+};
 
+export default function WebhookLogsPage() {
   const [logs, setLogs] = useState<WebhookLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [apiKey, setApiKey] = useState("");
