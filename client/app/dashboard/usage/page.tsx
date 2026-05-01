@@ -59,7 +59,7 @@ export default function UsagePage() {
         if (selectedProject) params.append("projectId", selectedProject);
         if (startDate) params.append("startDate", startDate);
         if (endDate) params.append("endDate", endDate);
-        
+
         const q = params.toString() ? `?${params.toString()}` : "";
         const timeQ = params.toString() ? `?${params.toString()}&groupBy=day` : "?groupBy=day";
 
@@ -85,14 +85,14 @@ export default function UsagePage() {
 
   return (
     <div className="p-6 space-y-6">
-      
+
       {/* 🎛 FILTERS */}
       <div className="bg-white shadow rounded-2xl p-6 flex flex-wrap gap-4 items-center">
         <div>
           <label className="block text-sm text-gray-500 mb-1">Project</label>
-          <select 
+          <select
             className="border p-2 rounded-md bg-gray-50"
-            value={selectedProject} 
+            value={selectedProject}
             onChange={(e) => setSelectedProject(e.target.value)}
           >
             <option value="">All Projects</option>
@@ -103,20 +103,20 @@ export default function UsagePage() {
         </div>
         <div>
           <label className="block text-sm text-gray-500 mb-1">Start Date</label>
-          <input 
-            type="date" 
+          <input
+            type="date"
             className="border p-2 rounded-md bg-gray-50"
-            value={startDate} 
-            onChange={(e) => setStartDate(e.target.value)} 
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
           />
         </div>
         <div>
           <label className="block text-sm text-gray-500 mb-1">End Date</label>
-          <input 
-            type="date" 
+          <input
+            type="date"
             className="border p-2 rounded-md bg-gray-50"
-            value={endDate} 
-            onChange={(e) => setEndDate(e.target.value)} 
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
           />
         </div>
       </div>
@@ -132,7 +132,7 @@ export default function UsagePage() {
       {loading ? (
         <div className="animate-pulse space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {[1,2,3,4].map(i => <div key={i} className="bg-gray-200 h-24 rounded-2xl"></div>)}
+            {[1, 2, 3, 4].map(i => <div key={i} className="bg-gray-200 h-24 rounded-2xl"></div>)}
           </div>
           <div className="bg-gray-200 h-80 rounded-2xl"></div>
           <div className="bg-gray-200 h-80 rounded-2xl"></div>

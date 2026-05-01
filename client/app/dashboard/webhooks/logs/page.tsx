@@ -61,17 +61,17 @@ export default function WebhookLogsPage() {
   return (
     <div className="p-8 max-w-6xl mx-auto text-white">
       <h1 className="text-3xl font-bold mb-6 text-indigo-400">Webhook Logs</h1>
-      
+
       <div className="mb-6 flex gap-4">
-        <input 
-          type="text" 
-          placeholder="Enter Project API Key..." 
+        <input
+          type="text"
+          placeholder="Enter Project API Key..."
           className="px-4 py-2 bg-gray-800 border border-gray-700 rounded w-96 text-white focus:outline-none focus:border-indigo-500"
           value={apiKey}
           onChange={(e) => setApiKey(e.target.value)}
         />
-        <button 
-          onClick={fetchLogs} 
+        <button
+          onClick={fetchLogs}
           disabled={loading}
           className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded transition font-medium disabled:opacity-50"
         >
@@ -120,9 +120,9 @@ export default function WebhookLogsPage() {
                 </td>
                 <td className="p-4">
                   {log.status === "failed" && (
-                    <button 
+                    <button
                       onClick={() => handleRetry(log._id)}
-                      disabled={retryingId === log._id || (log.retryCount ?? 0) >= 5}
+                      disabled={retryingId === log._id || log.retryCount >= 5}
                       className="text-indigo-400 hover:text-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm transition"
                     >
                       {retryingId === log._id ? "Retrying..." : "Retry"}
