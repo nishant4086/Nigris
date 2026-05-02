@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import Collection from "../../models/Collection.js";
 import Project from "../../models/Project.js";
 import asyncHandler from "../../utils/asyncHandler.js";
+import { getOrCreateCollectionModel } from "../../utils/dynamicModel.js";
+
 
 // 🔧 slug generator
 const generateSlug = (name) => {
@@ -196,6 +198,11 @@ export const publicGetCollectionSchema = asyncHandler(async (req, res) => {
 export const publicCreateEntry = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const project = req.project;
+  
+  console.log("=== publicCreateEntry called ===");
+  console.log("Collection ID:", id);
+  console.log("Req Body:", JSON.stringify(req.body, null, 2));
+
   if (!project) return res.status(400).json({ error: "Project not found on request" });
 
   let collection;
@@ -209,13 +216,13 @@ export const publicCreateEntry = asyncHandler(async (req, res) => {
     return res.status(404).json({ error: "Collection not found" });
   }
 
-  const DataModel = await import("../../models/Data.js").then(m => m.default);
-  const newData = await DataModel.create({
-    collectionId: collection._id,
-    project: project._id,
-    data: req.body,
-    createdBy: req.apiKey?.user || null,
+  const collectionModel = getOrCreateCollectionModel(collection._id, collection.fields || []);
+  const newData = new collectionModel({
+    ...req.body,
   });
+  await newData.save();
+
+  console.log("newData saved:", JSON.stringify(newData, null, 2));
 
   const { triggerWebhook } = await import("../../webhookService.js");
   triggerWebhook("entry.created", newData, project._id).catch(console.error);
@@ -236,8 +243,17 @@ export const publicGetEntry = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: "Invalid entry ID" });
   }
 
-  const DataModel = await import("../../models/Data.js").then((m) => m.default);
-  const entry = await DataModel.findOne({ _id: entryId, project: project._id });
+  const collections = await Collection.find({ project: project._id });
+  let entry = null;
+
+  for (const collection of collections) {
+    const collectionModel = getOrCreateCollectionModel(collection._id, collection.fields || []);
+    const doc = await collectionModel.findById(entryId).lean();
+    if (doc) {
+      entry = doc;
+      break;
+    }
+  }
 
   if (!entry) {
     return res.status(404).json({ error: "Entry not found" });

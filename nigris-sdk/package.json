@@ -1,6 +1,6 @@
 {
-  "name": "nigris",
-  "version": "1.0.0",
+  "name": "@nishant4806/nigris-sdk",
+  "version": "1.0.1",
   "description": "Official JavaScript SDK for the Nigris API — CRUD operations, pagination, filtering, and schema validation for your collections.",
   "type": "module",
   "main": "src/index.js",
@@ -37,7 +37,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nishant4086/Nigris.git",
+    "url": "git+https://github.com/nishant4086/Nigris.git",
     "directory": "nigris-sdk"
   },
   "homepage": "https://github.com/nishant4086/Nigris/tree/main/nigris-sdk#readme",

@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
-import Data from "../../models/Data.js";
 import Collection from "../../models/Collection.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import buildSafeFilter from "../../utils/buildSafeFilter.js";
+import { getOrCreateCollectionModel } from "../../utils/dynamicModel.js";
+
 
 // ✅ HELPER: Validate pagination params
 const validatePaginationParams = (page, limit) => {
@@ -45,24 +46,24 @@ export const getEntries = asyncHandler(async (req, res) => {
   // Build dynamic filter securely from query params
   const dynamicFilter = buildSafeFilter(req.query, collection.fields || []);
 
-  // Base filter: entries belong to this collection AND project
+  // Base filter: entries belong to this collection implicitly
   const baseFilter = {
-    collectionId: collection._id,
-    project: project._id,
     ...dynamicFilter,
   };
 
+  const collectionModel = getOrCreateCollectionModel(collection._id, collection.fields || []);
+
   // Execute query with pagination
-  const total = await Data.countDocuments(baseFilter);
+  const total = await collectionModel.countDocuments(baseFilter);
   const skip = (page - 1) * limit;
 
-  const entries = await Data.find(baseFilter)
+  const entries = await collectionModel.find(baseFilter)
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
     .lean();
 
-  const pages = Math.ceil(total / limit);
+  const pages = Math.ceil(total / limit) || 1;
 
   res.json({
     data: entries,
@@ -90,25 +91,29 @@ export const updateEntry = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: "Invalid entry ID" });
   }
 
-  // Find entry scoped to project (CRITICAL for security)
-  const entry = await Data.findOne({
-    _id: entryId,
-    project: project._id,
-  });
+  const collections = await Collection.find({ project: project._id });
+  let entry = null;
+
+  for (const collection of collections) {
+    const collectionModel = getOrCreateCollectionModel(collection._id, collection.fields || []);
+    const doc = await collectionModel.findById(entryId);
+    if (doc) {
+      // Found the document
+      // Merge old data with new data (shallow merge)
+      // Since it's a dynamic model, the fields are at the root level!
+      const updatedData = { ...req.body };
+      for (const key of Object.keys(updatedData)) {
+        doc[key] = updatedData[key];
+      }
+      await doc.save();
+      entry = doc;
+      break;
+    }
+  }
 
   if (!entry) {
     return res.status(404).json({ error: "Entry not found" });
   }
-
-  // Merge old data with new data (shallow merge)
-  const updatedData = {
-    ...entry.data,
-    ...req.body,
-  };
-
-  // Update only the data field
-  entry.data = updatedData;
-  await entry.save();
 
   res.json(entry);
 });
@@ -128,11 +133,17 @@ export const deleteEntry = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: "Invalid entry ID" });
   }
 
-  // Find and delete entry scoped to project (CRITICAL for security)
-  const entry = await Data.findOneAndDelete({
-    _id: entryId,
-    project: project._id,
-  });
+  const collections = await Collection.find({ project: project._id });
+  let entry = null;
+
+  for (const collection of collections) {
+    const collectionModel = getOrCreateCollectionModel(collection._id, collection.fields || []);
+    const doc = await collectionModel.findByIdAndDelete(entryId);
+    if (doc) {
+      entry = doc;
+      break;
+    }
+  }
 
   if (!entry) {
     return res.status(404).json({ error: "Entry not found" });
