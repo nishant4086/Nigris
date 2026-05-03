@@ -8,13 +8,13 @@ Official JavaScript SDK for the [Nigris](https://nigris-client.vercel.app) API â
 ## Install
 
 ```bash
-npm install nigris
+npm install @nishant4806/nigris-sdk
 ```
 
 ## Quick Start
 
 ```js
-import Nigris from "nigris";
+import Nigris from "@nishant4806/nigris-sdk";
 
 const client = new Nigris("your-api-key");
 
@@ -33,7 +33,7 @@ console.log(entry);
 ### Initialize
 
 ```js
-import Nigris from "nigris";
+import Nigris from "@nishant4806/nigris-sdk";
 
 const client = new Nigris("API_KEY", {
   baseURL: "https://nigris-1.onrender.com/api/public", // default
