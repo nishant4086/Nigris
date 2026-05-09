@@ -21,6 +21,7 @@ const apiKeySchema = new mongoose.Schema(
       type: String,
       required: false,
       unique: true,
+      sparse: true,
     },
     encryptedKey: {
       type: String,
