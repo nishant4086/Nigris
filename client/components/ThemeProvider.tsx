@@ -38,11 +38,16 @@ const applyDocumentTheme = (mode: AppThemeMode) => {
 };
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setMode] = useState<AppThemeMode>(() => getInitialMode());
+  // Initialize with light theme to match server
+  const [mode, setMode] = useState<AppThemeMode>("light");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    applyDocumentTheme(mode);
-  }, [mode]);
+    setMounted(true);
+    const initialMode = getInitialMode();
+    setMode(initialMode);
+    applyDocumentTheme(initialMode);
+  }, []);
 
   const setThemeMode = useCallback((nextMode: AppThemeMode) => {
     setMode(nextMode);
