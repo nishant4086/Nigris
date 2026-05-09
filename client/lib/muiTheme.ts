@@ -136,11 +136,16 @@ export const getMuiTheme = (mode: AppThemeMode) => {
             borderRadius: 14,
             fontWeight: 700,
           },
-          containedPrimary: {
-            backgroundImage: "var(--gradient-primary)",
-            boxShadow: "0 16px 36px rgba(59, 130, 246, 0.3)",
-          },
         },
+        variants: [
+          {
+            props: { variant: "contained", color: "primary" },
+            style: {
+              backgroundImage: "var(--gradient-primary)",
+              boxShadow: "0 16px 36px rgba(59, 130, 246, 0.3)",
+            },
+          },
+        ],
       },
     },
   });
