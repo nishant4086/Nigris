@@ -5,12 +5,11 @@ import {
 } from "../utils/validate.js";
 import {
   cacheEntriesFromList,
-  cacheEntryCollection,
   cacheEntryRecord,
   getCachedOrFetchedEntry,
-  getCollectionSchema,
   validateDataAgainstSchema,
 } from "../utils/schema.js";
+import { mergeEntryData, normalizeEntry } from "../utils/entry.js";
 
 
 const buildQueryParams = (options = {}) => {
@@ -53,8 +52,12 @@ export const createEntry = async (client, collectionId, data) => {
     data,
   });
 
-  cacheEntryRecord(client, res);
-  return res;
+  const entry = normalizeEntry(res);
+  if (entry && !entry.collectionId) {
+    entry.collectionId = collectionId;
+  }
+  cacheEntryRecord(client, entry);
+  return entry;
 };
 
 // LIST
@@ -68,26 +71,38 @@ export const listEntries = async (client, collectionId, options = {}) => {
     params,
   });
 
-  if (res?.data) {
-    cacheEntriesFromList(client, res.data);
+  const normalizedEntries = Array.isArray(res?.data)
+    ? res.data.map((entry) => {
+        const normalized = normalizeEntry(entry);
+        if (normalized && !normalized.collectionId) {
+          normalized.collectionId = collectionId;
+        }
+        return normalized;
+      })
+    : res?.data;
+
+  if (Array.isArray(normalizedEntries)) {
+    cacheEntriesFromList(client, normalizedEntries);
   }
 
-  return res;
+  return {
+    ...res,
+    data: normalizedEntries,
+  };
 };
 
 // UPDATE
-export const updateEntry = async (client, entryId, data) => {
+export const updateEntry = async (client, entryId, data, options = {}) => {
   validateEntryId(entryId);
   validateData(data);
 
   const currentEntry = await getCachedOrFetchedEntry(client, entryId);
-  const collectionId = currentEntry.collectionId;
-  const mergedData = {
-    ...(currentEntry.data || {}),
-    ...data,
-  };
+  const collectionId = options.collectionId || currentEntry?.collectionId;
+  const mergedData = mergeEntryData(currentEntry, data);
 
-  await validateDataAgainstSchema(client, collectionId, mergedData);
+  if (options.validateSchema !== false && collectionId) {
+    await validateDataAgainstSchema(client, collectionId, mergedData);
+  }
 
   const res = await client.request({
     method: "PATCH",
@@ -95,8 +110,12 @@ export const updateEntry = async (client, entryId, data) => {
     data,
   });
 
-  cacheEntryRecord(client, res);
-  return res;
+  const entry = normalizeEntry(res);
+  if (entry && !entry.collectionId && collectionId) {
+    entry.collectionId = collectionId;
+  }
+  cacheEntryRecord(client, entry);
+  return entry;
 };
 
 // DELETE

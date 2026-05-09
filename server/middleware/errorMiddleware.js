@@ -1,12 +1,64 @@
-const errorMiddleware = (err, req, res, next) => {
-  const status = err.status || 500;
-  const message = err.message || "Internal Server Error";
+const normalizeError = (err) => {
+  const status =
+    err.status ||
+    err.statusCode ||
+    (err.code === "LIMIT_FILE_SIZE" ? 413 : 500);
 
-  res.status(status).json({
-    error: message,
+  // Never leak internal error details in production.
+  let errorMessage;
+  switch (err.code) {
+    case "LIMIT_FILE_SIZE":
+      errorMessage = "File too large. Please choose a smaller file.";
+      break;
+    default:
+      errorMessage = err.message || "Internal Server Error";
+  }
+
+  // Common safety: unify validation-ish errors.
+  if (err.name === "CastError") {
+    errorMessage = "Invalid identifier";
+  }
+
+  if (err.name === "ValidationError") {
+    errorMessage = "Request validation failed";
+  }
+
+  if (err.type === "entity.parse.failed" || err instanceof SyntaxError) {
+    errorMessage = "Malformed JSON";
+  }
+
+  return { status, errorMessage };
+};
+
+const errorMiddleware = (err, req, res, next) => {
+  const { status, errorMessage } = normalizeError(err);
+
+  // Allow explicit safe messages (but still do not expose stack traces)
+  // e.g. throw new AppError(400, "...") pattern.
+  const traceId = req.headers["x-trace-id"] || req.id;
+
+  const payload = {
+    error: errorMessage,
     status,
-    ...(process.env.NODE_ENV === "development" && { stack: err.stack })
-  });
+    traceId: traceId || undefined,
+  };
+
+  if (process.env.NODE_ENV === "development") {
+    payload.stack = err?.stack;
+    payload.code = err?.code;
+    payload.name = err?.name;
+  }
+
+  // Avoid leaking internal error messages from unknown errors.
+  if (!payload.error || status >= 500) {
+    payload.error = "Internal Server Error";
+  }
+
+
+  // Avoid headers already sent.
+  if (res.headersSent) return next(err);
+  return res.status(status).json(payload);
 };
 
 export default errorMiddleware;
+

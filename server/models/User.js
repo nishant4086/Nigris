@@ -18,10 +18,27 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, "Password is required"],
+      required: function() { return this.provider === "local"; },
       minlength: [6, "Password must be at least 6 characters"],
       select: false
     },
+    provider: {
+      type: String,
+      enum: ["local", "google", "github"],
+      default: "local"
+    },
+    providerId: {
+      type: String,
+      default: null
+    },
+    emailVerified: {
+      type: Boolean,
+      default: false
+    },
+    verificationToken: String,
+    verificationTokenExpiry: Date,
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
     role: {
       type: String,
       enum: ["user", "admin"],
@@ -83,6 +100,28 @@ const userSchema = new mongoose.Schema(
     nextBillingDate: {
       type: Date,
       default: null,
+    },
+    // Security / MFA
+    mfaEnabled: {
+      type: Boolean,
+      default: false
+    },
+    totpSecret: {
+      type: String,
+      select: false
+    },
+    recoveryCodes: {
+      type: [String],
+      select: false
+    },
+    passkeys: {
+      type: [{
+        credentialID: String,
+        publicKey: String,
+        counter: Number,
+        transports: [String],
+      }],
+      default: []
     }
   },
   { timestamps: true }

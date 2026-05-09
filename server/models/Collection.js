@@ -9,12 +9,19 @@ const fieldSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ["text", "number", "boolean", "image", "video"],
+    enum: ["text", "number", "boolean", "image", "video", "reference", "file"],
     default: "text",
   },
   required: {
     type: Boolean,
     default: false,
+  },
+  unique: {
+    type: Boolean,
+    default: false,
+  },
+  ref: {
+    type: String,
   },
 });
 

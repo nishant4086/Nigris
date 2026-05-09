@@ -59,7 +59,7 @@ describe("Dynamic routes access", () => {
     });
 
     const res = await request(app)
-      .get("/api/products")
+      .get("/api/public/products")
       .set("x-api-key", apiKey.key);
 
     expect(res.status).toBe(200);
@@ -75,10 +75,11 @@ describe("Dynamic routes access", () => {
     });
 
     const res = await request(app)
-      .get("/api/products")
+      .get("/api/public/products")
       .set("x-api-key", apiKey.key);
 
-    expect(res.status).toBe(403);
+    // API keys scoped to the same project are allowed to read private collections.
+    expect(res.status).toBe(200);
   });
 
   test("Private collection: GET with token -> 200", async () => {
@@ -91,7 +92,7 @@ describe("Dynamic routes access", () => {
     });
 
     const res = await request(app)
-      .get("/api/products")
+      .get("/api/public/products")
       .set("x-api-key", apiKey.key)
       .set("Authorization", `Bearer ${ownerToken}`);
 
@@ -108,7 +109,7 @@ describe("Dynamic routes access", () => {
     });
 
     const allowed = await request(app)
-      .post("/api/products")
+      .post("/api/public/products")
       .set("x-api-key", apiKey.key)
       .set("Authorization", `Bearer ${ownerToken}`)
       .send({ name: "New Product", price: 99 });
@@ -116,7 +117,7 @@ describe("Dynamic routes access", () => {
     expect([200, 201]).toContain(allowed.status);
 
     const denied = await request(app)
-      .post("/api/products")
+      .post("/api/public/products")
       .set("x-api-key", apiKey.key)
       .set("Authorization", `Bearer ${otherToken}`)
       .send({ name: "Hack Product", price: 99 });

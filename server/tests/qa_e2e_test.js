@@ -40,17 +40,26 @@ async function runTests() {
   let entryId = "";
 
   try {
-    // 1. AUTH
+    // 1. AUTH (verified-user flow)
     try {
-      const signupRes = await axios.post(`${BASE_URL}/auth/register`, {
+      await axios.post(`${BASE_URL}/auth/signup`, {
         name: "QA User",
         email: testEmail,
         password: "Password123!",
+        confirmPassword: "Password123!",
       });
-      jwt = signupRes.data.token;
-      logStatus("1", "Auth Signup & Login", "PASS", "Extracted JWT token");
+
+      // Force-verify email in DB (no mail server in QA)
+      await User.updateOne({ email: testEmail }, { emailVerified: true });
+
+      const loginRes = await axios.post(`${BASE_URL}/auth/login`, {
+        email: testEmail,
+        password: "Password123!",
+      });
+      jwt = loginRes.data.token;
+      logStatus("1", "Auth Signup & Verified Login", "PASS", "Extracted JWT token after email verification");
     } catch (e) {
-      logStatus("1", "Auth Signup & Login", "FAIL", e.response?.data?.error || e.message);
+      logStatus("1", "Auth Signup & Verified Login", "FAIL", e.response?.data?.error || e.message);
       return;
     }
 

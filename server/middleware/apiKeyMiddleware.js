@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import ApiKey from "../models/ApiKey.js";
 
 const apiKeyMiddleware = async (req, res, next) => {
@@ -7,7 +8,8 @@ const apiKeyMiddleware = async (req, res, next) => {
     return res.status(401).json({ message: "API key required" });
   }
 
-  const apiKey = await ApiKey.findOne({ key, isActive: true });
+  const keyHash = crypto.createHash("sha256").update(key).digest("hex");
+  const apiKey = await ApiKey.findOne({ hashedKey: keyHash, isActive: true });
 
   if (!apiKey) {
     return res.status(403).json({ message: "Invalid API key" });

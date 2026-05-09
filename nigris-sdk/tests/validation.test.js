@@ -23,24 +23,21 @@ class MockNigris extends Nigris {
     if (config.method === "GET" && config.url === "/entries/entry-2") {
       return {
         _id: "entry-2",
-        collectionId: "collection-1",
-        data: { name: "Fallback" },
+        name: "Fallback",
       };
     }
 
     if (config.method === "POST") {
       return {
         _id: "entry-1",
-        collectionId: "collection-1",
-        data: config.data,
+        ...config.data,
       };
     }
 
     if (config.method === "PATCH") {
       return {
         _id: config.url.split("/").pop(),
-        collectionId: "collection-1",
-        data: config.data,
+        ...config.data,
       };
     }
 
@@ -64,6 +61,7 @@ const run = async () => {
 
   const created = await client.create("collection-1", { name: "Alice", age: 28 });
   assert.equal(created._id, "entry-1");
+  assert.equal(created.data.name, "Alice");
   assert.equal(client.calls[0].method, "GET");
   assert.equal(client.calls[1].method, "POST");
 
@@ -86,10 +84,12 @@ const run = async () => {
 
   const updated = await client.update("entry-1", { active: true });
   assert.equal(updated._id, "entry-1");
+  assert.equal(updated.data.active, true);
   assert.equal(client.calls[4].method, "PATCH");
 
   const fallbackUpdated = await client.update("entry-2", { age: 31 });
   assert.equal(fallbackUpdated._id, "entry-2");
+  assert.equal(fallbackUpdated.data.age, 31);
   assert.equal(client.calls[5].method, "GET");
   assert.equal(client.calls[6].method, "PATCH");
 

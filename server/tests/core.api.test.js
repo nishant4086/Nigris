@@ -1,6 +1,7 @@
 import request from "supertest";
 import app from "../app.js";
 import Plan from "../models/Plan.js";
+import User from "../models/User.js";
 
 const seedPlans = async () => {
   await Plan.create({ name: "free", requestLimit: 100, price: 0 });
@@ -22,8 +23,15 @@ describe("Core API flows", () => {
       confirmPassword: "Password123",
     });
 
-    token = signup.body.token;
-    userId = signup.body.user?.id;
+    await User.updateOne({ email: "user@test.com" }, { emailVerified: true });
+
+    const login = await request(app).post("/api/auth/login").send({
+      email: "user@test.com",
+      password: "Password123",
+    });
+
+    token = login.body.token;
+    userId = login.body.user?.id;
   });
 
   test("login works with valid credentials", async () => {

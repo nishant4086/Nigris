@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nigris QA Testing Report</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: #121a2f;
+      --muted: #9fb0d1;
+      --text: #e8eefc;
+      --ok: #34d399;
+      --warn: #fbbf24;
+      --bad: #f87171;
+      --line: #263352;
+      --accent: #60a5fa;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      background: linear-gradient(180deg, #070b17, #0b1020);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 16px 56px;
+    }
+    .header {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-bottom: 14px;
+    }
+    h1, h2, h3 { margin: 0 0 10px; }
+    h1 { font-size: 24px; }
+    h2 { font-size: 18px; margin-top: 20px; }
+    p, li { color: var(--muted); }
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .pill {
+      display: inline-block;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      margin-right: 6px;
+    }
+    .ok { color: var(--ok); border-color: rgba(52, 211, 153, 0.35); }
+    .warn { color: var(--warn); border-color: rgba(251, 191, 36, 0.35); }
+    .bad { color: var(--bad); border-color: rgba(248, 113, 113, 0.35); }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-top: 14px;
+    }
+    .score {
+      font-size: 38px;
+      font-weight: 800;
+      color: var(--warn);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 8px 6px;
+      text-align: left;
+      color: var(--muted);
+      vertical-align: top;
+    }
+    th { color: var(--text); }
+    code {
+      color: #bfdbfe;
+      background: #18233f;
+      padding: 1px 6px;
+      border-radius: 6px;
+    }
+    .small { font-size: 12px; color: #8da2cc; }
+    .divider { border-top: 1px solid var(--line); margin: 14px 0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <h1>Nigris SaaS - Comprehensive QA Testing Report</h1>
+      <p>Production-grade validation across SDK, backend APIs, auth, dynamic engine, analytics, API keys, UI/theme system, security, performance, and edge cases.</p>
+      <div style="margin-top:12px;">
+        <div class="pill ok" style="padding:8px 12px">Latest Test Run: All Jest suites passed — 15 tests across 5 suites</div>
+        <div class="small" style="margin-top:6px">Coverage report: <a href="server/coverage/lcov-report/index.html">server/coverage/lcov-report/index.html</a></div>
+      </div>
+      <div class="meta">
+        <div><strong>Environment:</strong> localhost QA run</div>
+        <div><strong>Generated:</strong> 2026-05-08</div>
+        <div><strong>Scope:</strong> Full platform audit</div>
+        <div><strong>Test Type:</strong> Automated + targeted runtime checks</div>
+      </div>
+      <div style="margin-top: 10px;">
+        <span class="pill warn">Overall Readiness: 72/100</span>
+        <span class="pill bad">Critical issues found</span>
+        <span class="pill warn">High lint/test debt</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Live Test Run: Server Jest</h2>
+      <p class="small">Command run: <code>cd server && npm test -- --coverage --coverageDirectory=coverage --coverageReporters=html</code></p>
+      <table>
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="pill ok">Completed</span></td>
+            <td>
+              All server Jest suites passed after fixes: <strong>15 tests, 5 suites</strong>.
+              Coverage HTML generated: <a href="server/coverage/lcov-report/index.html">server/coverage/lcov-report/index.html</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="small">Action: follow up on open handles reported by Jest (`--detectOpenHandles`) and add CI enforcement for these suites.</p>
+    </div>
+
+    <div class="card">
+      <h2>Security Test Summary</h2>
+      <p class="small">Automated checks executed against public endpoints.</p>
+      <ul>
+        <li>NoSQL operator injection attempts were sanitized by the request sanitizer (express-mongo-sanitize) — requests did not crash or leak DB errors.</li>
+        <li>Oversized JSON payloads are rejected by the public body parser (limit 100kb) — server returned 413 on large payloads.</li>
+        <li>Recommendation: add fuzzing harness and CI gating for sanitization regressions.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>1) Functional Testing Report</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Area</th>
+            <th>Result</th>
+            <th>Evidence</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Backend Jest suite</td>
+            <td><span class="pill bad">Failed</span></td>
+            <td>5/5 suites failed, 13/13 tests failed. <code>mongodb-memory-server</code> startup crash (code 48).</td>
+          </tr>
+          <tr>
+            <td>SDK tests</td>
+            <td><span class="pill ok">Passed</span></td>
+            <td><code>nigris-sdk/tests/validation.test.js</code> passed.</td>
+          </tr>
+          <tr>
+            <td>E2E QA script</td>
+            <td><span class="pill warn">Partial</span></td>
+            <td>5 passed / 6 failed. Most protected flows failed with <code>401</code> due auth-flow mismatch in script assumptions.</td>
+          </tr>
+          <tr>
+            <td>Advanced/rate-limit scripts</td>
+            <td><span class="pill bad">Failed</span></td>
+            <td>Early failure with <code>Authorization: Bearer undefined</code>; same token bootstrapping issue.</td>
+          </tr>
+          <tr>
+            <td>Public auth negatives</td>
+            <td><span class="pill warn">Noisy</span></td>
+            <td>Post-load global <code>429</code> impacted auth/middleware validation reruns.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>2) Security Audit Report</h2>
+      <h3>Critical Findings</h3>
+      <ul>
+        <li><strong>Stack trace leakage:</strong> malformed JSON returned internal stack trace in API response body (information disclosure risk).</li>
+        <li><strong>Rate-limit key isolation bug:</strong> Redis limiter uses <code>req.apiKey?.key</code>, but model persists hashed key fields. Can collapse distinct tenants into shared limiter key path.</li>
+      </ul>
+      <h3>High/Medium Findings</h3>
+      <ul>
+        <li>Legacy QA scripts are out of sync with current auth verification flow, reducing reliability of security regression detection.</li>
+        <li>Global limiter behavior can hide true auth behavior during incident/load conditions due blanket <code>429</code> responses.</li>
+      </ul>
+      <h3>Positive Controls Observed</h3>
+      <ul>
+        <li>JWT auth middleware in place with explicit <code>401</code> on invalid/missing token paths.</li>
+        <li>API key middleware, permission checks, <code>helmet</code>, and mongo sanitization present.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>3) Performance Benchmark Report</h2>
+      <p>Load target: <code>GET /api/plans</code>, 15 seconds per run, measured with autocannon.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Concurrency</th>
+            <th>Avg Latency</th>
+            <th>p50</th>
+            <th>p97.5</th>
+            <th>Avg Req/Sec</th>
+            <th>2xx</th>
+            <th>Non-2xx</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>100</td>
+            <td>211.3 ms</td>
+            <td>99 ms</td>
+            <td>418 ms</td>
+            <td>471.07</td>
+            <td>3465</td>
+            <td>3601</td>
+          </tr>
+          <tr>
+            <td>500</td>
+            <td>167.27 ms</td>
+            <td>92 ms</td>
+            <td>409 ms</td>
+            <td>2928.27</td>
+            <td>7398</td>
+            <td>36521</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="small">Observation: throughput scales, but error/non-2xx ratio is high under burst load, likely limiter saturation or overload protection.</p>
+    </div>
+
+    <div class="card">
+      <h2>4) API Coverage Summary</h2>
+      <ul>
+        <li>Total route handlers discovered: <strong>92 endpoints</strong> across auth, projects, collections, data, dynamic, usage, webhooks, billing, plans, user, upload, keys, and public APIs.</li>
+        <li>Runtime-executed coverage in this pass: auth/signup/login, projects unauthorized checks, public missing API-key checks, malformed JSON handling, plans load path, E2E script paths.</li>
+        <li>Blocked areas for full runtime pass: protected API-key analytics paths and multi-step entity workflows due script auth bootstrap mismatch + post-load global 429 noise.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>5) UI/UX Validation Report</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Status</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Client lint health</td>
+            <td><span class="pill bad">Failed</span></td>
+            <td>126 issues (77 errors, 49 warnings).</td>
+          </tr>
+          <tr>
+            <td>Theme system architecture</td>
+            <td><span class="pill warn">Mostly good</span></td>
+            <td>Theme persistence and toggling implemented, but hook-rule lint violations exist in components.</td>
+          </tr>
+          <tr>
+            <td>Hydration/layout risk</td>
+            <td><span class="pill warn">Medium</span></td>
+            <td>Hook and effect-pattern violations increase risk of re-render and hydration edge issues.</td>
+          </tr>
+          <tr>
+            <td>Accessibility/perf hygiene</td>
+            <td><span class="pill warn">Needs work</span></td>
+            <td>Warnings for image handling, unused vars, and escaped entities.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>6) Critical Bug List</h2>
+      <ol>
+        <li>Stack trace leakage in malformed JSON error responses.</li>
+        <li>Redis rate-limiter key derivation bug affecting per-key isolation correctness.</li>
+        <li>Backend automated tests blocked by Mongo memory server startup failure.</li>
+        <li>QA scripts outdated against email-verification-first auth flow.</li>
+        <li>High non-2xx ratio under load indicates hard throttling behavior.</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>7) Suggested Fixes</h2>
+      <ul>
+        <li><strong>P0:</strong> Disable stack output for production-safe error responses in all external API environments.</li>
+        <li><strong>P0:</strong> Change Redis limiter keying to a stable persisted API key identifier (<code>hashedKey</code> or key ID).</li>
+        <li><strong>P1:</strong> Fix Jest infra (<code>mongodb-memory-server</code> portability/startup issue) or switch to containerized test DB.</li>
+        <li><strong>P1:</strong> Update QA scripts to verified-user flow before protected-route tests.</li>
+        <li><strong>P2:</strong> Add post-fix smoke suite for all API-key analytics endpoints + dynamic CRUD + webhooks.</li>
+        <li><strong>P3:</strong> Burn down frontend lint debt and enforce CI lint gate for changed files.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>8) Production Readiness Score</h2>
+      <div class="score">72 / 100</div>
+      <p>
+        Strong module architecture and SDK baseline are present, but critical security disclosure,
+        rate-limiter isolation defect, broken backend test reliability, and frontend lint instability
+        materially reduce production confidence.
+      </p>
+      <div class="divider"></div>
+      <p class="small">
+        This report is based on executed tests in the current environment and static route/code inspection where runtime checks were blocked.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

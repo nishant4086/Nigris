@@ -55,5 +55,15 @@ export function validateFields(data, schema = []) {
     if (type === "boolean" && typeof value !== "boolean") {
       throw new Error(`Field ${name} must be a boolean`);
     }
+
+    if (["image", "video", "file"].includes(type) && typeof value !== "string" && typeof value !== "object") {
+      throw new Error(`Field ${name} has an invalid type`);
+    }
+
+    if (type === "reference") {
+      if (typeof value !== "string" || !/^[0-9a-fA-F]{24}$/.test(value)) {
+        throw new Error(`Field ${name} must be a valid reference ID`);
+      }
+    }
   }
 }

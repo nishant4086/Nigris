@@ -1,6 +1,6 @@
 {
   "name": "@nishant4806/nigris-sdk",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Official JavaScript SDK for the Nigris API — CRUD operations, pagination, filtering, and schema validation for your collections.",
   "type": "module",
   "main": "src/index.js",

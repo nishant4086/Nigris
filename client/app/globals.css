@@ -1,11 +1,230 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand-light: #61C5FA;
+  --color-brand: #4CB0E6;
+  --color-brand-dark: #3A98CC;
+}
+
 :root {
 	color-scheme: light;
+  --app-bg: #f5f5f7;
+  --app-bg-soft: #ffffff;
+  --app-text: #0f172a;
+  --app-muted: #64748b;
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-bg-strong: rgba(255, 255, 255, 0.78);
+  --glass-highlight: rgba(255, 255, 255, 0.52);
+  --glass-border: rgba(255, 255, 255, 0.72);
+  --glass-border-soft: rgba(148, 163, 184, 0.22);
+  --glass-shadow: 0 24px 70px rgba(15, 23, 42, 0.12);
+  --glass-shadow-hover: 0 32px 90px rgba(15, 23, 42, 0.18);
+  --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+  --gradient-accent:
+    radial-gradient(60% 60% at 15% 15%, rgba(59, 130, 246, 0.2), transparent 60%),
+    radial-gradient(50% 50% at 80% 18%, rgba(34, 211, 238, 0.18), transparent 60%),
+    radial-gradient(40% 40% at 65% 85%, rgba(168, 85, 247, 0.18), transparent 60%);
+  --chart-grid: rgba(100, 116, 139, 0.2);
+}
+
+.dark {
+  color-scheme: dark;
+  --app-bg: #0f172a;
+  --app-bg-soft: #111827;
+  --app-text: #f8fafc;
+  --app-muted: #94a3b8;
+  --glass-bg: rgba(30, 41, 59, 0.6);
+  --glass-bg-strong: rgba(15, 23, 42, 0.78);
+  --glass-highlight: rgba(148, 163, 184, 0.2);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-border-soft: rgba(148, 163, 184, 0.18);
+  --glass-shadow: 0 24px 70px rgba(2, 6, 23, 0.45);
+  --glass-shadow-hover: 0 32px 90px rgba(2, 6, 23, 0.64);
+  --gradient-accent:
+    radial-gradient(60% 60% at 15% 15%, rgba(59, 130, 246, 0.22), transparent 62%),
+    radial-gradient(50% 50% at 80% 18%, rgba(34, 211, 238, 0.16), transparent 60%),
+    radial-gradient(40% 40% at 65% 85%, rgba(99, 102, 241, 0.2), transparent 60%);
+  --chart-grid: rgba(148, 163, 184, 0.16);
+}
+
+/* Global Smooth Theme Transitions */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+  transition-duration: 400ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Exclude transitions that cause layout thrashing */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow, opacity, transform;
 }
 
 body {
-	background-color: #f8fafc;
-	color: #0f172a;
-	font-family: Arial, Helvetica, sans-serif;
+	background:
+    var(--gradient-accent),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0)),
+    var(--app-bg);
+	color: var(--app-text);
+	font-family: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", sans-serif;
+  min-height: 100vh;
+  position: relative;
+  isolation: isolate;
+}
+
+/* Dark mode overrides for default body */
+.dark body {
+  background:
+    var(--gradient-accent),
+    linear-gradient(180deg, rgba(15, 23, 42, 0.5), rgba(15, 23, 42, 0)),
+    var(--app-bg);
+  color: var(--app-text);
+}
+
+/* Premium Apple Glass Effect */
+.apple-glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.dark .apple-glass {
+  background: var(--glass-bg);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.liquid-shell {
+  position: relative;
+  background:
+    var(--gradient-accent),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0)),
+    var(--app-bg);
+}
+
+.dark .liquid-shell {
+  background:
+    var(--gradient-accent),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0)),
+    var(--app-bg);
+}
+
+.glass-card,
+.glass-sidebar,
+.glass-nav,
+.glass-popover {
+  background: linear-gradient(135deg, var(--glass-bg-strong), var(--glass-bg));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+}
+
+.glass-card {
+  border-radius: 16px;
+  transition: transform 300ms ease, box-shadow 300ms ease, border-color 300ms ease, background-color 300ms ease;
+}
+
+.glass-card:hover {
+  box-shadow: var(--glass-shadow-hover);
+  border-color: rgba(99, 102, 241, 0.28);
+}
+
+.glass-sidebar {
+  background: linear-gradient(180deg, var(--glass-bg-strong), var(--glass-bg));
+  border-radius: 20px;
+}
+
+.glass-nav {
+  background: linear-gradient(135deg, var(--glass-bg-strong), var(--glass-bg));
+  border-radius: 18px;
+}
+
+.glass-popover {
+  border-radius: 16px;
+  background: var(--glass-bg-strong);
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--glass-border-soft);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.dark .glass-input {
+  background: rgba(15, 23, 42, 0.46);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.glass-select {
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border-soft);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.glass-pill {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border-soft);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+}
+
+.gradient-text {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.gradient-button {
+  background: var(--gradient-primary);
+  box-shadow: 0 18px 42px rgba(59, 130, 246, 0.28);
+}
+
+.nav-item-active {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(99, 102, 241, 0.2));
+  color: #2563eb;
+  border: 1px solid rgba(99, 102, 241, 0.28);
+}
+
+.dark .nav-item-active {
+  color: #93c5fd;
+  border-color: rgba(147, 197, 253, 0.18);
+}
+
+@keyframes liquid-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.liquid-fade-up {
+  animation: liquid-fade-up 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Hide scrollbars but keep functionality for a cleaner look */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.3);
+  border-radius: 10px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 0.5);
 }

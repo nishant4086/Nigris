@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 import Collection from "../../models/Collection.js";
+import Data from "../../models/Data.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import buildSafeFilter from "../../utils/buildSafeFilter.js";
-import { getOrCreateCollectionModel } from "../../utils/dynamicModel.js";
-
+import { validateData } from "../../utils/dataValidation.js";
 
 // ✅ HELPER: Validate pagination params
 const validatePaginationParams = (page, limit) => {
@@ -16,6 +16,34 @@ const validatePaginationParams = (page, limit) => {
   if (l > 100) l = 100; // Cap limit at 100
 
   return { page: p, limit: l };
+};
+
+// Helper to populate references
+const populateReferences = async (collection, dataItems) => {
+  const refFields = (collection.fields || []).filter(f => f.type === "reference");
+  if (refFields.length === 0 || dataItems.length === 0) return dataItems;
+
+  const populatedItems = JSON.parse(JSON.stringify(dataItems));
+
+  for (const field of refFields) {
+    const idsToFetch = populatedItems.map(item => item.data?.[field.name]).filter(id => id);
+    if (idsToFetch.length === 0) continue;
+
+    const referencedEntries = await Data.find({ _id: { $in: idsToFetch } }).lean();
+    const entryMap = {};
+    for (const entry of referencedEntries) {
+      entryMap[entry._id.toString()] = entry.data; // Attach the actual data of the entry
+    }
+
+    for (const item of populatedItems) {
+      const refId = item.data?.[field.name];
+      if (refId && entryMap[refId]) {
+        item.data[field.name] = { _id: refId, ...entryMap[refId] };
+      }
+    }
+  }
+
+  return populatedItems;
 };
 
 // 📖 GET ENTRIES (with pagination + filtering)
@@ -48,25 +76,26 @@ export const getEntries = asyncHandler(async (req, res) => {
 
   // Base filter: entries belong to this collection implicitly
   const baseFilter = {
+    collectionId: collection._id,
     ...dynamicFilter,
   };
 
-  const collectionModel = getOrCreateCollectionModel(collection._id, collection.fields || []);
-
   // Execute query with pagination
-  const total = await collectionModel.countDocuments(baseFilter);
+  const total = await Data.countDocuments(baseFilter);
   const skip = (page - 1) * limit;
 
-  const entries = await collectionModel.find(baseFilter)
+  const rawEntries = await Data.find(baseFilter)
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
     .lean();
 
+  const populatedEntries = await populateReferences(collection, rawEntries);
+
   const pages = Math.ceil(total / limit) || 1;
 
   res.json({
-    data: entries,
+    data: populatedEntries.map(item => ({ _id: item._id, ...item.data, createdAt: item.createdAt, updatedAt: item.updatedAt })),
     pagination: {
       total,
       page,
@@ -91,31 +120,27 @@ export const updateEntry = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: "Invalid entry ID" });
   }
 
-  const collections = await Collection.find({ project: project._id });
-  let entry = null;
-
-  for (const collection of collections) {
-    const collectionModel = getOrCreateCollectionModel(collection._id, collection.fields || []);
-    const doc = await collectionModel.findById(entryId);
-    if (doc) {
-      // Found the document
-      // Merge old data with new data (shallow merge)
-      // Since it's a dynamic model, the fields are at the root level!
-      const updatedData = { ...req.body };
-      for (const key of Object.keys(updatedData)) {
-        doc[key] = updatedData[key];
-      }
-      await doc.save();
-      entry = doc;
-      break;
-    }
-  }
-
+  const entry = await Data.findById(entryId);
   if (!entry) {
     return res.status(404).json({ error: "Entry not found" });
   }
 
-  res.json(entry);
+  const collection = await Collection.findOne({ _id: entry.collectionId, project: project._id });
+  if (!collection) {
+    return res.status(403).json({ error: "Not authorized to update this entry" });
+  }
+
+  const mergedData = { ...entry.data, ...req.body };
+
+  const errors = await validateData(collection, mergedData, entryId);
+  if (errors.length > 0) {
+    return res.status(400).json({ errors });
+  }
+
+  entry.data = mergedData;
+  await entry.save();
+
+  res.json({ _id: entry._id, ...entry.data, createdAt: entry.createdAt, updatedAt: entry.updatedAt });
 });
 
 // ❌ DELETE ENTRY
@@ -133,21 +158,17 @@ export const deleteEntry = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: "Invalid entry ID" });
   }
 
-  const collections = await Collection.find({ project: project._id });
-  let entry = null;
-
-  for (const collection of collections) {
-    const collectionModel = getOrCreateCollectionModel(collection._id, collection.fields || []);
-    const doc = await collectionModel.findByIdAndDelete(entryId);
-    if (doc) {
-      entry = doc;
-      break;
-    }
-  }
-
+  const entry = await Data.findById(entryId);
   if (!entry) {
     return res.status(404).json({ error: "Entry not found" });
   }
+
+  const collection = await Collection.findOne({ _id: entry.collectionId, project: project._id });
+  if (!collection) {
+    return res.status(403).json({ error: "Not authorized to delete this entry" });
+  }
+
+  await Data.findByIdAndDelete(entryId);
 
   res.json({
     success: true,

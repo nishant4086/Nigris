@@ -126,7 +126,8 @@ export const handleStripeWebhook = async (req, res) => {
   try {
     stripe = getStripeClient();
   } catch (error) {
-    return res.status(500).send(error.message);
+    console.error("[Billing] Stripe client init error:", error.message);
+    return res.status(500).send("Payment provider unavailable");
   }
   const signature = req.headers["stripe-signature"];
 
@@ -135,7 +136,8 @@ export const handleStripeWebhook = async (req, res) => {
   }
 
   if (!process.env.STRIPE_WEBHOOK_SECRET) {
-    return res.status(500).send("STRIPE_WEBHOOK_SECRET is not configured");
+    console.error("[Billing] STRIPE_WEBHOOK_SECRET is not configured");
+    return res.status(500).send("Webhook configuration error");
   }
 
   let event;
@@ -226,7 +228,8 @@ export const handleStripeWebhook = async (req, res) => {
 
     res.json({ received: true });
   } catch (error) {
-    res.status(500).send(`Webhook handler error: ${error.message}`);
+    console.error("[Billing] Stripe webhook handler error:", error.message);
+    res.status(500).send("Internal Server Error");
   }
 };
 
@@ -499,7 +502,7 @@ export const handleRazorpayWebhook = async (req, res) => {
   const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
   if (!webhookSecret) {
     console.error("[Billing] RAZORPAY_WEBHOOK_SECRET not set in env");
-    return res.status(500).send("RAZORPAY_WEBHOOK_SECRET is not configured");
+    return res.status(500).send("Webhook configuration error");
   }
 
   // Verify webhook signature
@@ -608,6 +611,6 @@ export const handleRazorpayWebhook = async (req, res) => {
     res.json({ received: true });
   } catch (error) {
     console.error("[Billing] Razorpay webhook error:", error.message, error.stack);
-    res.status(500).send(`Webhook handler error: ${error.message}`);
+    res.status(500).send("Internal Server Error");
   }
 };

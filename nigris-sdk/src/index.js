@@ -30,8 +30,8 @@ export default class Nigris extends NigrisClient {
   }
 
   // ✏️ UPDATE entry (merge data)
-  async update(entryId, data) {
-    return updateEntry(this, entryId, data);
+  async update(entryId, data, options = {}) {
+    return updateEntry(this, entryId, data, options);
   }
 
   // ❌ DELETE entry

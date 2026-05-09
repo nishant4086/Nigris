@@ -1,4 +1,5 @@
 import { validateFields } from "./validate.js";
+import { normalizeEntry } from "./entry.js";
 
 const normalizeFields = (schemaResponse) => {
   if (Array.isArray(schemaResponse)) {
@@ -59,9 +60,10 @@ export async function resolveEntryCollectionId(client, entryId) {
     url: `/entries/${entryId}`,
   });
 
-  const collectionId = response?.collectionId;
+  const entry = normalizeEntry(response);
+  const collectionId = entry?.collectionId;
   if (!collectionId || typeof collectionId !== "string") {
-    throw new Error("Unable to resolve collection schema for entry");
+    return null;
   }
 
   client.entryCollectionCache?.set(entryId, collectionId);
@@ -89,8 +91,9 @@ export function cacheEntryRecord(client, entry) {
     return;
   }
 
-  client.entryCache.set(entry._id, entry);
-  cacheEntryCollection(client, entry);
+  const normalized = normalizeEntry(entry);
+  client.entryCache.set(normalized._id, normalized);
+  cacheEntryCollection(client, normalized);
 }
 
 export function cacheEntriesFromList(client, entries = []) {
@@ -121,6 +124,7 @@ export async function getCachedOrFetchedEntry(client, entryId) {
     url: `/entries/${entryId}`,
   });
 
-  cacheEntryRecord(client, entry);
-  return entry;
+  const normalized = normalizeEntry(entry);
+  cacheEntryRecord(client, normalized);
+  return normalized;
 }

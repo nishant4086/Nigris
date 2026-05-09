@@ -1,26 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useEffect, useState, useMemo } from "react";
 import { api, getApiErrorMessage } from "@/lib/api";
-
-type Project = {
-  _id: string;
-  name: string;
-  description?: string;
-  createdAt?: string;
-};
+import { Search, Plus, FolderGit2, ArrowUpRight } from "lucide-react";
+import Link from "next/link";
+import ProjectCard, { Project } from "@/components/projects/ProjectCard";
+import CreateProjectModal from "@/components/projects/CreateProjectModal";
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [selectedProjectId, setSelectedProjectId] = useState("");
   const [error, setError] = useState("");
-  const selectedProject = projects.find((project) => project._id === selectedProjectId);
+  
+  // UX States
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | "name">("newest");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [limits, setLimits] = useState<any>(null);
 
   const loadProjects = async (showLoader = false) => {
     if (showLoader) setLoading(true);
@@ -28,236 +24,193 @@ export default function ProjectsPage() {
     try {
       const res = await api.get("/projects");
       const list = Array.isArray(res.data) ? res.data : [];
-      setProjects(list);
-      setSelectedProjectId((current) => current || list[0]?._id || "");
+
+      // Fetch collections count for each project
+      const projectsWithCounts = await Promise.all(
+        list.map(async (project) => {
+          try {
+            const collectionsRes = await api.get(`/collections/${project._id}`);
+            const collections = Array.isArray(collectionsRes.data) ? collectionsRes.data : [];
+            return { ...project, collectionsCount: collections.length };
+          } catch {
+            return { ...project, collectionsCount: 0 };
+          }
+        })
+      );
+
+      setProjects(projectsWithCounts);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to load projects";
-      setError(message);
-      setProjects([]);
+      setError(getApiErrorMessage(err, "Failed to load projects"));
     } finally {
       if (showLoader) setLoading(false);
     }
   };
 
   useEffect(() => {
-    let active = true;
-
-    const loadInitialProjects = async () => {
-      if (!active) return;
-      setLoading(true);
-      setError("");
-      try {
-        const res = await api.get("/projects");
-        const list = Array.isArray(res.data) ? res.data : [];
-        if (active) {
-          setProjects(list);
-          setSelectedProjectId((current) => current || list[0]?._id || "");
-        }
-      } catch {
-        if (active) {
-          setError("Failed to load projects");
-          setProjects([]);
-        }
-      } finally {
-        if (active) setLoading(false);
-      }
-    };
-
-    void loadInitialProjects();
-
-    return () => {
-      active = false;
-    };
+    loadProjects(true);
+    api.get("/users/me/limits").then(res => setLimits(res.data)).catch(() => {});
   }, []);
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
+  const atLimit = limits && limits.limits.maxProjects > 0 && limits.usage.projects >= limits.limits.maxProjects;
 
-    setSaving(true);
-    setError("");
-    try {
-      const res = await api.post("/projects", {
-        name: name.trim(),
-        description,
-      });
-      setName("");
-      setDescription("");
-      if (res.data?._id) {
-        setSelectedProjectId(res.data._id);
-      }
-      await loadProjects();
-    } catch (err) {
-      setError(getApiErrorMessage(err, "Failed to create project"));
-    } finally {
-      setSaving(false);
-    }
+  const handleCreateProject = async (name: string, description: string, template: string) => {
+    const res = await api.post("/projects", { name, description, template });
+    setIsModalOpen(false);
+    await loadProjects();
+    api.get("/users/me/limits").then(res => setLimits(res.data)).catch(() => {});
   };
 
   const handleDelete = async (id: string) => {
-    setError("");
-    setDeletingId(id);
+    if (!confirm("Are you sure you want to delete this project? This will delete all associated collections and data.")) return;
     try {
       await api.delete(`/projects/${id}`);
-      setProjects((prev) => {
-        const nextProjects = prev.filter((p) => p._id !== id);
-        setSelectedProjectId((current) =>
-          current === id ? nextProjects[0]?._id || "" : current
-        );
-        return nextProjects;
-      });
+      setProjects(prev => prev.filter(p => p._id !== id));
     } catch (err) {
-      setError(getApiErrorMessage(err, "Failed to delete project"));
-    } finally {
-      setDeletingId(null);
+      alert(getApiErrorMessage(err, "Failed to delete project"));
     }
   };
 
+  const filteredAndSortedProjects = useMemo(() => {
+    let result = [...projects];
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(p => p.name.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q));
+    }
+
+    result.sort((a, b) => {
+      if (sortOrder === "name") {
+        return a.name.localeCompare(b.name);
+      }
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
+    });
+
+    return result;
+  }, [projects, searchQuery, sortOrder]);
+
   return (
-    <div>
-      <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+    <div className="pb-24 animate-in fade-in duration-500">
+      {/* Header Area */}
+      <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Projects</h1>
-          <p className="text-sm text-slate-500">
-            Create projects to group collections, API keys, and usage limits.
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Projects</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Manage your workspaces, group collections, and track usage.
           </p>
+          {limits && limits.limits.maxProjects > 0 && (
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-2">
+              {limits.usage.projects} / {limits.limits.maxProjects} projects used
+              {atLimit && (
+                <Link href="/dashboard/plans" className="ml-2 text-indigo-600 dark:text-indigo-400 hover:underline inline-flex items-center gap-0.5">
+                  Upgrade <ArrowUpRight className="w-3 h-3" />
+                </Link>
+              )}
+            </p>
+          )}
         </div>
-        <button
-          type="button"
-          onClick={() => loadProjects(true)}
-          disabled={loading}
-          className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          Refresh
-        </button>
+        
+        {projects.length > 0 && (
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <div className="relative flex-1 md:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input 
+                type="text" 
+                placeholder="Search projects..." 
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="glass-input w-full pl-9 pr-4 py-2 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-shadow dark:text-slate-200"
+              />
+            </div>
+            <select 
+              value={sortOrder}
+              onChange={e => setSortOrder(e.target.value as any)}
+              className="glass-select rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none dark:text-slate-200"
+            >
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+              <option value="name">Alphabetical</option>
+            </select>
+          </div>
+        )}
       </div>
 
-      <form onSubmit={handleCreate} className="mb-6 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
-          <label className="block text-sm font-medium text-slate-700">
-            Project name
-            <input
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="Customer API"
-              minLength={3}
-              required
-            />
-          </label>
-          <label className="block text-sm font-medium text-slate-700">
-            Description
-            <input
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              placeholder="Optional context"
-            />
-          </label>
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-md bg-black px-4 py-2 text-white disabled:cursor-not-allowed disabled:bg-slate-400"
-          >
-            {saving ? "Creating..." : "Create"}
-          </button>
-        </div>
-      </form>
-
       {error && (
-        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mb-8 rounded-xl border border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-900/30 px-4 py-3 text-sm text-red-700 dark:text-red-400">
           {error}
         </div>
       )}
 
+      {/* Main Content Grid */}
       {loading ? (
-        <p className="text-sm text-slate-500">Loading projects...</p>
-      ) : projects.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
-          No projects yet. Create your first project to unlock collections and API keys.
-        </div>
-      ) : (
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {projects.map((project) => {
-              const selected = project._id === selectedProjectId;
-
-              return (
-                <button
-                  key={project._id}
-                  type="button"
-                  onClick={() => setSelectedProjectId(project._id)}
-                  className={`rounded-lg border bg-white p-4 text-left shadow-sm transition ${
-                    selected ? "border-black ring-2 ring-black/10" : "border-slate-200 hover:border-slate-400"
-                  }`}
-                >
-                  <div className="min-h-24">
-                    <div className="flex items-start justify-between gap-3">
-                      <h2 className="font-semibold text-slate-900">{project.name}</h2>
-                      {selected && (
-                        <span className="rounded-full bg-black px-2 py-1 text-xs text-white">
-                          Selected
-                        </span>
-                      )}
-                    </div>
-                    {project.description ? (
-                      <p className="mt-1 text-sm text-slate-600">{project.description}</p>
-                    ) : (
-                      <p className="mt-1 text-sm text-slate-400">No description</p>
-                    )}
-                    {project.createdAt && (
-                      <p className="mt-3 text-xs text-slate-400">
-                        Created {new Date(project.createdAt).toLocaleDateString()}
-                      </p>
-                    )}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          <aside className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-sm text-slate-500">Selected project</p>
-            {selectedProject ? (
-              <div className="mt-2">
-                <h2 className="text-lg font-semibold text-slate-900">
-                  {selectedProject.name}
-                </h2>
-                <p className="mt-1 text-sm text-slate-600">
-                  {selectedProject.description || "No description"}
-                </p>
-                <div className="mt-4 grid gap-2">
-                  <Link
-                    href="/dashboard/collections"
-                    className="rounded-md border border-slate-300 px-3 py-2 text-center text-sm"
-                  >
-                    Manage collections
-                  </Link>
-                  <Link
-                    href="/dashboard/api-keys"
-                    className="rounded-md border border-slate-300 px-3 py-2 text-center text-sm"
-                  >
-                    Create API key
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(selectedProject._id)}
-                    disabled={deletingId === selectedProject._id}
-                    className="rounded-md border border-red-200 px-3 py-2 text-sm text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {deletingId === selectedProject._id ? "Deleting..." : "Delete project"}
-                  </button>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1,2,3,4,5,6].map(i => (
+            <div key={i} className="glass-card rounded-2xl p-6 h-48 animate-pulse flex flex-col justify-between">
+              <div className="flex gap-4 items-start">
+                <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800"></div>
+                <div className="space-y-2 flex-1 mt-1">
+                  <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-2/3"></div>
+                  <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-full"></div>
                 </div>
               </div>
-            ) : (
-              <p className="mt-2 text-sm text-slate-500">
-                Select a project to manage its collections and keys.
-              </p>
-            )}
-          </aside>
+              <div className="h-8 bg-slate-50 dark:bg-[#202020] rounded-lg mt-auto"></div>
+            </div>
+          ))}
+        </div>
+      ) : projects.length === 0 ? (
+        /* Empty State */
+        <div className="mt-12 flex flex-col items-center justify-center text-center p-12 glass-card border border-dashed border-slate-300 dark:border-slate-700 max-w-2xl mx-auto">
+          <div className="w-20 h-20 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-500 flex items-center justify-center mb-6">
+            <FolderGit2 className="w-10 h-10" />
+          </div>
+          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">Create your first project</h3>
+          <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-md">
+            Projects help you organize collections and API keys. Start by creating a blank project or use one of our templates.
+          </p>
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-sm shadow-blue-600/20 transition-all hover:-translate-y-0.5"
+          >
+            <Plus className="w-5 h-5" />
+            New Project
+          </button>
+        </div>
+      ) : (
+        /* Project Grid */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredAndSortedProjects.map(project => (
+            <ProjectCard 
+              key={project._id} 
+              project={project} 
+              onDelete={handleDelete} 
+            />
+          ))}
+          {filteredAndSortedProjects.length === 0 && (
+             <div className="col-span-full py-12 text-center text-slate-500 dark:text-slate-400">
+               No projects match your search.
+             </div>
+          )}
         </div>
       )}
+
+      {/* Floating Action Button (FAB) */}
+      {!loading && projects.length > 0 && !atLimit && (
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="fixed bottom-8 right-8 w-14 h-14 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-full shadow-lg shadow-blue-600/30 flex items-center justify-center transition-transform hover:scale-105 active:scale-95 z-40"
+          title="Create New Project"
+        >
+          <Plus className="w-6 h-6" />
+        </button>
+      )}
+
+      {/* Modal Wizard */}
+      <CreateProjectModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onSubmit={handleCreateProject}
+      />
     </div>
   );
 }

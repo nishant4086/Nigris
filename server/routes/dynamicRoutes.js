@@ -1,4 +1,5 @@
 import express from "express";
+
 import {
   createDynamic,
   getDynamic,
@@ -10,13 +11,18 @@ import publicApiKeyMiddleware from "../middleware/publicApiKeyMiddleware.js";
 
 const router = express.Router();
 
-// global middleware for public dynamic routes
+// Apply API-key auth for all dynamic routes.
+// `publicApiKeyMiddleware` also attaches `req.project`.
 router.use(publicApiKeyMiddleware);
+// Allow Authorization header to be parsed when present so handlers can prefer
+// user-based permissions over API-key project context.
+router.use(optionalAuth);
 
 // single registration per route
-router.get("/:slug", optionalAuth, getDynamic);
-router.post("/:slug", optionalAuth, createDynamic);
-router.put("/:slug/:id", optionalAuth, updateDynamic);
-router.delete("/:slug/:id", optionalAuth, deleteDynamic);
+// optionalAuth is not required here since API-key middleware already provides auth context.
+router.get("/:slug", getDynamic);
+router.post("/:slug", createDynamic);
+router.put("/:slug/:id", updateDynamic);
+router.delete("/:slug/:id", deleteDynamic);
 
 export default router;

@@ -1,6 +1,7 @@
+import "dotenv/config";
+
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import compression from "compression";
@@ -22,8 +23,11 @@ import publicRoutes from "./routes/publicRoutes.js";
 import webhookRoutes from "./routes/webhookRoutes.js";
 import usageRoutes from "./routes/usageRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
+import session from "express-session";
+import MongoDBStore from "connect-mongodb-session";
+import passport from "./config/passportConfig.js";
 
-dotenv.config();
+const MongoStore = MongoDBStore(session);
 
 const app = express();
 
@@ -56,8 +60,44 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-// ❌ REMOVE this (causes crash)
-// app.options("*", cors(corsOptions));
+
+// ================== SESSION & PASSPORT ==================
+// In production we use Mongo-backed sessions.
+// In tests, MongoDB session store must not attempt localhost connections.
+const mongoSessionUri =
+  process.env.MONGODB_URI ||
+  process.env.MONGO_URI ||
+  (process.env.NODE_ENV === "test" ? undefined : process.env.MONGODB_URI);
+
+let store = null;
+if (mongoSessionUri) {
+  store = new MongoStore({
+    uri: mongoSessionUri,
+    collection: "sessions",
+  });
+} else {
+  console.warn(
+    "Mongo session store disabled: missing MONGODB_URI/MONGO_URI (tests will use stateless auth)"
+  );
+}
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "nigris_secret_key",
+    resave: false,
+    saveUninitialized: false,
+    store: store || undefined,
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 24h
+    },
+  })
+);
+
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 
 // ================== SECURITY ==================

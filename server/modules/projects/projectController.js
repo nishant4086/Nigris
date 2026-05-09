@@ -3,7 +3,10 @@ import Project from "../../models/Project.js";
 import Collection from "../../models/Collection.js";
 import ApiKey from "../../models/ApiKey.js";
 import Data from "../../models/Data.js";
+import User from "../../models/User.js";
+import ProjectUser from "../../models/ProjectUser.js";
 import asyncHandler from "../../utils/asyncHandler.js";
+import { getPlanLimits } from "../../utils/planLimits.js";
 
 const generateSlug = (name) =>
   name
@@ -20,6 +23,21 @@ export const createProject = asyncHandler(async (req, res) => {
 
   const { name, description } = req.body;
   if (!name) return res.status(400).json({ error: "Name is required" });
+
+  // 🔒 PLAN LIMIT CHECK
+  const user = await User.findById(userId);
+  const limits = getPlanLimits(user?.plan);
+  if (limits.maxProjects > 0) {
+    const projectCount = await Project.countDocuments({ user: userId });
+    if (projectCount >= limits.maxProjects) {
+      return res.status(403).json({
+        error: `Project limit reached (${limits.maxProjects}). Upgrade your plan to create more.`,
+        limitReached: true,
+        current: projectCount,
+        max: limits.maxProjects,
+      });
+    }
+  }
 
   const data = { name, user: userId };
   if (description) data.description = description;
@@ -38,6 +56,15 @@ export const createProject = asyncHandler(async (req, res) => {
   }
 
   const project = await Project.create(data);
+
+  // Auto-add creator as "owner" in ProjectUser
+  await ProjectUser.create({
+    project: project._id,
+    user: userId,
+    role: "owner",
+    status: "accepted",
+  });
+
   return res.status(201).json(project);
 });
 
@@ -45,7 +72,13 @@ export const getProjects = asyncHandler(async (req, res) => {
   const userId = getUserId(req);
   if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
-  const projects = await Project.find({ user: userId }).sort({ createdAt: -1 });
+  // Find all projects the user is a member of
+  const memberships = await ProjectUser.find({ user: userId, status: "accepted" }).populate("project");
+  const projects = memberships
+    .map((m) => m.project)
+    .filter(Boolean)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
   return res.json(projects);
 });
 
@@ -58,10 +91,10 @@ export const getProjectById = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: "Invalid project id" });
   }
 
-  const project = await Project.findOne({ _id: id, user: userId });
-  if (!project) return res.status(404).json({ error: "Project not found" });
+  const membership = await ProjectUser.findOne({ project: id, user: userId, status: "accepted" }).populate("project");
+  if (!membership || !membership.project) return res.status(404).json({ error: "Project not found or access denied" });
 
-  return res.json(project);
+  return res.json(membership.project);
 });
 
 export const updateProject = asyncHandler(async (req, res) => {
@@ -69,41 +102,20 @@ export const updateProject = asyncHandler(async (req, res) => {
   if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
   const { id } = req.params;
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ error: "Invalid project id" });
-  }
-
   const { name, description } = req.body;
 
-  if (name !== undefined && !name) {
-    return res.status(400).json({ error: "Name cannot be empty" });
+  const membership = await ProjectUser.findOne({ project: id, user: userId, status: "accepted" });
+  if (!membership || !["owner", "admin"].includes(membership.role)) {
+    return res.status(403).json({ error: "Insufficient permissions to update project" });
   }
 
-  const update = {};
-  if (name) update.name = name;
-  if (description !== undefined) update.description = description;
-
-  const hasSlug = Boolean(Project.schema.path("slug"));
-  if (hasSlug && name) {
-    const baseSlug = generateSlug(name);
-    let slug = baseSlug;
-    let counter = 1;
-
-    while (await Project.findOne({ slug, _id: { $ne: id } })) {
-      slug = `${baseSlug}-${counter++}`;
-    }
-
-    update.slug = slug;
-  }
-
-  const project = await Project.findOneAndUpdate(
-    { _id: id, user: userId },
-    update,
-    { new: true }
-  );
-
+  const project = await Project.findById(id);
   if (!project) return res.status(404).json({ error: "Project not found" });
 
+  if (name) project.name = name;
+  if (description) project.description = description;
+
+  await project.save();
   return res.json(project);
 });
 
@@ -112,20 +124,22 @@ export const deleteProject = asyncHandler(async (req, res) => {
   if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
   const { id } = req.params;
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ error: "Invalid project id" });
+
+  const membership = await ProjectUser.findOne({ project: id, user: userId, status: "accepted" });
+  if (!membership || membership.role !== "owner") {
+    return res.status(403).json({ error: "Only the project owner can delete the project" });
   }
 
-  const project = await Project.findOneAndDelete({ _id: id, user: userId });
+  const project = await Project.findById(id);
   if (!project) return res.status(404).json({ error: "Project not found" });
 
-  const collections = await Collection.find({ project: project._id }).select("_id");
-  const collectionIds = collections.map((collection) => collection._id);
-
+  // Delete all related resources
   await Promise.all([
-    Collection.deleteMany({ project: project._id }),
-    ApiKey.deleteMany({ project: project._id }),
-    Data.deleteMany({ collectionId: { $in: collectionIds } }),
+    Collection.deleteMany({ project: id }),
+    ApiKey.deleteMany({ project: id }),
+    Data.deleteMany({ project: id }),
+    ProjectUser.deleteMany({ project: id }),
+    project.deleteOne(),
   ]);
 
   return res.json({ message: "Project deleted" });

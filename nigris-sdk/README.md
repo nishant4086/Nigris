@@ -28,6 +28,8 @@ const entry = await client.create("collectionId", {
 console.log(entry);
 ```
 
+The SDK normalizes responses so `entry.data` always contains your fields, even when the API returns flattened entries.
+
 ## API Reference
 
 ### Initialize
@@ -78,6 +80,12 @@ const updated = await client.update("entryId", {
   age: 29,
   city: "Boston",
 });
+
+// Optional: pass collectionId to keep schema validation when the API
+// response does not include collectionId (flattened responses).
+const updatedWithSchema = await client.update("entryId", {
+  age: 30,
+}, { collectionId: "collectionId" });
 ```
 
 ### Delete Entry

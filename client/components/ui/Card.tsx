@@ -1,3 +1,5 @@
+import GlassCard from "./GlassCard";
+
 export default function Card({
   title,
   value,
@@ -6,9 +8,9 @@ export default function Card({
   value: string | number;
 }) {
   return (
-    <div className="bg-white p-4 rounded-xl shadow">
-      <p className="text-gray-500 text-sm">{title}</p>
-      <h2 className="text-xl font-bold">{value}</h2>
-    </div>
+    <GlassCard compact>
+      <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{title}</p>
+      <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950 dark:text-white">{value}</h2>
+    </GlassCard>
   );
 }

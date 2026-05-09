@@ -14,18 +14,34 @@ export const redisRateLimit = (baseLimit, windowSeconds) => {
     }
 
     try {
-      const apiKey = req.apiKey?.key;
+      // Tenant isolation: build a stable redis key based on the API key document.
+      // publicApiKeyMiddleware attaches `req.apiKey` as a Mongo document.
+      // IMPORTANT: Always use _id (immutable) for keying. Never use hashedKey
+      // because it changes on key rotation, which would reset the rate-limit
+      // window and allow a bypass.
+      const apiKeyId = req.apiKey?._id?.toString?.() || null;
+      const tenantId = req.project?._id?.toString?.() || null;
 
-      if (!apiKey) {
-        return res.status(401).json({ error: "API key required" });
-      }
+      // Tenant isolation key.
+      // Note: req.apiKey is only attached for API-key protected routes.
+      // For routes without apiKey (e.g. public routes), we fall back to IP-based partition.
+      const keyPartition = apiKeyId
+        ? `k:${apiKeyId}`
+        : `ip:${req.ip || req.headers['x-forwarded-for'] || 'unknown'}`;
 
-      // Determine plan
+      // If no tenant info exists but we still want isolation, we still use a partitioned key.
+      const tenantPartition = tenantId || 'tenant?';
+
+      // Determine plan (default to free)
       const plan = req.project?.user?.plan || "free";
+
       const multiplier = PLAN_MULTIPLIERS[plan] || 1;
       const totalLimit = baseLimit * multiplier;
 
-      const redisKey = `rate:${apiKey}`;
+      // Include tenant partition + key/IP partition to prevent cross-tenant collisions.
+      const redisKey = `rate:${tenantPartition}:${keyPartition}`;
+
+
 
       // Execute MULTI to ensure atomic INCR + EXPIRE
       const multi = redis.multi();

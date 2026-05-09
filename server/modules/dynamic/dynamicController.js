@@ -1,6 +1,7 @@
 import Collection from "../../models/Collection.js";
 import Data from "../../models/Data.js";
 import Project from "../../models/Project.js";
+import { validateData } from "../../utils/dataValidation.js";
 
 const ownsProject = (project, user) =>
   Boolean(user?.userId && project.user.toString() === user.userId.toString());
@@ -23,35 +24,8 @@ const checkWriteAccess = async (collection, user) => {
   return ownsProject(project, user);
 };
 
-const validateData = (collection, data) => {
-  const errors = [];
-
-  for (const field of collection.fields || []) {
-    const value = data[field.name];
-    const missing = value === undefined || value === null || value === "";
-
-    if (field.required && missing) {
-      errors.push(`${field.name} is required`);
-      continue;
-    }
-
-    if (missing) continue;
-
-    if (field.type === "number" && typeof value !== "number") {
-      errors.push(`${field.name} must be a number`);
-    }
-
-    if (field.type === "boolean" && typeof value !== "boolean") {
-      errors.push(`${field.name} must be a boolean`);
-    }
-  }
-
-  return errors;
-};
-
-
 // ➕ CREATE
-export const createDynamic = async (req, res) => {
+export const createDynamic = async (req, res, next) => {
   try {
     const { slug } = req.params;
 
@@ -70,26 +44,27 @@ export const createDynamic = async (req, res) => {
         return res.status(403).json({ message: "Not allowed" });
       }
 
-    const errors = validateData(collection, req.body);
+    const errors = await validateData(collection, req.body);
     if (errors.length > 0) {
       return res.status(400).json({ errors });
     }
 
     const newData = await Data.create({
       collectionId: collection._id,
+      project: collection.project,
       data: req.body,
       createdBy: req.user?.userId || req.apiKey?.user,
     });
 
     res.status(201).json(newData);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
 
 // 📥 GET
-export const getDynamic = async (req, res) => {
+export const getDynamic = async (req, res, next) => {
   try {
     const { slug } = req.params;
 
@@ -114,13 +89,13 @@ export const getDynamic = async (req, res) => {
 
     res.json(data);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
 
 // ✏️ UPDATE
-export const updateDynamic = async (req, res) => {
+export const updateDynamic = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -141,26 +116,29 @@ export const updateDynamic = async (req, res) => {
       return res.status(403).json({ message: "Not allowed" });
     }
 
-    const errors = validateData(collection, req.body);
+    // deep merge
+    const mergedData = { ...existing.data, ...req.body };
+
+    const errors = await validateData(collection, mergedData, id);
     if (errors.length > 0) {
       return res.status(400).json({ errors });
     }
 
     const updated = await Data.findByIdAndUpdate(
       id,
-      { data: req.body },
+      { data: mergedData },
       { new: true }
     );
 
     res.json(updated);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
 
 // ❌ DELETE
-export const deleteDynamic = async (req, res) => {
+export const deleteDynamic = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -171,7 +149,13 @@ export const deleteDynamic = async (req, res) => {
 
     const collection = await Collection.findById(existing.collectionId);
 
-    const allowed = await checkWriteAccess(collection, req.user);
+    let allowed = false;
+    if (req.user) {
+      allowed = await checkWriteAccess(collection, req.user);
+    } else if (req.project) {
+      allowed = collection.project.toString() === req.project._id.toString();
+    }
+    
     if (!allowed) {
       return res.status(403).json({ message: "Not allowed" });
     }
@@ -180,6 +164,6 @@ export const deleteDynamic = async (req, res) => {
 
     res.json({ message: "Deleted" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };

@@ -3,13 +3,13 @@
 ## Installation
 
 ```bash
-npm install nigris
+npm install @nishant4806/nigris-sdk
 ```
 
 ## Quick Start
 
 ```javascript
-import Nigris from "nigris";
+import Nigris from "@nishant4806/nigris-sdk";
 
 const client = new Nigris("YOUR_API_KEY", {
   baseURL: "http://localhost:8000/api/public",  // Optional
@@ -126,6 +126,12 @@ const updated = await client.update(entryId, {
   age: 29,
   city: "Boston",
 });
+
+// Optional: include collectionId to keep schema validation when
+// entries are returned without collectionId.
+const updatedWithSchema = await client.update(entryId, {
+  age: 30,
+}, { collectionId: "collectionId" });
 
 console.log(updated.data.name);  // "Alice Johnson" (preserved)
 console.log(updated.data.age);   // 29 (updated)

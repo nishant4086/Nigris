@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Collection from "../models/Collection.js";
 import Project from "../models/Project.js";
+import ProjectUser from "../models/ProjectUser.js";
 
 export const checkCollectionAccess = async (collectionId, userId) => {
   if (!collectionId) {
@@ -21,7 +22,13 @@ export const checkCollectionAccess = async (collectionId, userId) => {
     return { error: "Project not found", status: 404 };
   }
 
-  if (!userId || project.user.toString() !== userId.toString()) {
+  if (!userId) {
+    return { error: "Not authorized", status: 403 };
+  }
+
+  // Check if user is project member with accepted status
+  const membership = await ProjectUser.findOne({ project: collection.project, user: userId, status: "accepted" });
+  if (!membership) {
     return { error: "Not authorized", status: 403 };
   }
 

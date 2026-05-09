@@ -1,5 +1,8 @@
+import crypto from "crypto";
 import ApiKey from "../models/ApiKey.js";
 import Project from "../models/Project.js";
+import Alert from "../models/Alert.js";
+import { analyticsEmitter } from "../utils/analyticsEmitter.js";
 
 const publicApiKeyMiddleware = async (req, res, next) => {
   try {
@@ -9,7 +12,8 @@ const publicApiKeyMiddleware = async (req, res, next) => {
       return res.status(401).json({ message: "API key required" });
     }
 
-    const apiKey = await ApiKey.findOne({ key, isActive: true });
+    const keyHash = crypto.createHash("sha256").update(key).digest("hex");
+    const apiKey = await ApiKey.findOne({ hashedKey: keyHash, isActive: true });
     if (!apiKey) {
       return res.status(403).json({ message: "Invalid API key" });
     }
@@ -38,8 +42,29 @@ const publicApiKeyMiddleware = async (req, res, next) => {
       apiKey.resetAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     }
 
-    if (apiKey.limit > 0 && apiKey.usage >= apiKey.limit) {
-      return res.status(429).json({ message: "Rate limit exceeded" });
+    if (apiKey.limit > 0) {
+      if (apiKey.usage >= apiKey.limit) {
+        if (apiKey.usage === apiKey.limit) {
+          // Exactly hit the limit now
+          const alert = await Alert.create({
+            userId: project.user._id,
+            projectId: project._id,
+            type: "quota",
+            message: `API Key "${apiKey.name || 'Untitled'}" has reached its limit of ${apiKey.limit} requests.`
+          });
+          analyticsEmitter.emit(`new_alert_${project.user._id}`, alert);
+        }
+        return res.status(429).json({ message: "Rate limit exceeded" });
+      } else if (apiKey.usage === Math.floor(apiKey.limit * 0.8)) {
+        // Just crossed 80%
+        const alert = await Alert.create({
+            userId: project.user._id,
+            projectId: project._id,
+            type: "quota",
+            message: `API Key "${apiKey.name || 'Untitled'}" has used 80% of its ${apiKey.limit} requests quota.`
+        });
+        analyticsEmitter.emit(`new_alert_${project.user._id}`, alert);
+      }
     }
 
     // increment usage
@@ -51,6 +76,30 @@ const publicApiKeyMiddleware = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+export const requireApiKeyPermission = (requiredPermission) => {
+  return (req, res, next) => {
+    const apiKey = req.apiKey;
+    if (!apiKey) {
+      return res.status(401).json({ message: "API key not found on request" });
+    }
+
+    const permissions = apiKey.permissions || ["read"];
+    
+    // admin permission bypasses others
+    if (permissions.includes("admin")) {
+      return next();
+    }
+
+    if (!permissions.includes(requiredPermission)) {
+      return res.status(403).json({ 
+        message: `Forbidden: This API key does not have "${requiredPermission}" permission.` 
+      });
+    }
+
+    next();
+  };
 };
 
 export default publicApiKeyMiddleware;

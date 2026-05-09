@@ -12,7 +12,7 @@ const BASE_URL = "http://localhost:8000/api";
 async function runTests() {
   await connectDB();
 
-  // Create test user and project
+  // Create test user and project (verified-user flow)
   const email1 = "usage1@test.com";
   await User.deleteMany({ email: email1 });
   try {
@@ -20,7 +20,9 @@ async function runTests() {
   } catch(e) {}
 
   let jwt1, proj1, key1, colSlug1;
-  const res1 = await axios.post(`${BASE_URL}/auth/register`, { name: "Usage User", email: email1, password: "Password123!" });
+  await axios.post(`${BASE_URL}/auth/signup`, { name: "Usage User", email: email1, password: "Password123!", confirmPassword: "Password123!" });
+  await User.updateOne({ email: email1 }, { emailVerified: true });
+  const res1 = await axios.post(`${BASE_URL}/auth/login`, { email: email1, password: "Password123!" });
   jwt1 = res1.data.token;
   const authConf = { headers: { Authorization: `Bearer ${jwt1}` } };
   
