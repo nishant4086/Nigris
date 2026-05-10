@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-
 import { useRef } from "react";
 import { ArrowRight, Check } from "lucide-react";
 import gsap from "gsap";
@@ -16,53 +15,80 @@ export default function Home() {
   const container = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
-    gsap.fromTo(".hero-eyebrow", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" });
-    gsap.fromTo(".hero-title", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power2.out", delay: 0.1 });
-    gsap.fromTo(".hero-sub", { y: 15, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power2.out", delay: 0.2 });
-    gsap.fromTo(".hero-cta", { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power2.out", delay: 0.3 });
-    gsap.fromTo(".hero-visual", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power2.out", delay: 0.4 });
+    // Hero entrance — staggered center-out (Vite-style)
+    const tl = gsap.timeline({ delay: 1.5 }); // wait for loading screen
+    tl.fromTo(".hero-glow", { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 1.2, ease: "power2.out" })
+      .fromTo(".hero-title", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, "-=0.8")
+      .fromTo(".hero-sub", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, "-=0.5")
+      .fromTo(".hero-cta", { y: 15, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, "-=0.4")
+      .fromTo(".hero-visual", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 1, ease: "power3.out" }, "-=0.3");
 
-    gsap.fromTo(".scroll-section", { y: 24, opacity: 0 }, {
-      scrollTrigger: { trigger: ".scroll-section", start: "top 85%" },
-      y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "power2.out",
+    // Glow pulse animation (Vite-style)
+    gsap.to(".hero-glow", { scale: 1.05, opacity: 0.8, duration: 3, repeat: -1, yoyo: true, ease: "sine.inOut" });
+
+    // Scroll animations
+    const sections = gsap.utils.toArray<HTMLElement>(".scroll-reveal");
+    sections.forEach((el) => {
+      gsap.fromTo(el, { y: 24, opacity: 0 }, {
+        scrollTrigger: { trigger: el, start: "top 88%" },
+        y: 0, opacity: 1, duration: 0.6, ease: "power2.out",
+      });
+    });
+
+    // Stagger grid children
+    gsap.fromTo(".feature-cell", { y: 20, opacity: 0 }, {
+      scrollTrigger: { trigger: ".feature-grid", start: "top 80%" },
+      y: 0, opacity: 1, duration: 0.5, stagger: 0.08, ease: "power2.out",
+    });
+
+    // Line draw animation for chart
+    gsap.fromTo(".chart-line", { strokeDashoffset: 800 }, {
+      scrollTrigger: { trigger: ".chart-line", start: "top 90%" },
+      strokeDashoffset: 0, duration: 1.5, ease: "power2.out",
     });
   }, { scope: container });
 
   return (
     <div ref={container} className="bg-[#09090b] text-white overflow-x-hidden">
 
-      {/* ── Hero ── */}
-      <section className="relative pt-28 pb-20 lg:pt-40 lg:pb-28">
-        <div className="mx-auto max-w-[1120px] px-6">
-          <p className="hero-eyebrow text-[13px] font-medium tracking-wide text-[#a1a1aa] mb-5">
-            The API infrastructure platform
-          </p>
-          <h1 className="hero-title max-w-3xl text-[clamp(2.25rem,5vw,4rem)] font-semibold leading-[1.08] tracking-[-0.025em] text-white">
-            Ship production-ready APIs without the boilerplate
+      {/* ── Hero (Vite-style centered) ── */}
+      <section className="relative pt-32 pb-20 lg:pt-44 lg:pb-28 overflow-hidden">
+        {/* Animated glow (Vite-inspired) */}
+        <div className="hero-glow absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full bg-[#3b82f6]/8 blur-[120px] pointer-events-none" />
+
+        {/* Grid pattern (Next.js-inspired) */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:80px_80px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_70%)] pointer-events-none" />
+
+        <div className="relative mx-auto max-w-[1120px] px-6 text-center">
+          <h1 className="hero-title mx-auto max-w-4xl text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.05] tracking-[-0.03em]">
+            Ship APIs.{" "}
+            <span className="bg-gradient-to-r from-[#3b82f6] to-[#06b6d4] bg-clip-text text-transparent">
+              Not boilerplate.
+            </span>
           </h1>
-          <p className="hero-sub mt-5 max-w-xl text-[17px] leading-relaxed text-[#a1a1aa]">
-            Dynamic schemas, API key management, usage metering, and Stripe billing — all connected in one dashboard.
+          <p className="hero-sub mx-auto mt-6 max-w-xl text-[17px] leading-relaxed text-[#a1a1aa]">
+            Nigris is the complete infrastructure for API products — dynamic schemas, key management, usage metering, and Stripe billing in one dashboard.
           </p>
-          <div className="hero-cta mt-8 flex flex-wrap items-center gap-4">
+          <div className="hero-cta mt-9 flex flex-wrap items-center justify-center gap-4">
             <Link
               href="/register"
-              className="inline-flex h-10 items-center rounded-lg bg-white px-5 text-[14px] font-medium text-[#09090b] transition hover:bg-[#e4e4e7]"
+              className="group inline-flex h-11 items-center gap-2 rounded-lg bg-white px-6 text-[14px] font-semibold text-[#09090b] transition-all hover:bg-[#e4e4e7] hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]"
             >
-              Get started
+              Get started free
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
             </Link>
             <Link
               href="/docs"
-              className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-[#27272a] px-5 text-[14px] font-medium text-[#a1a1aa] transition hover:border-[#3f3f46] hover:text-white"
+              className="inline-flex h-11 items-center rounded-lg border border-[#27272a] px-6 text-[14px] font-medium text-[#a1a1aa] transition hover:border-[#3f3f46] hover:text-white"
             >
-              Documentation <ArrowRight className="h-3.5 w-3.5" />
+              Documentation
             </Link>
           </div>
         </div>
 
-        {/* Dashboard visual — built in code */}
-        <div className="hero-visual mx-auto mt-16 max-w-[1120px] px-6">
-          <div className="rounded-xl border border-[#1c1c1f] bg-[#111113] overflow-hidden">
-            {/* Browser chrome */}
+        {/* Dashboard visual */}
+        <div className="hero-visual mx-auto mt-20 max-w-[1000px] px-6">
+          <div className="rounded-xl border border-[#1c1c1f] bg-[#111113] overflow-hidden shadow-[0_0_80px_-20px_rgba(59,130,246,0.15)]">
             <div className="flex items-center gap-2 px-4 py-2.5 border-b border-[#1c1c1f] bg-[#0c0c0e]">
               <span className="w-2.5 h-2.5 rounded-full bg-[#ef4444]/40" />
               <span className="w-2.5 h-2.5 rounded-full bg-[#eab308]/40" />
@@ -71,103 +97,71 @@ export default function Home() {
                 <span className="text-[11px] text-[#3f3f46]">nigris.app/dashboard</span>
               </div>
             </div>
-            {/* Dashboard content */}
             <div className="p-5 sm:p-6">
-              {/* Stat cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
                 {[
                   { label: "Total Requests", value: "12,847", change: "+14%" },
                   { label: "Active Keys", value: "24", change: "+3" },
                   { label: "Avg Latency", value: "42ms", change: "-8%" },
                   { label: "Error Rate", value: "0.3%", change: "-0.1%" },
                 ].map((s) => (
-                  <div key={s.label} className="rounded-lg border border-[#1c1c1f] bg-[#0c0c0e] p-4">
+                  <div key={s.label} className="rounded-lg border border-[#1c1c1f] bg-[#0c0c0e] p-3.5">
                     <p className="text-[11px] text-[#52525b] mb-1">{s.label}</p>
-                    <p className="text-xl font-semibold tracking-tight">{s.value}</p>
+                    <p className="text-lg font-semibold tracking-tight">{s.value}</p>
                     <p className="text-[11px] text-[#22c55e] mt-0.5">{s.change}</p>
                   </div>
                 ))}
               </div>
-              {/* Chart area */}
-              <div className="rounded-lg border border-[#1c1c1f] bg-[#0c0c0e] p-4 mb-6">
-                <div className="flex items-center justify-between mb-4">
-                  <p className="text-[13px] font-medium">API Usage — Last 7 days</p>
-                  <div className="flex gap-1.5">
-                    <span className="px-2 py-0.5 rounded text-[11px] bg-[#1c1c1f] text-[#71717a]">Day</span>
-                    <span className="px-2 py-0.5 rounded text-[11px] bg-white/5 text-[#a1a1aa]">Week</span>
-                  </div>
-                </div>
-                {/* SVG chart */}
-                <svg viewBox="0 0 600 120" className="w-full h-auto">
+              <div className="rounded-lg border border-[#1c1c1f] bg-[#0c0c0e] p-4">
+                <p className="text-[12px] text-[#52525b] mb-3">API Usage — 7d</p>
+                <svg viewBox="0 0 600 100" className="w-full h-auto">
                   <defs>
-                    <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.2" />
+                    <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.15" />
                       <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
                     </linearGradient>
                   </defs>
-                  <path d="M0,95 Q50,90 100,75 T200,60 T300,40 T400,50 T500,25 T600,15" fill="none" stroke="#3b82f6" strokeWidth="2" />
-                  <path d="M0,95 Q50,90 100,75 T200,60 T300,40 T400,50 T500,25 T600,15 L600,120 L0,120Z" fill="url(#chartGrad)" />
+                  <path className="chart-line" d="M0,80 C60,75 80,60 150,50 S250,55 300,35 S400,40 450,20 S550,25 600,10"
+                    fill="none" stroke="#3b82f6" strokeWidth="2" strokeDasharray="800" />
+                  <path d="M0,80 C60,75 80,60 150,50 S250,55 300,35 S400,40 450,20 S550,25 600,10 L600,100 L0,100Z" fill="url(#cg)" />
                 </svg>
-              </div>
-              {/* Table */}
-              <div className="rounded-lg border border-[#1c1c1f] overflow-hidden">
-                <div className="grid grid-cols-[1fr_2fr_1fr_1fr] gap-4 px-4 py-2 border-b border-[#1c1c1f] text-[11px] text-[#52525b] uppercase tracking-wider">
-                  <span>Status</span><span>Endpoint</span><span>Latency</span><span>Time</span>
-                </div>
-                {[
-                  { status: "bg-[#22c55e]", endpoint: "GET /api/users", latency: "34ms", time: "2s ago" },
-                  { status: "bg-[#22c55e]", endpoint: "POST /api/entries", latency: "67ms", time: "5s ago" },
-                  { status: "bg-[#eab308]", endpoint: "GET /api/keys", latency: "124ms", time: "12s ago" },
-                  { status: "bg-[#22c55e]", endpoint: "DELETE /api/entries/8f2", latency: "41ms", time: "18s ago" },
-                ].map((r, i) => (
-                  <div key={i} className="grid grid-cols-[1fr_2fr_1fr_1fr] gap-4 px-4 py-2.5 border-b border-[#1c1c1f] last:border-0 text-[13px] text-[#a1a1aa]">
-                    <span className="flex items-center gap-2"><span className={`w-1.5 h-1.5 rounded-full ${r.status}`} /><span className="text-[#52525b]">200</span></span>
-                    <span className="font-mono text-[12px]">{r.endpoint}</span>
-                    <span>{r.latency}</span>
-                    <span className="text-[#52525b]">{r.time}</span>
-                  </div>
-                ))}
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Social proof strip ── */}
+      {/* ── Stats ── */}
       <section className="border-y border-[#1c1c1f] py-10">
         <div className="mx-auto max-w-[1120px] px-6 flex flex-wrap items-center justify-between gap-8 text-center">
-          {[
-            ["10K+", "API calls processed"],
-            ["99.9%", "Uptime guarantee"],
-            ["< 50ms", "Response latency"],
-            ["SOC 2", "Security ready"],
-          ].map(([value, label]) => (
-            <div key={label} className="flex-1 min-w-[140px]">
-              <p className="text-2xl font-semibold tracking-tight text-white">{value}</p>
-              <p className="mt-1 text-[13px] text-[#71717a]">{label}</p>
+          {[["10K+", "API calls"], ["99.9%", "Uptime"], ["< 50ms", "Latency"], ["SOC 2", "Ready"]].map(([v, l]) => (
+            <div key={l} className="scroll-reveal flex-1 min-w-[120px]">
+              <p className="text-2xl font-semibold tracking-tight">{v}</p>
+              <p className="mt-1 text-[13px] text-[#52525b]">{l}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── Features ── */}
+      {/* ── Features grid (Next.js card grid style) ── */}
       <section className="py-24 lg:py-32">
         <div className="mx-auto max-w-[1120px] px-6">
-          <p className="text-[13px] font-medium tracking-wide text-[#a1a1aa] mb-3">Platform</p>
-          <h2 className="scroll-section max-w-lg text-3xl font-semibold tracking-tight">Everything you need to launch, meter, and monetize</h2>
-
-          <div className="mt-14 grid gap-px bg-[#1c1c1f] rounded-xl overflow-hidden md:grid-cols-3">
+          <div className="scroll-reveal text-center max-w-lg mx-auto mb-14">
+            <h2 className="text-3xl font-bold tracking-tight">Everything you need to launch</h2>
+            <p className="mt-3 text-[15px] text-[#71717a]">From your first API call to your first invoice.</p>
+          </div>
+          <div className="feature-grid grid gap-px bg-[#1c1c1f] rounded-xl overflow-hidden md:grid-cols-3">
             {[
-              { title: "Dynamic Schemas", desc: "Define and modify your data models from the dashboard. Collections are provisioned automatically in MongoDB." },
-              { title: "API Key Management", desc: "Generate scoped keys with granular read/write permissions. Every request is validated and metered." },
-              { title: "Usage Metering", desc: "Real-time charts show exactly how your endpoints are being consumed. Set rate limits per key." },
-              { title: "Stripe Billing", desc: "Subscription tiers sync automatically. Upgrade flows, invoices, and webhook handling — built in." },
-              { title: "Team Collaboration", desc: "Invite team members, assign roles, and manage access across projects from one workspace." },
-              { title: "Published SDK", desc: "Install our npm package and start querying in 3 lines of code. Full TypeScript support included." },
+              { title: "Dynamic Schemas", desc: "Define data models from the dashboard. MongoDB collections provisioned instantly." },
+              { title: "API Key Management", desc: "Scoped keys with granular read/write permissions. Every request validated." },
+              { title: "Usage Metering", desc: "Real-time charts. Rate limits per key. Abuse prevention built in." },
+              { title: "Stripe Billing", desc: "Tiers sync automatically. Upgrade flows, invoices, webhooks — all handled." },
+              { title: "Team Collaboration", desc: "Invite members, assign roles, manage access across projects." },
+              { title: "Published SDK", desc: "npm install, 3 lines of code, full TypeScript support. That's it." },
             ].map((f) => (
-              <div key={f.title} className="scroll-section bg-[#09090b] p-8">
-                <h3 className="text-[15px] font-semibold text-white mb-2">{f.title}</h3>
-                <p className="text-[14px] leading-relaxed text-[#71717a]">{f.desc}</p>
+              <div key={f.title} className="feature-cell bg-[#09090b] p-7 transition-colors hover:bg-[#0f0f12]">
+                <h3 className="text-[15px] font-semibold mb-2">{f.title}</h3>
+                <p className="text-[13px] leading-relaxed text-[#71717a]">{f.desc}</p>
               </div>
             ))}
           </div>
@@ -178,14 +172,14 @@ export default function Home() {
       <section className="py-24 lg:py-32 border-t border-[#1c1c1f]">
         <div className="mx-auto max-w-[1120px] px-6">
           <div className="grid lg:grid-cols-2 gap-16 items-start">
-            <div className="scroll-section">
-              <p className="text-[13px] font-medium tracking-wide text-[#a1a1aa] mb-3">Developer experience</p>
-              <h2 className="text-3xl font-semibold tracking-tight mb-5">Three lines to your first query</h2>
+            <div className="scroll-reveal">
+              <p className="text-[13px] font-medium tracking-wide text-[#52525b] uppercase mb-3">Developer experience</p>
+              <h2 className="text-3xl font-bold tracking-tight mb-5">Three lines to your first query</h2>
               <p className="text-[15px] leading-relaxed text-[#71717a] mb-8">
-                The Nigris SDK handles authentication, pagination, and error handling. Install it, pass your API key, and start building.
+                The Nigris SDK handles auth, pagination, and errors. Install it, pass your key, build.
               </p>
               <ul className="space-y-3">
-                {["TypeScript-first with full type safety", "Auto-validates against your schema", "Built-in pagination & filtering", "Counts towards your billing tier automatically"].map((t) => (
+                {["TypeScript-first with full type safety", "Auto-validates against your schema", "Built-in pagination & filtering", "Counts towards billing automatically"].map((t) => (
                   <li key={t} className="flex items-start gap-2.5 text-[14px] text-[#a1a1aa]">
                     <Check className="mt-0.5 h-4 w-4 text-[#22c55e] shrink-0" />
                     {t}
@@ -193,7 +187,7 @@ export default function Home() {
                 ))}
               </ul>
             </div>
-            <div className="scroll-section">
+            <div className="scroll-reveal">
               <div className="rounded-xl border border-[#1c1c1f] bg-[#111113] overflow-hidden">
                 <div className="flex items-center gap-2 px-4 py-2.5 border-b border-[#1c1c1f]">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#ef4444]/50" />
@@ -220,47 +214,48 @@ console.log(user._id);`}</code></pre>
         </div>
       </section>
 
-      {/* ── Showcase — code-built API keys UI ── */}
+      {/* ── API Keys showcase ── */}
       <section className="py-24 lg:py-32 border-t border-[#1c1c1f]">
         <div className="mx-auto max-w-[1120px] px-6">
           <div className="grid lg:grid-cols-2 gap-16 items-start">
-            <div className="scroll-section rounded-xl border border-[#1c1c1f] bg-[#111113] overflow-hidden">
+            <div className="scroll-reveal rounded-xl border border-[#1c1c1f] bg-[#111113] overflow-hidden">
               <div className="px-5 py-4 border-b border-[#1c1c1f]">
                 <p className="text-[13px] font-medium">API Keys</p>
               </div>
               <div className="p-4 space-y-2">
                 {[
-                  { name: "Production", key: "nig_live_8f2a...x9k1", status: "Active", color: "text-[#22c55e]" },
-                  { name: "Staging", key: "nig_test_3d7b...m4p2", status: "Active", color: "text-[#22c55e]" },
-                  { name: "CI/CD", key: "nig_test_9e1c...j6r8", status: "Expired", color: "text-[#ef4444]" },
+                  { name: "Production", key: "nig_live_8f2a...x9k1", active: true },
+                  { name: "Staging", key: "nig_test_3d7b...m4p2", active: true },
+                  { name: "CI/CD", key: "nig_test_9e1c...j6r8", active: false },
                 ].map((k) => (
                   <div key={k.name} className="flex items-center justify-between rounded-lg border border-[#1c1c1f] bg-[#0c0c0e] px-4 py-3">
                     <div>
                       <p className="text-[13px] font-medium">{k.name}</p>
                       <p className="text-[12px] font-mono text-[#3f3f46] mt-0.5">{k.key}</p>
                     </div>
-                    <span className={`text-[11px] font-medium ${k.color}`}>{k.status}</span>
+                    <span className={`text-[11px] font-medium ${k.active ? "text-[#22c55e]" : "text-[#ef4444]"}`}>
+                      {k.active ? "Active" : "Expired"}
+                    </span>
                   </div>
                 ))}
               </div>
-              {/* Permissions */}
               <div className="px-5 py-4 border-t border-[#1c1c1f]">
                 <p className="text-[12px] text-[#52525b] uppercase tracking-wider mb-3">Permissions</p>
                 <div className="grid grid-cols-2 gap-2">
                   {["Read", "Write", "Delete", "Admin"].map((p, i) => (
                     <div key={p} className="flex items-center justify-between rounded-md border border-[#1c1c1f] px-3 py-2">
                       <span className="text-[12px] text-[#a1a1aa]">{p}</span>
-                      <div className={`w-7 h-4 rounded-full ${i < 2 ? 'bg-[#3b82f6]' : 'bg-[#27272a]'} relative`}>
-                        <div className={`absolute top-0.5 ${i < 2 ? 'right-0.5' : 'left-0.5'} w-3 h-3 rounded-full bg-white`} />
+                      <div className={`w-7 h-4 rounded-full ${i < 2 ? "bg-[#3b82f6]" : "bg-[#27272a]"} relative`}>
+                        <div className={`absolute top-0.5 ${i < 2 ? "right-0.5" : "left-0.5"} w-3 h-3 rounded-full bg-white`} />
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-            <div className="scroll-section lg:pt-8">
-              <p className="text-[13px] font-medium tracking-wide text-[#a1a1aa] mb-3">Security</p>
-              <h2 className="text-3xl font-semibold tracking-tight mb-5">Fine-grained access control</h2>
+            <div className="scroll-reveal lg:pt-8">
+              <p className="text-[13px] font-medium tracking-wide text-[#52525b] uppercase mb-3">Security</p>
+              <h2 className="text-3xl font-bold tracking-tight mb-5">Fine-grained access control</h2>
               <p className="text-[15px] leading-relaxed text-[#71717a] mb-6">
                 Generate API keys with scoped permissions. Monitor rate limit usage per key, set automatic expiration, and revoke access in one click.
               </p>
@@ -276,22 +271,24 @@ console.log(user._id);`}</code></pre>
       </section>
 
       {/* ── CTA ── */}
-      <section className="py-24 lg:py-32 border-t border-[#1c1c1f]">
-        <div className="mx-auto max-w-[1120px] px-6 text-center">
-          <h2 className="scroll-section text-3xl sm:text-4xl font-semibold tracking-tight">Start building today</h2>
-          <p className="scroll-section mt-4 text-[15px] text-[#71717a] max-w-md mx-auto">
+      <section className="relative py-24 lg:py-32 border-t border-[#1c1c1f] overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] rounded-full bg-[#3b82f6]/5 blur-[100px] pointer-events-none" />
+        <div className="relative mx-auto max-w-[1120px] px-6 text-center">
+          <h2 className="scroll-reveal text-3xl sm:text-4xl font-bold tracking-tight">Start building today</h2>
+          <p className="scroll-reveal mt-4 text-[15px] text-[#71717a] max-w-md mx-auto">
             Free to start. No credit card required. Upgrade when you&apos;re ready.
           </p>
-          <div className="scroll-section mt-8 flex flex-wrap items-center justify-center gap-4">
+          <div className="scroll-reveal mt-9 flex flex-wrap items-center justify-center gap-4">
             <Link
               href="/register"
-              className="inline-flex h-10 items-center rounded-lg bg-white px-5 text-[14px] font-medium text-[#09090b] transition hover:bg-[#e4e4e7]"
+              className="group inline-flex h-11 items-center gap-2 rounded-lg bg-white px-6 text-[14px] font-semibold text-[#09090b] transition-all hover:bg-[#e4e4e7] hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]"
             >
               Create free account
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
             </Link>
             <Link
               href="/contact"
-              className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-[#27272a] px-5 text-[14px] font-medium text-[#a1a1aa] transition hover:border-[#3f3f46] hover:text-white"
+              className="inline-flex h-11 items-center rounded-lg border border-[#27272a] px-6 text-[14px] font-medium text-[#a1a1aa] transition hover:border-[#3f3f46] hover:text-white"
             >
               Talk to sales
             </Link>
