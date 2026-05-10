@@ -37,7 +37,7 @@ export default function NewBlogPage() {
 
   return (
     <div className="py-6 max-w-3xl">
-      <Link href="/admin/blogs" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4">
+      <Link href="/admin/blogs" className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-gray-700 mb-4">
         <ArrowLeft className="h-4 w-4" /> Back to posts
       </Link>
       <h1 className="text-2xl font-bold mb-6">New Blog Post</h1>
@@ -50,7 +50,7 @@ export default function NewBlogPage() {
           <input
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
-            className="w-full rounded-lg border px-3.5 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800"
+            className="w-full rounded-lg border px-3.5 py-2.5 text-sm dark:border-slate-800 dark:bg-gray-800"
             placeholder="My awesome post"
             required
           />
@@ -61,7 +61,7 @@ export default function NewBlogPage() {
             value={form.content}
             onChange={(e) => setForm({ ...form, content: e.target.value })}
             rows={16}
-            className="w-full rounded-lg border px-3.5 py-2.5 text-sm font-mono dark:border-gray-700 dark:bg-gray-800 resize-none"
+            className="w-full rounded-lg border px-3.5 py-2.5 text-sm font-mono dark:border-slate-800 dark:bg-gray-800 resize-none"
             placeholder="Write your post in Markdown..."
           />
         </div>
@@ -71,7 +71,7 @@ export default function NewBlogPage() {
             value={form.excerpt}
             onChange={(e) => setForm({ ...form, excerpt: e.target.value })}
             rows={2}
-            className="w-full rounded-lg border px-3.5 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 resize-none"
+            className="w-full rounded-lg border px-3.5 py-2.5 text-sm dark:border-slate-800 dark:bg-gray-800 resize-none"
             placeholder="Short summary for the blog listing..."
           />
         </div>
@@ -80,7 +80,7 @@ export default function NewBlogPage() {
           <input
             value={form.tags}
             onChange={(e) => setForm({ ...form, tags: e.target.value })}
-            className="w-full rounded-lg border px-3.5 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800"
+            className="w-full rounded-lg border px-3.5 py-2.5 text-sm dark:border-slate-800 dark:bg-gray-800"
             placeholder="Product, Engineering, Tutorial"
           />
         </div>
@@ -97,7 +97,7 @@ export default function NewBlogPage() {
                     ? s === "published"
                       ? "bg-emerald-600 text-white border-emerald-600"
                       : "bg-amber-600 text-white border-amber-600"
-                    : "dark:border-gray-700 text-gray-500 hover:border-gray-400"
+                    : "dark:border-slate-800 text-slate-500 hover:border-gray-400"
                 }`}
               >
                 {s.charAt(0).toUpperCase() + s.slice(1)}

@@ -28,22 +28,22 @@ export default function ActivityPage() {
     api.get("/admin/activities").then((r) => setLogs(r.data.activities)).catch(console.error).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="py-12 text-center text-gray-500">Loading activity...</div>;
+  if (loading) return <div className="py-12 text-center text-slate-500">Loading activity...</div>;
 
   return (
     <div className="py-6">
       <h1 className="text-2xl font-bold mb-1">Activity Log</h1>
-      <p className="text-sm text-gray-500 mb-6">All platform events in chronological order.</p>
+      <p className="text-sm text-slate-500 mb-6">All platform events in chronological order.</p>
 
       {logs.length === 0 ? (
-        <div className="text-center py-16 text-gray-400">
+        <div className="text-center py-16 text-slate-400">
           <Activity className="mx-auto h-10 w-10 mb-3 opacity-40" />
           <p>No activity logged yet</p>
         </div>
       ) : (
         <div className="space-y-0 divide-y dark:divide-gray-800">
           {logs.map((log) => {
-            const meta = actionLabels[log.action] || { label: log.action, color: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400" };
+            const meta = actionLabels[log.action] || { label: log.action, color: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-slate-400" };
             return (
               <div key={log._id} className="flex items-start gap-4 py-4">
                 <div className="mt-0.5 w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 shrink-0" />
@@ -53,9 +53,9 @@ export default function ActivityPage() {
                       {meta.label}
                     </span>
                     {log.userId && (
-                      <span className="text-xs text-gray-500">{log.userId.name}</span>
+                      <span className="text-xs text-slate-500">{log.userId.name}</span>
                     )}
-                    <span className="text-xs text-gray-400 ml-auto shrink-0">
+                    <span className="text-xs text-slate-400 ml-auto shrink-0">
                       {new Date(log.createdAt).toLocaleString()}
                     </span>
                   </div>

@@ -31,14 +31,14 @@ export default function BlogListPage() {
     setBlogs((prev) => prev.filter((b) => b._id !== id));
   };
 
-  if (loading) return <div className="py-12 text-center text-gray-500">Loading blogs...</div>;
+  if (loading) return <div className="py-12 text-center text-slate-500">Loading blogs...</div>;
 
   return (
     <div className="py-6">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold mb-1">Blog Posts</h1>
-          <p className="text-sm text-gray-500">Create and manage blog content.</p>
+          <p className="text-sm text-slate-500">Create and manage blog content.</p>
         </div>
         <Link
           href="/admin/blogs/new"
@@ -49,23 +49,23 @@ export default function BlogListPage() {
       </div>
 
       {blogs.length === 0 ? (
-        <div className="text-center py-16 text-gray-400">
+        <div className="text-center py-16 text-slate-400">
           <p>No blog posts yet. Create your first one!</p>
         </div>
       ) : (
-        <div className="rounded-xl border overflow-hidden dark:border-gray-700">
+        <div className="rounded-xl border overflow-hidden dark:border-slate-800">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b bg-gray-50 dark:bg-gray-800/50 dark:border-gray-700">
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Title</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500 hidden sm:table-cell">Status</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500 hidden md:table-cell">Date</th>
+              <tr className="border-b bg-gray-50 dark:bg-gray-800/50 dark:border-slate-800">
+                <th className="text-left px-4 py-3 font-medium text-slate-500">Title</th>
+                <th className="text-left px-4 py-3 font-medium text-slate-500 hidden sm:table-cell">Status</th>
+                <th className="text-left px-4 py-3 font-medium text-slate-500 hidden md:table-cell">Date</th>
                 <th className="px-4 py-3 w-20"></th>
               </tr>
             </thead>
             <tbody>
               {blogs.map((b) => (
-                <tr key={b._id} className="border-b last:border-0 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition">
+                <tr key={b._id} className="border-b last:border-0 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition">
                   <td className="px-4 py-3">
                     <button onClick={() => router.push(`/admin/blogs/${b._id}`)} className="text-left font-medium hover:text-blue-600 transition">
                       {b.title}
@@ -73,7 +73,7 @@ export default function BlogListPage() {
                     {b.tags.length > 0 && (
                       <div className="flex gap-1 mt-1">
                         {b.tags.slice(0, 3).map((t) => (
-                          <span key={t} className="text-[11px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-500">{t}</span>
+                          <span key={t} className="text-[11px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-slate-500">{t}</span>
                         ))}
                       </div>
                     )}
@@ -85,7 +85,7 @@ export default function BlogListPage() {
                       {b.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-gray-500 hidden md:table-cell">{new Date(b.createdAt).toLocaleDateString()}</td>
+                  <td className="px-4 py-3 text-slate-500 hidden md:table-cell">{new Date(b.createdAt).toLocaleDateString()}</td>
                   <td className="px-4 py-3">
                     <button onClick={() => deleteBlog(b._id)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800" title="Delete">
                       <Trash2 className="h-4 w-4 text-red-500" />
