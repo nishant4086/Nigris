@@ -39,7 +39,7 @@ export default function RevokeKeyModal({ isOpen, onClose, onSuccess, keyId, keyN
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 dark:bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-[#191919] w-full max-w-md rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+      <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl w-full max-w-md rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
         
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800">
@@ -81,13 +81,13 @@ export default function RevokeKeyModal({ isOpen, onClose, onSuccess, keyId, keyN
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
               placeholder={keyName || "Untitled"}
-              className="w-full bg-white dark:bg-[#111111] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all dark:text-slate-200"
+              className="w-full bg-white dark:bg-slate-950/50 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all dark:text-slate-200"
             />
           </div>
         </div>
 
         {/* Actions */}
-        <div className="px-6 py-4 bg-slate-50 dark:bg-[#111111] border-t border-slate-100 dark:border-slate-800 flex gap-3">
+        <div className="px-6 py-4 bg-slate-50 dark:bg-slate-950/50 backdrop-blur-md border-t border-slate-100 dark:border-slate-800 flex gap-3">
           <button
             onClick={onClose}
             disabled={revoking}

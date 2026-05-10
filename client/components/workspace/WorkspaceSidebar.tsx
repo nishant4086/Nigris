@@ -60,7 +60,7 @@ export default function WorkspaceSidebar() {
   }, [projectId]);
 
   return (
-    <div className="w-64 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#191919] flex flex-col h-full select-none hidden md:flex transition-all duration-300">
+    <div className="w-64 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 backdrop-blur-xl flex flex-col h-full select-none hidden md:flex transition-all duration-300">
       {/* Workspace Header */}
       <div className="px-4 py-3 flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-[#202020] cursor-pointer transition-colors">
         <div className="w-5 h-5 bg-black dark:bg-white text-white dark:text-black rounded flex items-center justify-center text-xs font-bold">

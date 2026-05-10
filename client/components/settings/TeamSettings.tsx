@@ -23,7 +23,7 @@ export default function TeamSettings() {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-      <div className="bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
         <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800">
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Project Teams</h3>
           <p className="text-sm text-slate-500">Manage collaborative access for each of your projects.</p>

@@ -32,7 +32,7 @@ export default function ProfileSettings({ user, onUpdate }: ProfileSettingsProps
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-      <div className="bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
         <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800">
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Personal Information</h3>
           <p className="text-sm text-slate-500">Manage your profile details and how others see you.</p>
@@ -45,7 +45,7 @@ export default function ProfileSettings({ user, onUpdate }: ProfileSettingsProps
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold border-4 border-white dark:border-[#191919] shadow-lg">
                 {(user?.name || "U").charAt(0).toUpperCase()}
               </div>
-              <button className="absolute bottom-0 right-0 p-2 bg-white dark:bg-[#252525] rounded-full border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 transition-colors">
+              <button className="absolute bottom-0 right-0 p-2 bg-white dark:bg-slate-800/60 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 transition-colors">
                 <Camera className="w-4 h-4 text-slate-600 dark:text-slate-400" />
               </button>
             </div>
@@ -65,7 +65,7 @@ export default function ProfileSettings({ user, onUpdate }: ProfileSettingsProps
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full  text-black dark:text-white  pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-[#111111] border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                  className="w-full  text-black dark:text-white  pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-950/50 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                 />
               </div>
             </div>

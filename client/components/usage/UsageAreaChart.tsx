@@ -21,15 +21,15 @@ export default function UsageAreaChart({ data, loading }: UsageAreaChartProps) {
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm mb-6 h-[400px] flex items-center justify-center">
-        <div className="w-full h-full bg-slate-100 dark:bg-[#252525] rounded-xl animate-pulse"></div>
+      <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm mb-6 h-[400px] flex items-center justify-center">
+        <div className="w-full h-full bg-slate-100 dark:bg-slate-800/60 rounded-xl animate-pulse"></div>
       </div>
     );
   }
 
   if (data.length === 0) {
     return (
-      <div className="bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm mb-6 h-[400px] flex flex-col items-center justify-center text-slate-500">
+      <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm mb-6 h-[400px] flex flex-col items-center justify-center text-slate-500">
         <p className="font-semibold text-slate-700 dark:text-slate-300">No usage data</p>
         <p className="text-sm">Start making API requests to see trends here.</p>
       </div>
@@ -42,7 +42,7 @@ export default function UsageAreaChart({ data, loading }: UsageAreaChartProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm mb-6">
+    <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm mb-6">
       <div className="mb-6">
         <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">API Requests</h3>
         <p className="text-sm text-slate-500">Total volume over the selected time range</p>

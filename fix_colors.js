@@ -10,7 +10,7 @@ function walkDir(dir, callback) {
 }
 
 function processFiles() {
-  const targetDir = './client/app/dashboard';
+  const targetDir = './client/components';
   walkDir(targetDir, (filePath) => {
     if (filePath.endsWith('.tsx') || filePath.endsWith('.ts')) {
       let content = fs.readFileSync(filePath, 'utf8');

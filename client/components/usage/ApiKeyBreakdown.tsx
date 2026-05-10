@@ -11,9 +11,9 @@ type ApiKeyBreakdownProps = {
 export default function ApiKeyBreakdown({ data, loading }: ApiKeyBreakdownProps) {
   if (loading) {
     return (
-      <div className="bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm h-[350px] flex flex-col justify-center gap-4">
+      <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm h-[350px] flex flex-col justify-center gap-4">
         {[1, 2, 3, 4, 5].map(i => (
-          <div key={i} className="w-full h-8 bg-slate-100 dark:bg-[#252525] rounded animate-pulse"></div>
+          <div key={i} className="w-full h-8 bg-slate-100 dark:bg-slate-800/60 rounded animate-pulse"></div>
         ))}
       </div>
     );
@@ -22,7 +22,7 @@ export default function ApiKeyBreakdown({ data, loading }: ApiKeyBreakdownProps)
   const maxVal = Math.max(...data.map(d => d.value), 1); // Avoid division by zero
 
   return (
-    <div className="bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm h-[350px] overflow-y-auto">
+    <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm h-[350px] overflow-y-auto">
       <div className="mb-4">
         <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Endpoint Breakdown</h3>
         <p className="text-sm text-slate-500">Most active routes</p>
@@ -38,7 +38,7 @@ export default function ApiKeyBreakdown({ data, loading }: ApiKeyBreakdownProps)
                 <span className="font-mono text-slate-700 dark:text-slate-300 truncate max-w-[70%]">{item.name}</span>
                 <span className="font-semibold text-slate-900 dark:text-slate-100">{item.value.toLocaleString()} reqs</span>
               </div>
-              <div className="w-full bg-slate-100 dark:bg-[#252525] rounded-full h-2">
+              <div className="w-full bg-slate-100 dark:bg-slate-800/60 rounded-full h-2">
                 <div 
                   className="bg-indigo-500 h-2 rounded-full transition-all duration-1000 ease-out" 
                   style={{ width: `${(item.value / maxVal) * 100}%` }}

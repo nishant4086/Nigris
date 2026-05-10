@@ -91,7 +91,7 @@ export default function SecuritySettings() {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-      <div className="bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
         <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800">
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Password</h3>
           <p className="text-sm text-slate-500">Update your password to keep your account secure.</p>
@@ -118,7 +118,7 @@ export default function SecuritySettings() {
                   type={showPass ? "text" : "password"}
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-[#111111] border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-950/50 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                   required
                 />
               </div>
@@ -130,7 +130,7 @@ export default function SecuritySettings() {
                 type={showPass ? "text" : "password"}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-[#111111] border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950/50 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                 required
               />
             </div>
@@ -141,7 +141,7 @@ export default function SecuritySettings() {
                 type={showPass ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-[#111111] border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950/50 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                 required
               />
             </div>
@@ -172,7 +172,7 @@ export default function SecuritySettings() {
       </div>
 
       {/* 2FA Card */}
-      <div className="bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex items-center justify-between gap-6 group hover:border-blue-500/50 transition-colors">
+      <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex items-center justify-between gap-6 group hover:border-blue-500/50 transition-colors">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
             <Smartphone className="w-6 h-6" />
@@ -193,7 +193,7 @@ export default function SecuritySettings() {
       </div>
 
       {/* Passkeys Card */}
-      <div className="bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex items-center justify-between gap-6 group hover:border-indigo-500/50 transition-colors">
+      <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex items-center justify-between gap-6 group hover:border-indigo-500/50 transition-colors">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform">
             <Fingerprint className="w-6 h-6" />
@@ -216,7 +216,7 @@ export default function SecuritySettings() {
       {/* MFA Setup Modal */}
       {isMfaModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-          <div className="bg-white dark:bg-[#191919] w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-800">
+          <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-800">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
               <h3 className="font-bold text-slate-900 dark:text-slate-100">Setup Authenticator App</h3>
               <button onClick={() => setIsMfaModalOpen(false)} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
@@ -236,7 +236,7 @@ export default function SecuritySettings() {
                       placeholder="000000"
                       value={mfaToken}
                       onChange={(e) => setMfaToken(e.target.value)}
-                      className="w-full text-center text-2xl font-black tracking-[0.5em] py-3 bg-slate-50 dark:bg-[#111111] border border-slate-200 dark:border-slate-800 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none"
+                      className="w-full text-center text-2xl font-black tracking-[0.5em] py-3 bg-slate-50 dark:bg-slate-950/50 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none"
                     />
                     <button
                       onClick={verifyMfa}
@@ -258,9 +258,9 @@ export default function SecuritySettings() {
                     <p className="text-sm text-slate-500 mt-2">Please save these recovery codes in a safe place. You can use them if you lose access to your authenticator app.</p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 bg-slate-50 dark:bg-[#111111] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 font-mono text-xs">
+                  <div className="grid grid-cols-2 gap-2 bg-slate-50 dark:bg-slate-950/50 backdrop-blur-md p-4 rounded-2xl border border-slate-200 dark:border-slate-800 font-mono text-xs">
                     {recoveryCodes.map(code => (
-                      <div key={code} className="flex items-center justify-between p-2 bg-white dark:bg-[#191919] rounded-lg border border-slate-100 dark:border-slate-800">
+                      <div key={code} className="flex items-center justify-between p-2 bg-white dark:bg-slate-900/50 backdrop-blur-xl rounded-lg border border-slate-100 dark:border-slate-800">
                         <span>{code}</span>
                       </div>
                     ))}

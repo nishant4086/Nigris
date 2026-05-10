@@ -30,7 +30,7 @@ const getFieldIcon = (type: string) => {
 
 export default function CollectionCard({ collection, onDelete }: CollectionCardProps) {
   return (
-    <div className="group relative bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col h-full">
+    <div className="group relative bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col h-full">
 
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
@@ -43,7 +43,7 @@ export default function CollectionCard({ collection, onDelete }: CollectionCardP
               {collection.name}
             </h3>
             <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-xs text-slate-500 font-mono bg-slate-100 dark:bg-[#202020] px-1.5 py-0.5 rounded">
+              <span className="text-xs text-slate-500 font-mono bg-slate-100 dark:bg-slate-800/40 px-1.5 py-0.5 rounded">
                 /{collection.slug}
               </span>
               {collection.isPublic && (
@@ -79,7 +79,7 @@ export default function CollectionCard({ collection, onDelete }: CollectionCardP
         </p>
         <div className="flex flex-wrap gap-2">
           {collection.fields?.slice(0, 6).map((field, i) => (
-            <div key={i} className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-[#202020] border border-slate-100 dark:border-slate-800 px-2 py-1 rounded-md">
+            <div key={i} className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 px-2 py-1 rounded-md">
               {getFieldIcon(field.type)}
               <span>{field.name}</span>
               {field.required && <span className="text-red-400">*</span>}
@@ -87,7 +87,7 @@ export default function CollectionCard({ collection, onDelete }: CollectionCardP
             </div>
           ))}
           {(collection.fields?.length || 0) > 6 && (
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 bg-slate-50 dark:bg-[#202020] border border-slate-100 dark:border-slate-800 px-2 py-1 rounded-md">
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 px-2 py-1 rounded-md">
               +{collection.fields!.length - 6} more
             </div>
           )}
@@ -101,7 +101,7 @@ export default function CollectionCard({ collection, onDelete }: CollectionCardP
       <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between relative z-20">
         <div className="flex items-center gap-3">
           {/* Add entries count here if available in the future */}
-          <span className="text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-[#202020] px-2 py-1 rounded-md">
+          <span className="text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/40 px-2 py-1 rounded-md">
             ID: {collection._id.slice()}
           </span>
         </div>

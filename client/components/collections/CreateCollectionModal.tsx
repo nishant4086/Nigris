@@ -73,7 +73,7 @@ export default function CreateCollectionModal({ isOpen, onClose, onSubmit, initi
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 dark:bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-[#191919] w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in slide-in-from-bottom-4 duration-300">
+      <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in slide-in-from-bottom-4 duration-300">
         
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800">
@@ -112,7 +112,7 @@ export default function CreateCollectionModal({ isOpen, onClose, onSubmit, initi
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Customers, Tasks, Posts"
-                className="w-full bg-slate-50 dark:bg-[#111111] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:bg-white dark:focus:bg-[#111111] focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all dark:text-slate-200"
+                className="w-full bg-slate-50 dark:bg-slate-950/50 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:bg-white dark:focus:bg-[#111111] focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all dark:text-slate-200"
               />
             </div>
             
@@ -124,7 +124,7 @@ export default function CreateCollectionModal({ isOpen, onClose, onSubmit, initi
                   value={projectId}
                   onChange={(e) => setProjectId(e.target.value)}
                   disabled={loadingProjects}
-                  className="w-full bg-slate-50 dark:bg-[#111111] border border-slate-200 dark:border-slate-800 rounded-xl pl-9 pr-4 py-3 text-sm focus:bg-white dark:focus:bg-[#111111] focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all dark:text-slate-200 appearance-none disabled:opacity-50"
+                  className="w-full bg-slate-50 dark:bg-slate-950/50 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-xl pl-9 pr-4 py-3 text-sm focus:bg-white dark:focus:bg-[#111111] focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all dark:text-slate-200 appearance-none disabled:opacity-50"
                 >
                   <option value="" disabled>Select a project...</option>
                   {projects.map(p => (
@@ -151,7 +151,7 @@ export default function CreateCollectionModal({ isOpen, onClose, onSubmit, initi
         </div>
 
         {/* Footer Actions */}
-        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#111111]/50 flex items-center justify-between">
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/30 backdrop-blur-md flex items-center justify-between">
           <button
             onClick={onClose}
             disabled={saving}

@@ -33,7 +33,7 @@ export default function ApiKeySettings() {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-      <div className="bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
         <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">API Access Tokens</h3>
@@ -53,13 +53,13 @@ export default function ApiKeySettings() {
             <div key={key._id} className="p-6 group hover:bg-slate-50/50 dark:hover:bg-[#1e1e1e] transition-colors">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-[#252525] flex items-center justify-center text-slate-400">
+                  <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-800/60 flex items-center justify-center text-slate-400">
                     <Key className="w-5 h-5" />
                   </div>
                   <div>
                     <h4 className="font-bold text-slate-900 dark:text-slate-100">{key.name || "Untitled Key"}</h4>
                     <div className="flex items-center gap-3 mt-1">
-                      <code className="text-[10px] font-mono text-slate-500 bg-slate-100 dark:bg-[#111111] px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800">
+                      <code className="text-[10px] font-mono text-slate-500 bg-slate-100 dark:bg-slate-950/50 backdrop-blur-md px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800">
                         {key.maskedKey}
                       </code>
                       <div className="flex gap-1">

@@ -196,7 +196,7 @@ export default function FieldRenderer({ field, value, rowId, onUpdate, refData }
             ref={(node) => {
               inputRef.current = node;
             }}
-            className="w-full bg-white dark:bg-[#191919] border border-indigo-500 rounded px-2 py-1 text-sm outline-none shadow-sm dark:text-slate-200"
+            className="w-full bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-indigo-500 rounded px-2 py-1 text-sm outline-none shadow-sm dark:text-slate-200"
             value={getFormValue(localValue)}
             onChange={(e) => setLocalValue(e.target.value)}
             onBlur={handleSave}
@@ -246,7 +246,7 @@ export default function FieldRenderer({ field, value, rowId, onUpdate, refData }
               inputRef.current = node;
             }}
             type="number"
-            className="w-full bg-white dark:bg-[#191919] border border-indigo-500 rounded px-2 py-1 text-sm outline-none shadow-sm dark:text-slate-200"
+            className="w-full bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-indigo-500 rounded px-2 py-1 text-sm outline-none shadow-sm dark:text-slate-200"
             value={getFormValue(localValue)}
             onChange={(e) => setLocalValue(e.target.value ? Number(e.target.value) : "")}
             onBlur={handleSave}
@@ -261,7 +261,7 @@ export default function FieldRenderer({ field, value, rowId, onUpdate, refData }
               inputRef.current = node;
             }}
             type="text"
-            className="w-full bg-white dark:bg-[#191919] border border-indigo-500 rounded px-2 py-1 text-sm outline-none shadow-sm dark:text-slate-200"
+            className="w-full bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-indigo-500 rounded px-2 py-1 text-sm outline-none shadow-sm dark:text-slate-200"
             value={getFormValue(localValue)}
             onChange={(e) => setLocalValue(e.target.value)}
             onBlur={handleSave}

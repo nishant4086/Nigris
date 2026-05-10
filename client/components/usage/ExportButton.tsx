@@ -33,7 +33,7 @@ export default function ExportButton({ timeRange }: { timeRange: string }) {
     <button
       onClick={handleExport}
       disabled={exporting}
-      className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-[#252525] transition-colors disabled:opacity-50"
+      className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-[#252525] transition-colors disabled:opacity-50"
     >
       {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
       Export CSV

@@ -24,7 +24,7 @@ export default function SortableItem({ id, children }: SortableItemProps) {
       style={style} 
       className={`group flex items-start gap-2 p-2 -mx-2 rounded-xl border border-transparent transition-colors ${
         isDragging 
-          ? "bg-white dark:bg-[#252525] shadow-xl border-slate-200 dark:border-slate-700 opacity-90 ring-2 ring-indigo-500/20" 
+          ? "bg-white dark:bg-slate-800/60 shadow-xl border-slate-200 dark:border-slate-700 opacity-90 ring-2 ring-indigo-500/20" 
           : "hover:bg-slate-50 dark:hover:bg-[#1a1a1a]"
       }`}
     >

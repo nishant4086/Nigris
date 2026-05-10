@@ -90,12 +90,12 @@ export default function CreateKeyModal({ isOpen, onClose, onSuccess }: CreateKey
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 dark:bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-[#191919] w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in slide-in-from-bottom-4 duration-300">
+      <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in slide-in-from-bottom-4 duration-300">
         
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${newKey ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-[#252525] text-slate-900 dark:text-slate-100'}`}>
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${newKey ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-800/60 text-slate-900 dark:text-slate-100'}`}>
               {newKey ? <ShieldCheck className="w-5 h-5" /> : <KeyRound className="w-5 h-5" />}
             </div>
             <div>
@@ -138,9 +138,9 @@ export default function CreateKeyModal({ isOpen, onClose, onSuccess }: CreateKey
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Your API Key</label>
-                <div className="flex items-center gap-2 p-1 pl-4 bg-slate-50 dark:bg-[#111111] border border-slate-200 dark:border-slate-800 rounded-xl">
+                <div className="flex items-center gap-2 p-1 pl-4 bg-slate-50 dark:bg-slate-950/50 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-xl">
                   <code className="flex-1 text-sm text-slate-900 dark:text-slate-100 font-mono break-all">{newKey}</code>
-                  <CopyButton text={newKey} className="p-3 bg-white dark:bg-[#202020] border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm hover:shadow" />
+                  <CopyButton text={newKey} className="p-3 bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm hover:shadow" />
                 </div>
               </div>
             </div>
@@ -155,7 +155,7 @@ export default function CreateKeyModal({ isOpen, onClose, onSuccess }: CreateKey
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Production Frontend App"
-                  className="w-full bg-slate-50 dark:bg-[#111111] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:bg-white dark:focus:bg-[#111111] focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 outline-none transition-all dark:text-slate-200"
+                  className="w-full bg-slate-50 dark:bg-slate-950/50 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:bg-white dark:focus:bg-[#111111] focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 outline-none transition-all dark:text-slate-200"
                 />
               </div>
               
@@ -167,7 +167,7 @@ export default function CreateKeyModal({ isOpen, onClose, onSuccess }: CreateKey
                     value={projectId}
                     onChange={(e) => setProjectId(e.target.value)}
                     disabled={loadingProjects}
-                    className="w-full bg-slate-50 dark:bg-[#111111] border border-slate-200 dark:border-slate-800 rounded-xl pl-9 pr-4 py-3 text-sm focus:bg-white dark:focus:bg-[#111111] focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 outline-none transition-all dark:text-slate-200 appearance-none disabled:opacity-50"
+                    className="w-full bg-slate-50 dark:bg-slate-950/50 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-xl pl-9 pr-4 py-3 text-sm focus:bg-white dark:focus:bg-[#111111] focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 outline-none transition-all dark:text-slate-200 appearance-none disabled:opacity-50"
                   >
                     <option value="" disabled>Select a project...</option>
                     {projects.map(p => (
@@ -244,7 +244,7 @@ export default function CreateKeyModal({ isOpen, onClose, onSuccess }: CreateKey
         </div>
 
         {/* Footer Actions */}
-        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#111111]/50 flex items-center justify-end">
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/30 backdrop-blur-md flex items-center justify-end">
           {newKey ? (
             <button
               onClick={handleDone}

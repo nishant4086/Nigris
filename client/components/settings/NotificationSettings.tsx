@@ -35,7 +35,7 @@ export default function NotificationSettings() {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-      <div className="bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
         <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800">
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Notification Preferences</h3>
           <p className="text-sm text-slate-500">Control how and when we reach out to you.</p>
@@ -49,7 +49,7 @@ export default function NotificationSettings() {
                 {section.items.map((item) => (
                   <div key={item.id} className="flex items-center justify-between gap-4">
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-[#252525] flex items-center justify-center text-slate-400">
+                      <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-800/60 flex items-center justify-center text-slate-400">
                         <item.icon className="w-5 h-5" />
                       </div>
                       <div>

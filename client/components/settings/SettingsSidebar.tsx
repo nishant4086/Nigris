@@ -48,7 +48,7 @@ export default function SettingsSidebar({ activeTab, setActiveTab }: SettingsSid
             <div className="flex items-center gap-3">
               <div className={`
                 p-1.5 rounded-lg transition-colors
-                ${isActive ? "bg-blue-600 text-white" : "bg-slate-100 dark:bg-[#252525] text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200"}
+                ${isActive ? "bg-blue-600 text-white" : "bg-slate-100 dark:bg-slate-800/60 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200"}
               `}>
                 <Icon className="w-4 h-4" />
               </div>

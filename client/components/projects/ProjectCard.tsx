@@ -16,7 +16,7 @@ type ProjectCardProps = {
 
 export default function ProjectCard({ project, onDelete }: ProjectCardProps) {
   return (
-    <div className="group relative bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col h-full">
+    <div className="group relative bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col h-full">
       
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
@@ -69,7 +69,7 @@ export default function ProjectCard({ project, onDelete }: ProjectCardProps) {
       {/* Footer */}
       <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-[#202020] px-2 py-1 rounded-md">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/40 px-2 py-1 rounded-md">
             <Database className="w-3.5 h-3.5 text-slate-400" />
             {project.collectionsCount || 0} Collections
           </div>

@@ -20,7 +20,7 @@ const CHART_HEIGHT = 246;
 export default function RequestDistribution({ data, loading }: RequestDistributionProps) {
   if (loading) {
     return (
-      <div className="bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm h-[350px] flex items-center justify-center">
+      <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm h-[350px] flex items-center justify-center">
         <div className="w-48 h-48 rounded-full border-8 border-slate-100 dark:border-[#252525] animate-pulse"></div>
       </div>
     );
@@ -29,7 +29,7 @@ export default function RequestDistribution({ data, loading }: RequestDistributi
   const hasData = data.some(d => d.value > 0);
 
   return (
-    <div className="bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm h-[350px] flex flex-col">
+    <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm h-[350px] flex flex-col">
       <div className="mb-2">
         <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Status Code Distribution</h3>
         <p className="text-sm text-slate-500">Success vs Failed requests</p>

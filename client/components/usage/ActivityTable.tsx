@@ -18,7 +18,7 @@ type ActivityTableProps = {
 
 export default function ActivityTable({ logs, loading }: ActivityTableProps) {
   return (
-    <div className="bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden mb-6">
+    <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden mb-6">
       <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800">
         <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Recent Activity</h3>
         <p className="text-sm text-slate-500">Live feed of API requests across your projects</p>
@@ -26,7 +26,7 @@ export default function ActivityTable({ logs, loading }: ActivityTableProps) {
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left">
-          <thead className="bg-slate-50 dark:bg-[#111111] text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+          <thead className="bg-slate-50 dark:bg-slate-950/50 backdrop-blur-md text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
             <tr>
               <th className="px-6 py-3 font-medium">Timestamp</th>
               <th className="px-6 py-3 font-medium">API Key</th>
@@ -39,11 +39,11 @@ export default function ActivityTable({ logs, loading }: ActivityTableProps) {
             {loading ? (
               [1, 2, 3, 4, 5].map(i => (
                 <tr key={i} className="animate-pulse">
-                  <td className="px-6 py-4"><div className="h-4 bg-slate-100 dark:bg-[#252525] rounded w-24"></div></td>
-                  <td className="px-6 py-4"><div className="h-4 bg-slate-100 dark:bg-[#252525] rounded w-32"></div></td>
-                  <td className="px-6 py-4"><div className="h-4 bg-slate-100 dark:bg-[#252525] rounded w-48"></div></td>
-                  <td className="px-6 py-4 text-right"><div className="h-4 bg-slate-100 dark:bg-[#252525] rounded w-12 ml-auto"></div></td>
-                  <td className="px-6 py-4 text-right"><div className="h-4 bg-slate-100 dark:bg-[#252525] rounded w-12 ml-auto"></div></td>
+                  <td className="px-6 py-4"><div className="h-4 bg-slate-100 dark:bg-slate-800/60 rounded w-24"></div></td>
+                  <td className="px-6 py-4"><div className="h-4 bg-slate-100 dark:bg-slate-800/60 rounded w-32"></div></td>
+                  <td className="px-6 py-4"><div className="h-4 bg-slate-100 dark:bg-slate-800/60 rounded w-48"></div></td>
+                  <td className="px-6 py-4 text-right"><div className="h-4 bg-slate-100 dark:bg-slate-800/60 rounded w-12 ml-auto"></div></td>
+                  <td className="px-6 py-4 text-right"><div className="h-4 bg-slate-100 dark:bg-slate-800/60 rounded w-12 ml-auto"></div></td>
                 </tr>
               ))
             ) : logs.length === 0 ? (

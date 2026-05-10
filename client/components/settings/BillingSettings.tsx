@@ -25,7 +25,7 @@ export default function BillingSettings({ user }: { user: any }) {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
       {/* Current Plan Card */}
-      <div className="bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600">
             <Crown className="w-7 h-7" />
@@ -43,12 +43,12 @@ export default function BillingSettings({ user }: { user: any }) {
 
       {/* Usage Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl p-6">
+        <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h4 className="font-bold text-slate-900 dark:text-slate-100">Projects Usage</h4>
             <span className="text-sm font-bold text-slate-500">{stats?.projects?.count || 0} / {stats?.projects?.limit || 1}</span>
           </div>
-          <div className="w-full bg-slate-100 dark:bg-[#252525] h-2 rounded-full overflow-hidden">
+          <div className="w-full bg-slate-100 dark:bg-slate-800/60 h-2 rounded-full overflow-hidden">
             <div
               className="bg-blue-600 h-full transition-all duration-1000"
               style={{ width: `${Math.min(((stats?.projects?.count || 0) / (stats?.projects?.limit || 1)) * 100, 100)}%` }}
@@ -56,12 +56,12 @@ export default function BillingSettings({ user }: { user: any }) {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl p-6">
+        <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h4 className="font-bold text-slate-900 dark:text-slate-100">API Keys Usage</h4>
             <span className="text-sm font-bold text-slate-500">{stats?.apiKeys?.count || 0} / {stats?.apiKeys?.limit || 2}</span>
           </div>
-          <div className="w-full bg-slate-100 dark:bg-[#252525] h-2 rounded-full overflow-hidden">
+          <div className="w-full bg-slate-100 dark:bg-slate-800/60 h-2 rounded-full overflow-hidden">
             <div
               className="bg-indigo-600 h-full transition-all duration-1000"
               style={{ width: `${Math.min(((stats?.apiKeys?.count || 0) / (stats?.apiKeys?.limit || 2)) * 100, 100)}%` }}
@@ -71,13 +71,13 @@ export default function BillingSettings({ user }: { user: any }) {
       </div>
 
       {/* Billing History Placeholder */}
-      <div className="bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
         <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800">
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Billing History</h3>
           <p className="text-sm text-slate-500">Download and manage your past invoices.</p>
         </div>
         <div className="p-12 text-center">
-          <div className="w-16 h-16 bg-slate-50 dark:bg-[#252525] rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100 dark:border-slate-800">
+          <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800/60 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100 dark:border-slate-800">
             <CreditCard className="w-8 h-8 text-slate-300" />
           </div>
           <p className="text-sm font-bold text-slate-400">No billing history yet.</p>
