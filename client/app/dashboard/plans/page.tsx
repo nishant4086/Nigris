@@ -257,12 +257,12 @@ function PlansContent() {
 
       {/* Billing Cycle Toggle */}
       <div className="flex items-center justify-center mb-10">
-        <div className="bg-slate-100 dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-xl p-1 flex items-center">
+        <div className="bg-slate-100 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-xl p-1 flex items-center">
           <button
             onClick={() => setBillingCycle("monthly")}
             className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
               billingCycle === "monthly"
-                ? "bg-white dark:bg-[#252525] text-slate-900 dark:text-slate-100 shadow-sm"
+                ? "bg-white dark:bg-slate-800/60 text-slate-900 dark:text-slate-100 shadow-sm"
                 : "text-slate-500 dark:text-slate-400 hover:text-slate-700"
             }`}
           >
@@ -272,7 +272,7 @@ function PlansContent() {
             onClick={() => setBillingCycle("yearly")}
             className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ${
               billingCycle === "yearly"
-                ? "bg-white dark:bg-[#252525] text-slate-900 dark:text-slate-100 shadow-sm"
+                ? "bg-white dark:bg-slate-800/60 text-slate-900 dark:text-slate-100 shadow-sm"
                 : "text-slate-500 dark:text-slate-400 hover:text-slate-700"
             }`}
           >
@@ -288,7 +288,7 @@ function PlansContent() {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-[420px] bg-slate-200 dark:bg-[#252525] rounded-2xl animate-pulse" />
+            <div key={i} className="h-[420px] bg-slate-200 dark:bg-slate-800/60 rounded-2xl animate-pulse" />
           ))}
         </div>
       ) : (
@@ -393,7 +393,7 @@ function PlansContent() {
         const barColor = pct >= 90 ? "from-red-500 to-red-600" : pct >= 70 ? "from-amber-500 to-orange-500" : "from-indigo-500 to-violet-500";
 
         return (
-          <section className="bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm p-6 mb-8">
+          <section className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm p-6 mb-8">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                 <Activity className="w-4 h-4 text-indigo-500" /> Daily Usage
@@ -402,7 +402,7 @@ function PlansContent() {
                 {usageData?.nextResetAt ? `Resets ${new Date(usageData.nextResetAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : "Resets every 24 hours"}
               </span>
             </div>
-            <div className="w-full bg-slate-100 dark:bg-[#252525] rounded-full h-3 mb-2">
+            <div className="w-full bg-slate-100 dark:bg-slate-800/60 rounded-full h-3 mb-2">
               <div
                 className={`bg-gradient-to-r ${barColor} h-3 rounded-full transition-all duration-1000`}
                 style={{ width: `${pct}%` }}
@@ -429,10 +429,10 @@ function PlansContent() {
 
       {/* Comparison Table */}
       {showComparison && (
-        <div className="bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden mb-8 animate-in slide-in-from-top-4 duration-300">
+        <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden mb-8 animate-in slide-in-from-top-4 duration-300">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 dark:bg-[#111111] border-b border-slate-200 dark:border-slate-800">
+              <thead className="bg-slate-50 dark:bg-slate-950/50 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
                 <tr>
                   <th className="text-left px-6 py-4 font-bold text-slate-900 dark:text-slate-100">Feature</th>
                   <th className="text-center px-6 py-4 font-bold text-slate-600 dark:text-slate-300">Free</th>

@@ -42,7 +42,7 @@ function AcceptInviteContent() {
 
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center text-center p-6">
-      <div className="w-full max-w-md bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-xl">
+      <div className="w-full max-w-md bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-xl">
         {loading ? (
           <div className="space-y-4">
             <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto" />

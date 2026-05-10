@@ -247,7 +247,7 @@ export default function CollectionDataPage() {
             <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
               {collectionName || "Loading..."}
             </h1>
-            <span className="bg-slate-100 dark:bg-[#202020] text-slate-600 dark:text-slate-400 text-xs font-bold px-2 py-1 rounded-md">
+            <span className="bg-slate-100 dark:bg-slate-800/40 text-slate-600 dark:text-slate-400 text-xs font-bold px-2 py-1 rounded-md">
               {total} Entries
             </span>
           </div>
@@ -261,12 +261,12 @@ export default function CollectionDataPage() {
               placeholder="Filter entries..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full md:w-64 pl-9 pr-4 py-2 bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow dark:text-slate-200"
+              className="w-full md:w-64 pl-9 pr-4 py-2 bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow dark:text-slate-200"
             />
           </div>
           <button
             onClick={() => setIsReorderMode(!isReorderMode)}
-            className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl transition-all ${isReorderMode ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-[#252525] text-slate-900 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-[#2a2a2a]'}`}
+            className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl transition-all ${isReorderMode ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800/60 text-slate-900 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-[#2a2a2a]'}`}
           >
             <GripVertical className="w-4 h-4" />
             {isReorderMode ? 'Done' : 'Reorder'}
@@ -288,7 +288,7 @@ export default function CollectionDataPage() {
       )}
 
       {/* Airtable-like Grid */}
-      <div className="bg-white dark:bg-[#191919] rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col min-h-[500px]">
+      <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col min-h-[500px]">
         {loading ? (
           <div className="p-8 flex items-center justify-center text-slate-400">Loading data...</div>
         ) : (
@@ -300,8 +300,8 @@ export default function CollectionDataPage() {
             >
               <table className="w-full text-sm text-left border-collapse whitespace-nowrap">
                 <thead>
-                  <tr className="bg-slate-50 dark:bg-[#111111] border-b border-slate-200 dark:border-slate-800">
-                    <th className="w-12 px-4 py-3 font-medium text-slate-500 dark:text-slate-400 border-r border-slate-200 dark:border-slate-800 sticky left-0 bg-slate-50 dark:bg-[#111111] z-10 text-center">#</th>
+                  <tr className="bg-slate-50 dark:bg-slate-950/50 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+                    <th className="w-12 px-4 py-3 font-medium text-slate-500 dark:text-slate-400 border-r border-slate-200 dark:border-slate-800 sticky left-0 bg-slate-50 dark:bg-slate-950/50 backdrop-blur-md z-10 text-center">#</th>
                     <th className="w-12 px-4 py-3 font-medium text-slate-500 dark:text-slate-400 border-r border-slate-200 dark:border-slate-800 text-center"></th>
                     <SortableContext
                       items={fieldsOrder}
@@ -336,7 +336,7 @@ export default function CollectionDataPage() {
                     data.map((row, idx) => (
                       <tr key={row._id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-[#202020]/50 transition-colors group">
                         {/* Row Number */}
-                        <td className="px-4 py-2 border-r border-slate-100 dark:border-slate-800 text-slate-400 text-xs text-center sticky left-0 bg-white dark:bg-[#191919] group-hover:bg-slate-50/50 dark:group-hover:bg-[#202020]/50 z-10 transition-colors">
+                        <td className="px-4 py-2 border-r border-slate-100 dark:border-slate-800 text-slate-400 text-xs text-center sticky left-0 bg-white dark:bg-slate-900/50 backdrop-blur-xl group-hover:bg-slate-50/50 dark:group-hover:bg-[#202020]/50 z-10 transition-colors">
                           {(page - 1) * limit + idx + 1}
                         </td>
 
@@ -378,7 +378,7 @@ export default function CollectionDataPage() {
 
         {/* Footer Pagination */}
         {pages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-[#111111]/50 mt-auto">
+          <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/30 backdrop-blur-md mt-auto">
             <span className="text-sm text-slate-500">
               Showing page {page} of {pages}
             </span>
@@ -412,9 +412,9 @@ export default function CollectionDataPage() {
       {/* Edit Entry Modal */}
       {editingEntry && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-[#191919] rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className="sticky top-0 flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#191919]">
+            <div className="sticky top-0 flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 backdrop-blur-xl">
               <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Edit Entry</h2>
               <button
                 onClick={() => setEditingEntry(null)}
@@ -445,7 +445,7 @@ export default function CollectionDataPage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="sticky bottom-0 flex items-center justify-between p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#111111] gap-3">
+            <div className="sticky bottom-0 flex items-center justify-between p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 backdrop-blur-md gap-3">
               <button
                 onClick={() => handleDeleteEntry(editingEntry._id)}
                 className="px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors flex items-center gap-2"

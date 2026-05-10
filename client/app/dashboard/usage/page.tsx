@@ -135,7 +135,7 @@ export default function UsageDashboard() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-xl px-2 py-1 shadow-sm">
+          <div className="flex items-center gap-2 bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-xl px-2 py-1 shadow-sm">
             <Calendar className="w-4 h-4 text-slate-400 ml-2" />
             <select
               value={timeRange}

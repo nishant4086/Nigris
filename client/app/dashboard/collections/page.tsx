@@ -119,14 +119,14 @@ export default function CollectionsPage() {
                 placeholder="Search collections..." 
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow dark:text-slate-200"
+                className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow dark:text-slate-200"
               />
             </div>
             {/* Project Filter - Future enhancement if backend returns projectId on collections */}
             {/* <select 
               value={selectedProjectId}
               onChange={e => setSelectedProjectId(e.target.value)}
-              className="bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none dark:text-slate-200 hidden md:block"
+              className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none dark:text-slate-200 hidden md:block"
             >
               <option value="all">All Projects</option>
               {projects.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
@@ -145,7 +145,7 @@ export default function CollectionsPage() {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1,2,3,4,5,6].map(i => (
-            <div key={i} className="bg-white dark:bg-[#191919] rounded-2xl p-6 h-56 border border-slate-100 dark:border-slate-800 animate-pulse flex flex-col justify-between">
+            <div key={i} className="bg-white dark:bg-slate-900/50 backdrop-blur-xl rounded-2xl p-6 h-56 border border-slate-100 dark:border-slate-800 animate-pulse flex flex-col justify-between">
               <div className="flex gap-4 items-start">
                 <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800"></div>
                 <div className="space-y-2 flex-1 mt-1">
@@ -153,13 +153,13 @@ export default function CollectionsPage() {
                   <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-1/3"></div>
                 </div>
               </div>
-              <div className="h-8 bg-slate-50 dark:bg-[#202020] rounded-lg mt-auto"></div>
+              <div className="h-8 bg-slate-50 dark:bg-slate-800/40 rounded-lg mt-auto"></div>
             </div>
           ))}
         </div>
       ) : projects.length === 0 ? (
         /* Empty State - No Projects */
-        <div className="mt-12 flex flex-col items-center justify-center text-center p-12 bg-white/50 dark:bg-[#191919]/50 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700 max-w-2xl mx-auto">
+        <div className="mt-12 flex flex-col items-center justify-center text-center p-12 bg-white/50 dark:bg-slate-900/30 backdrop-blur-xl rounded-3xl border border-dashed border-slate-300 dark:border-slate-700 max-w-2xl mx-auto">
           <div className="w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mb-6">
             <FolderGit2 className="w-10 h-10" />
           </div>
@@ -170,7 +170,7 @@ export default function CollectionsPage() {
         </div>
       ) : allCollections.length === 0 ? (
         /* Empty State - No Collections */
-        <div className="mt-12 flex flex-col items-center justify-center text-center p-12 bg-white/50 dark:bg-[#191919]/50 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700 max-w-2xl mx-auto">
+        <div className="mt-12 flex flex-col items-center justify-center text-center p-12 bg-white/50 dark:bg-slate-900/30 backdrop-blur-xl rounded-3xl border border-dashed border-slate-300 dark:border-slate-700 max-w-2xl mx-auto">
           <div className="w-20 h-20 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-500 flex items-center justify-center mb-6">
             <Database className="w-10 h-10" />
           </div>

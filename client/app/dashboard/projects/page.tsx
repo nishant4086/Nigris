@@ -154,7 +154,7 @@ export default function ProjectsPage() {
                   <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-full"></div>
                 </div>
               </div>
-              <div className="h-8 bg-slate-50 dark:bg-[#202020] rounded-lg mt-auto"></div>
+              <div className="h-8 bg-slate-50 dark:bg-slate-800/40 rounded-lg mt-auto"></div>
             </div>
           ))}
         </div>

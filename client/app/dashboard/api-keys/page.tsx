@@ -192,7 +192,7 @@ export default function ApiKeysPage() {
       )}
 
       {/* Toolbar */}
-      <div className="bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-t-2xl p-4 flex flex-col md:flex-row gap-4 justify-between items-center shadow-sm">
+      <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-t-2xl p-4 flex flex-col md:flex-row gap-4 justify-between items-center shadow-sm">
         <div className="relative w-full md:w-80">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
@@ -200,7 +200,7 @@ export default function ApiKeysPage() {
             placeholder="Search keys by name..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-[#111111] border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 outline-none transition-shadow dark:text-slate-200"
+            className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-950/50 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 outline-none transition-shadow dark:text-slate-200"
           />
         </div>
 
@@ -209,7 +209,7 @@ export default function ApiKeysPage() {
           <select
             value={envFilter}
             onChange={(e) => setEnvFilter(e.target.value)}
-            className="bg-slate-50 dark:bg-[#111111] border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-slate-900 outline-none dark:text-slate-200"
+            className="bg-slate-50 dark:bg-slate-950/50 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-slate-900 outline-none dark:text-slate-200"
           >
             <option value="All">All Environments</option>
             <option value="Development">Development</option>
@@ -219,25 +219,25 @@ export default function ApiKeysPage() {
       </div>
 
       {/* Keys Table */}
-      <div className="bg-white dark:bg-[#191919] border-x border-b border-slate-200 dark:border-slate-800 rounded-b-2xl shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border-x border-b border-slate-200 dark:border-slate-800 rounded-b-2xl shadow-sm overflow-hidden">
         {loading ? (
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {[1, 2, 3].map(i => (
               <div key={i} className="p-6 flex items-center justify-between animate-pulse">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-slate-200 dark:bg-[#252525] rounded-xl" />
+                  <div className="w-10 h-10 bg-slate-200 dark:bg-slate-800/60 rounded-xl" />
                   <div className="space-y-2">
-                    <div className="w-32 h-4 bg-slate-200 dark:bg-[#252525] rounded" />
-                    <div className="w-48 h-3 bg-slate-200 dark:bg-[#252525] rounded" />
+                    <div className="w-32 h-4 bg-slate-200 dark:bg-slate-800/60 rounded" />
+                    <div className="w-48 h-3 bg-slate-200 dark:bg-slate-800/60 rounded" />
                   </div>
                 </div>
-                <div className="w-24 h-8 bg-slate-200 dark:bg-[#252525] rounded-lg" />
+                <div className="w-24 h-8 bg-slate-200 dark:bg-slate-800/60 rounded-lg" />
               </div>
             ))}
           </div>
         ) : keys.length === 0 ? (
           <div className="p-16 text-center flex flex-col items-center">
-            <div className="w-16 h-16 bg-slate-50 dark:bg-[#202020] rounded-full flex items-center justify-center mb-4">
+            <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800/40 rounded-full flex items-center justify-center mb-4">
               <Shield className="w-8 h-8 text-slate-300 dark:text-slate-600" />
             </div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">No API keys generated</h3>
@@ -259,7 +259,7 @@ export default function ApiKeysPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left whitespace-nowrap">
               <thead>
-                <tr className="bg-slate-50/50 dark:bg-[#111111]/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400">
+                <tr className="bg-slate-50/50 dark:bg-slate-950/30 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400">
                    <th className="px-6 py-4 font-medium w-1/4">Key Name</th>
                    <th className="px-6 py-4 font-medium">Environment</th>
                    <th className="px-6 py-4 font-medium">Permissions</th>
@@ -270,7 +270,7 @@ export default function ApiKeysPage() {
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {filteredKeys.map(key => (
-                  <tr key={key._id} className={`group transition-colors ${!key.isActive ? 'opacity-60 bg-slate-50/50 dark:bg-[#111111]/50' : 'hover:bg-slate-50/30 dark:hover:bg-[#202020]/30'}`}>
+                  <tr key={key._id} className={`group transition-colors ${!key.isActive ? 'opacity-60 bg-slate-50/50 dark:bg-slate-950/30 backdrop-blur-md' : 'hover:bg-slate-50/30 dark:hover:bg-[#202020]/30'}`}>
 
                     {/* Name & Project */}
                     <td className="px-6 py-5">
@@ -329,7 +329,7 @@ export default function ApiKeysPage() {
 
                         return (
                           <div className="flex items-center gap-2">
-                            <div className="flex items-center gap-2 font-mono text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-[#111111] px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 w-max">
+                            <div className="flex items-center gap-2 font-mono text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-950/50 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 w-max">
                               <span className="max-w-56 truncate" title={displayKey}>{displayKey}</span>
                               <div className="flex items-center gap-1 border-l border-slate-200 dark:border-slate-700 pl-2">
                                 <button

@@ -174,14 +174,14 @@ export default function EntryDetailPage() {
         </h1>
         
         <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-slate-500 dark:text-slate-400">
-          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-[#202020] px-2 py-1 rounded-md">
+          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/40 px-2 py-1 rounded-md">
             <HardDrive className="w-3.5 h-3.5" />
             Collection: {collectionName}
           </div>
           
           <button 
             onClick={copyId}
-            className="flex items-center gap-1.5 bg-slate-100 dark:bg-[#202020] hover:bg-slate-200 dark:hover:bg-[#2a2a2a] px-2 py-1 rounded-md transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/40 hover:bg-slate-200 dark:hover:bg-[#2a2a2a] px-2 py-1 rounded-md transition-colors cursor-pointer"
             title="Copy ID"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
@@ -189,7 +189,7 @@ export default function EntryDetailPage() {
           </button>
           
           {entryData?.createdAt && (
-            <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-[#202020] px-2 py-1 rounded-md">
+            <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/40 px-2 py-1 rounded-md">
               <Calendar className="w-3.5 h-3.5" />
               {new Date(entryData.createdAt).toLocaleString()}
             </div>
@@ -208,7 +208,7 @@ export default function EntryDetailPage() {
       </div>
 
       {/* Notion-style properties */}
-      <div className="space-y-1 bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+      <div className="space-y-1 bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={orderedFieldNames} strategy={verticalListSortingStrategy}>
             {orderedFieldNames.map(fieldName => {

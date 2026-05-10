@@ -60,9 +60,9 @@ export default function BillingPage() {
   if (loading) {
     return (
       <div className="max-w-3xl mx-auto animate-pulse space-y-6 py-4">
-        <div className="h-8 w-48 bg-slate-200 dark:bg-[#252525] rounded-lg" />
-        <div className="h-48 bg-slate-200 dark:bg-[#252525] rounded-2xl" />
-        <div className="h-48 bg-slate-200 dark:bg-[#252525] rounded-2xl" />
+        <div className="h-8 w-48 bg-slate-200 dark:bg-slate-800/60 rounded-lg" />
+        <div className="h-48 bg-slate-200 dark:bg-slate-800/60 rounded-2xl" />
+        <div className="h-48 bg-slate-200 dark:bg-slate-800/60 rounded-2xl" />
       </div>
     );
   }
@@ -123,7 +123,7 @@ export default function BillingPage() {
       )}
 
       {/* ─── CURRENT PLAN CARD ─── */}
-      <section className="bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm mb-6 overflow-hidden">
+      <section className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm mb-6 overflow-hidden">
         <div
           className={`relative overflow-hidden bg-gradient-to-br ${
             planGradients[plan] || planGradients.free
@@ -187,7 +187,7 @@ export default function BillingPage() {
 
       {/* ─── SUBSCRIPTION DETAILS ─── */}
       {hasSubscription && (
-        <section className="bg-white dark:bg-[#191919] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm mb-6 overflow-hidden">
+        <section className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm mb-6 overflow-hidden">
           <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800">
             <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
               <CreditCard className="w-4 h-4 inline mr-2 -mt-0.5" />
@@ -200,7 +200,7 @@ export default function BillingPage() {
               <span className="text-sm text-slate-500 dark:text-slate-400">
                 Subscription ID
               </span>
-              <code className="text-xs font-mono text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-[#111111] px-2 py-1 rounded-md border border-slate-200 dark:border-slate-800">
+              <code className="text-xs font-mono text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-950/50 backdrop-blur-md px-2 py-1 rounded-md border border-slate-200 dark:border-slate-800">
                 {user.razorpaySubscriptionId}
               </code>
             </div>
@@ -230,7 +230,7 @@ export default function BillingPage() {
           </div>
 
           {status === "active" && (
-            <div className="px-6 py-4 bg-slate-50/50 dark:bg-[#111111]/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div className="px-6 py-4 bg-slate-50/50 dark:bg-slate-950/30 backdrop-blur-md border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <p className="text-xs text-slate-400">
                 Cancelling will immediately downgrade you to the Free
                 plan.
