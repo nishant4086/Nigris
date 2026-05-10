@@ -107,16 +107,18 @@ export default function Home() {
 
           {/* Dashboard preview */}
           <div className="hero-image-wrapper mt-20 sm:mt-28 relative mx-auto max-w-5xl">
-            <div className="absolute -inset-4 rounded-3xl bg-gradient-to-r from-blue-500/30 via-indigo-500/20 to-cyan-500/30 opacity-60 blur-3xl pointer-events-none" />
-            <div className="relative rounded-2xl bg-slate-900/80 p-1.5 shadow-2xl ring-1 ring-white/10 backdrop-blur-sm">
+            <div className="absolute -inset-6 rounded-[2rem] bg-gradient-to-r from-blue-500/25 via-indigo-500/15 to-cyan-500/25 blur-3xl pointer-events-none" />
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-blue-900/30 ring-1 ring-white/[0.08]">
               <Image
                 src="/dashboard-mockup.png"
                 alt="Nigris Dashboard Analytics"
                 width={2048}
                 height={2048}
-                className="rounded-xl w-full h-auto object-cover"
+                className="w-full h-auto object-cover"
                 priority
               />
+              {/* Bottom fade to blend with background */}
+              <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-slate-950 to-transparent pointer-events-none" />
             </div>
           </div>
         </div>
@@ -233,15 +235,16 @@ console.log("Created:", record._id);`}</code>
         <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="settings-image relative order-2 lg:order-1">
-              <div className="absolute -inset-3 rounded-2xl bg-gradient-to-l from-indigo-500/20 to-blue-500/20 blur-2xl pointer-events-none" />
-              <div className="relative rounded-2xl bg-white/[0.03] p-1.5 ring-1 ring-white/10">
+              <div className="absolute -inset-4 rounded-[2rem] bg-gradient-to-l from-indigo-500/20 to-blue-500/20 blur-3xl pointer-events-none" />
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-indigo-900/20 ring-1 ring-white/[0.08]">
                 <Image
                   src="/api-settings-mockup.png"
                   alt="API Settings and Keys"
                   width={2048}
                   height={2048}
-                  className="rounded-xl w-full h-auto object-cover"
+                  className="w-full h-auto object-cover"
                 />
+                <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-950 to-transparent pointer-events-none" />
               </div>
             </div>
             <div className="settings-text order-1 lg:order-2">
