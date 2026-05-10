@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRef } from "react";
 import { ArrowRight, Database, Shield, Zap, Code, CreditCard, BarChart } from "lucide-react";
 import gsap from "gsap";
@@ -22,7 +23,8 @@ export default function Home() {
       .fromTo(".hero-badge", { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" })
       .fromTo(".hero-title", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, "-=0.4")
       .fromTo(".hero-desc", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, "-=0.6")
-      .fromTo(".hero-buttons", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, "-=0.4");
+      .fromTo(".hero-buttons", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, "-=0.4")
+      .fromTo(".hero-image-wrapper", { y: 60, scale: 0.95, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 1, ease: "power3.out" }, "-=0.4");
 
     // 2. Features Grid Scroll Animation
     gsap.fromTo(".feature-header", 
@@ -66,7 +68,19 @@ export default function Home() {
       .fromTo(".sdk-text", { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.8, ease: "power3.out" })
       .fromTo(".sdk-code", { x: 50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, "-=0.6");
 
-    // 4. Final CTA Scroll Animation
+    // 4. Settings Section Scroll Animation
+    const settingsTl = gsap.timeline({
+      scrollTrigger: {
+        trigger: ".settings-section",
+        start: "top 75%",
+      },
+    });
+
+    settingsTl
+      .fromTo(".settings-text", { x: 50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.8, ease: "power3.out" })
+      .fromTo(".settings-image", { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, "-=0.6");
+
+    // 5. Final CTA Scroll Animation
     gsap.fromTo(".cta-box", 
       { scale: 0.9, y: 30, opacity: 0 },
       {
@@ -108,6 +122,21 @@ export default function Home() {
             <Link href="/docs" className="text-sm font-semibold leading-6 text-slate-900 flex items-center gap-1 group">
               Read the docs <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
+          </div>
+          
+          {/* Hero Dashboard Preview */}
+          <div className="hero-image-wrapper mt-16 sm:mt-24 relative mx-auto max-w-5xl">
+            <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 opacity-20 blur-2xl"></div>
+            <div className="relative rounded-2xl bg-slate-900 p-2 shadow-2xl ring-1 ring-slate-900/10">
+              <Image
+                src="/dashboard-mockup.png"
+                alt="Nigris Dashboard Analytics"
+                width={2048}
+                height={2048}
+                className="rounded-xl ring-1 ring-white/10 w-full h-auto object-cover"
+                priority
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -196,6 +225,39 @@ const record = await client.create('my-collection', {
 console.log("Success:", record);`}
                 </code>
               </pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Settings Showcase Section */}
+      <section className="settings-section bg-slate-50 py-24 sm:py-32 overflow-hidden border-t border-slate-200">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div className="settings-image relative order-2 lg:order-1">
+              <div className="absolute -inset-1 rounded-2xl bg-gradient-to-l from-slate-200 to-slate-300 opacity-50 blur-xl"></div>
+              <Image
+                src="/api-settings-mockup.png"
+                alt="API Settings and Keys"
+                width={2048}
+                height={2048}
+                className="relative rounded-2xl shadow-2xl ring-1 ring-slate-900/10 w-full h-auto object-cover"
+              />
+            </div>
+            <div className="settings-text order-1 lg:order-2">
+              <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Granular API Keys</h2>
+              <p className="mt-6 text-lg text-slate-600">
+                Generate keys with specific read/write permissions tailored to your users. 
+                Revoke access instantly, set automatic expiration dates, and monitor granular rate limit usage per key directly from the beautiful dashboard interface.
+              </p>
+              <div className="mt-10 flex items-center gap-x-6">
+                <Link
+                  href="/login"
+                  className="text-sm font-semibold leading-6 text-blue-600 flex items-center gap-1 group"
+                >
+                  Explore the dashboard <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Link>
+              </div>
             </div>
           </div>
         </div>
