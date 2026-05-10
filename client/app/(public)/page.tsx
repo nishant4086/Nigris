@@ -19,34 +19,40 @@ export default function Home() {
     // 1. Hero Section Initial Load Animation
     const heroTl = gsap.timeline();
     heroTl
-      .from(".hero-badge", { y: -20, opacity: 0, duration: 0.6, ease: "power3.out" })
-      .from(".hero-title", { y: 30, opacity: 0, duration: 0.8, ease: "power3.out" }, "-=0.4")
-      .from(".hero-desc", { y: 30, opacity: 0, duration: 0.8, ease: "power3.out" }, "-=0.6")
-      .from(".hero-buttons", { y: 20, opacity: 0, duration: 0.6, ease: "power3.out" }, "-=0.4");
+      .fromTo(".hero-badge", { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" })
+      .fromTo(".hero-title", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, "-=0.4")
+      .fromTo(".hero-desc", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, "-=0.6")
+      .fromTo(".hero-buttons", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, "-=0.4");
 
     // 2. Features Grid Scroll Animation
-    gsap.from(".feature-header", {
-      scrollTrigger: {
-        trigger: ".features-section",
-        start: "top 80%",
-      },
-      y: 40,
-      opacity: 0,
-      duration: 0.8,
-      ease: "power3.out",
-    });
+    gsap.fromTo(".feature-header", 
+      { y: 40, opacity: 0 },
+      {
+        scrollTrigger: {
+          trigger: ".features-section",
+          start: "top 80%",
+        },
+        y: 0,
+        opacity: 1,
+        duration: 0.8,
+        ease: "power3.out",
+      }
+    );
 
-    gsap.from(".feature-card", {
-      scrollTrigger: {
-        trigger: ".features-section",
-        start: "top 70%",
-      },
-      y: 50,
-      opacity: 0,
-      duration: 0.8,
-      stagger: 0.2, // This creates the staggered timeline effect
-      ease: "back.out(1.7)",
-    });
+    gsap.fromTo(".feature-card", 
+      { y: 50, opacity: 0 },
+      {
+        scrollTrigger: {
+          trigger: ".features-section",
+          start: "top 70%",
+        },
+        y: 0,
+        opacity: 1,
+        duration: 0.8,
+        stagger: 0.2,
+        ease: "back.out(1.7)",
+      }
+    );
 
     // 3. SDK Section Scroll Animation
     const sdkTl = gsap.timeline({
@@ -57,25 +63,28 @@ export default function Home() {
     });
 
     sdkTl
-      .from(".sdk-text", { x: -50, opacity: 0, duration: 0.8, ease: "power3.out" })
-      .from(".sdk-code", { x: 50, opacity: 0, duration: 0.8, ease: "power3.out" }, "-=0.6");
+      .fromTo(".sdk-text", { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.8, ease: "power3.out" })
+      .fromTo(".sdk-code", { x: 50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, "-=0.6");
 
     // 4. Final CTA Scroll Animation
-    gsap.from(".cta-box", {
-      scrollTrigger: {
-        trigger: ".cta-section",
-        start: "top 85%",
-      },
-      scale: 0.9,
-      y: 30,
-      opacity: 0,
-      duration: 0.8,
-      ease: "power3.out",
-    });
+    gsap.fromTo(".cta-box", 
+      { scale: 0.9, y: 30, opacity: 0 },
+      {
+        scrollTrigger: {
+          trigger: ".cta-section",
+          start: "top 85%",
+        },
+        scale: 1,
+        y: 0,
+        opacity: 1,
+        duration: 0.8,
+        ease: "power3.out",
+      }
+    );
   }, { scope: container });
 
   return (
-    <div ref={container} className="flex flex-col min-h-screen overflow-hidden">
+    <div ref={container} className="flex flex-col min-h-screen overflow-x-hidden">
       {/* Hero Section */}
       <section className="bg-[radial-gradient(circle_at_top,_#dbeafe,_#f8fafc_55%,_#ffffff)] py-20 lg:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8 text-center">
