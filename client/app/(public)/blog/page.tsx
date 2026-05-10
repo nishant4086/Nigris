@@ -1,80 +1,83 @@
-import Link from "next/link";
+"use client";
 
-export const metadata = {
-  title: "Blog | Nigris",
-  description: "Product updates, engineering deep dives, and API best practices.",
-};
+import Link from "next/link";
+import { useRef } from "react";
+import { Newspaper, Sparkles } from "lucide-react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 
 const posts = [
   {
     id: 1,
     title: "Introducing Nigris: The Complete SaaS Dashboard for APIs",
-    href: "#",
-    description:
-      "Today we are thrilled to announce the general availability of Nigris. We built Nigris to solve the painful boilerplate required to launch, meter, and monetize API products.",
+    description: "Today we are thrilled to announce the general availability of Nigris — the platform we built to eliminate the painful boilerplate of launching, metering, and monetizing API products.",
     date: "Mar 16, 2026",
-    datetime: "2026-03-16",
-    category: { title: "Product", href: "#" },
+    category: "Product",
   },
   {
     id: 2,
     title: "How we built the dynamic Next.js + MongoDB architecture",
-    href: "#",
-    description:
-      "A deep dive into how Nigris dynamically provisions Mongoose collections on-the-fly to support flexible, user-defined schema routing.",
+    description: "A deep dive into how Nigris dynamically provisions Mongoose collections on-the-fly to support flexible, user-defined schema routing.",
     date: "Apr 04, 2026",
-    datetime: "2026-04-04",
-    category: { title: "Engineering", href: "#" },
+    category: "Engineering",
   },
   {
     id: 3,
     title: "Rate Limiting with Redis: Best Practices",
-    href: "#",
-    description:
-      "Learn how to properly implement distributed rate limiting for your API endpoints to protect your infrastructure and enforce usage tiers.",
+    description: "Learn how to properly implement distributed rate limiting for your API endpoints to protect your infrastructure and enforce usage tiers.",
     date: "May 01, 2026",
-    datetime: "2026-05-01",
-    category: { title: "Tutorial", href: "#" },
+    category: "Tutorial",
   },
 ];
 
 export default function BlogPage() {
+  const container = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    gsap.fromTo(".blog-badge", { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" });
+    gsap.fromTo(".blog-title", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out", delay: 0.1 });
+    gsap.fromTo(".blog-card", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, stagger: 0.15, ease: "back.out(1.4)", delay: 0.3 });
+  }, { scope: container });
+
   return (
-    <div className="bg-slate-50 py-24 sm:py-32 h-full min-h-screen">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl lg:mx-0">
-          <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">From the blog</h2>
-          <p className="mt-2 text-lg leading-8 text-slate-600">
-            Product updates, engineering deep dives, and API best practices.
-          </p>
+    <div ref={container} className="bg-slate-950 text-white min-h-screen overflow-x-hidden">
+      <section className="relative py-24 lg:py-36 overflow-hidden">
+        <div className="absolute top-20 left-[10%] w-72 h-72 rounded-full bg-blue-600/15 blur-[120px] pointer-events-none" />
+        <div className="absolute top-60 right-[15%] w-80 h-80 rounded-full bg-indigo-600/10 blur-[130px] pointer-events-none" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:64px_64px] pointer-events-none" />
+
+        <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="blog-badge inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-1.5 text-sm text-blue-400 mb-8">
+              <Newspaper className="h-3.5 w-3.5" /> From the Blog
+            </div>
+            <h1 className="blog-title text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
+              Updates & <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Insights</span>
+            </h1>
+            <p className="mt-4 text-lg text-slate-400">Product updates, engineering deep dives, and API best practices.</p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {posts.map((post) => (
+              <article key={post.id} className="blog-card group relative rounded-2xl border border-white/5 bg-white/[0.02] p-8 transition-all hover:border-blue-500/30 hover:bg-blue-500/[0.03]">
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="relative">
+                  <div className="flex items-center gap-3 text-xs mb-4">
+                    <time className="text-slate-500">{post.date}</time>
+                    <span className="rounded-full bg-blue-500/10 border border-blue-500/20 px-3 py-1 text-blue-400 font-medium">
+                      {post.category}
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-semibold mb-3 group-hover:text-blue-300 transition-colors">
+                    <Link href="#">{post.title}</Link>
+                  </h3>
+                  <p className="text-sm text-slate-400 leading-relaxed line-clamp-3">{post.description}</p>
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
-        <div className="mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 border-t border-slate-200 pt-10 sm:mt-16 sm:pt-16 lg:mx-0 lg:max-w-none lg:grid-cols-3">
-          {posts.map((post) => (
-            <article key={post.id} className="flex max-w-xl flex-col items-start justify-between">
-              <div className="flex items-center gap-x-4 text-xs">
-                <time dateTime={post.datetime} className="text-slate-500">
-                  {post.date}
-                </time>
-                <Link
-                  href={post.category.href}
-                  className="relative z-10 rounded-full bg-slate-100 px-3 py-1.5 font-medium text-slate-600 hover:bg-slate-200"
-                >
-                  {post.category.title}
-                </Link>
-              </div>
-              <div className="group relative">
-                <h3 className="mt-3 text-lg font-semibold leading-6 text-slate-900 group-hover:text-slate-600">
-                  <Link href={post.href}>
-                    <span className="absolute inset-0" />
-                    {post.title}
-                  </Link>
-                </h3>
-                <p className="mt-5 line-clamp-3 text-sm leading-6 text-slate-600">{post.description}</p>
-              </div>
-            </article>
-          ))}
-        </div>
-      </div>
+      </section>
     </div>
   );
 }
