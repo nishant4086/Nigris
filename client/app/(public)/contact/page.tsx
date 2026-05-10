@@ -4,6 +4,10 @@ import { useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(useGSAP);
+}
+
 export default function ContactPage() {
   const container = useRef<HTMLDivElement>(null);
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
