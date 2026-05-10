@@ -23,6 +23,9 @@ import publicRoutes from "./routes/publicRoutes.js";
 import webhookRoutes from "./routes/webhookRoutes.js";
 import usageRoutes from "./routes/usageRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import contactRoutes from "./routes/contactRoutes.js";
+import BlogPost from "./models/BlogPost.js";
 import session from "express-session";
 import MongoDBStore from "connect-mongodb-session";
 import passport from "./config/passportConfig.js";
@@ -191,6 +194,20 @@ app.use("/api/usage", usageRoutes);
 app.use("/api/public", publicRoutes);
 app.use("/api/webhooks", webhookRoutes);
 app.use("/api/public", dynamicRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/contact", contactRoutes);
+
+// Public blog posts endpoint (no auth)
+app.get("/api/blogs", async (req, res) => {
+  try {
+    const blogs = await BlogPost.find({ status: "published" })
+      .populate("author", "name")
+      .sort({ createdAt: -1 });
+    res.json(blogs);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch blogs" });
+  }
+});
 
 
 // ================== 404 ==================

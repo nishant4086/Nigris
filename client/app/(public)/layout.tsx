@@ -12,7 +12,7 @@ export default function PublicLayout({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1400);
+    const timer = setTimeout(() => setLoading(false), 2200);
     return () => clearTimeout(timer);
   }, []);
 
@@ -24,25 +24,34 @@ export default function PublicLayout({
           loading ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       >
-        <div className="flex flex-col items-center gap-6">
-          {/* Animated logo mark */}
-          <div className="relative">
-            <svg
-              width="48" height="48" viewBox="0 0 48 48"
-              className={`transition-all duration-700 ${loading ? "scale-100" : "scale-150 opacity-0"}`}
+        <div className="flex flex-col items-center gap-8">
+          {/* SVG "Nigris" text stroke animation */}
+          <svg
+            viewBox="0 0 280 60"
+            className="w-[240px] sm:w-[280px] h-auto"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <text
+              x="50%"
+              y="50%"
+              dominantBaseline="central"
+              textAnchor="middle"
+              className="nigris-text"
+              style={{
+                fontSize: "48px",
+                fontWeight: 700,
+                fontFamily: "system-ui, -apple-system, sans-serif",
+                letterSpacing: "-0.03em",
+              }}
             >
-              <rect x="6" y="6" width="36" height="36" rx="8" fill="none" stroke="#3b82f6" strokeWidth="2"
-                strokeDasharray="144" strokeDashoffset="144"
-                className="animate-[dash_1s_ease-in-out_forwards]"
-              />
-              <path d="M16 24h16M24 16v16" stroke="#fff" strokeWidth="2" strokeLinecap="round"
-                opacity="0" className="animate-[fadeIn_0.4s_0.6s_ease-out_forwards]"
-              />
-            </svg>
-          </div>
+              Nigris
+            </text>
+          </svg>
+
           {/* Loading bar */}
-          <div className="w-32 h-[2px] bg-[#1c1c1f] rounded-full overflow-hidden">
-            <div className="h-full bg-[#3b82f6] rounded-full animate-[loadBar_1.2s_ease-in-out_forwards]" />
+          <div className="w-24 h-[2px] bg-[#1c1c1f] rounded-full overflow-hidden">
+            <div className="h-full bg-[#3b82f6] rounded-full animate-[loadBar_1.8s_ease-in-out_forwards]" />
           </div>
         </div>
       </div>
@@ -55,15 +64,33 @@ export default function PublicLayout({
       </div>
 
       <style jsx global>{`
-        @keyframes dash {
-          to { stroke-dashoffset: 0; }
+        .nigris-text {
+          stroke: #ffffff;
+          stroke-width: 1;
+          fill: transparent;
+          stroke-dasharray: 600;
+          stroke-dashoffset: 600;
+          animation:
+            drawStroke 1.2s ease-in-out forwards,
+            fillText 0.6s 1.2s ease-out forwards;
         }
-        @keyframes fadeIn {
-          to { opacity: 1; }
+
+        @keyframes drawStroke {
+          to {
+            stroke-dashoffset: 0;
+          }
         }
+
+        @keyframes fillText {
+          to {
+            fill: #ffffff;
+            stroke-width: 0;
+          }
+        }
+
         @keyframes loadBar {
           0% { width: 0%; }
-          60% { width: 70%; }
+          50% { width: 65%; }
           100% { width: 100%; }
         }
       `}</style>
