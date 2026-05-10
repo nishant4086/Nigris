@@ -1,101 +1,67 @@
 "use client";
 
 import { useRef } from "react";
-import { Target, Eye, Users, Sparkles } from "lucide-react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger, useGSAP);
-}
 
 export default function AboutPage() {
   const container = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
-    gsap.fromTo(".about-badge", { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" });
-    gsap.fromTo(".about-title", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out", delay: 0.1 });
-    gsap.fromTo(".about-desc", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out", delay: 0.2 });
-    gsap.fromTo(".value-card", { y: 40, opacity: 0 }, {
-      scrollTrigger: { trigger: ".values-section", start: "top 80%" },
-      y: 0, opacity: 1, duration: 0.7, stagger: 0.15, ease: "back.out(1.4)",
-    });
-    gsap.fromTo(".story-block", { y: 30, opacity: 0 }, {
-      scrollTrigger: { trigger: ".story-section", start: "top 80%" },
-      y: 0, opacity: 1, duration: 0.7, stagger: 0.2, ease: "power3.out",
-    });
+    gsap.fromTo(".fade-in", { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.08, ease: "power2.out" });
   }, { scope: container });
 
   return (
-    <div ref={container} className="bg-slate-950 text-white min-h-screen overflow-x-hidden">
-      {/* Hero */}
-      <section className="relative py-24 lg:py-36 overflow-hidden">
-        <div className="absolute top-20 left-[20%] w-72 h-72 rounded-full bg-blue-600/15 blur-[120px] pointer-events-none" />
-        <div className="absolute top-40 right-[15%] w-80 h-80 rounded-full bg-indigo-600/10 blur-[130px] pointer-events-none" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:64px_64px] pointer-events-none" />
-
-        <div className="relative mx-auto max-w-4xl px-6 text-center">
-          <div className="about-badge inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-1.5 text-sm text-blue-400 mb-8">
-            <Sparkles className="h-3.5 w-3.5" /> Our Story
-          </div>
-          <h1 className="about-title text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
-            Building the future of
-            <span className="block bg-gradient-to-r from-blue-400 via-cyan-400 to-indigo-400 bg-clip-text text-transparent">
-              API infrastructure
-            </span>
+    <div ref={container} className="bg-[#09090b] text-white min-h-screen">
+      {/* Hero — left-aligned, editorial style */}
+      <section className="pt-28 pb-20 lg:pt-40 lg:pb-28 border-b border-[#1c1c1f]">
+        <div className="mx-auto max-w-[1120px] px-6">
+          <p className="fade-in text-[13px] font-medium tracking-wide text-[#a1a1aa] mb-5">About Nigris</p>
+          <h1 className="fade-in max-w-2xl text-[clamp(2rem,4.5vw,3.25rem)] font-semibold leading-[1.12] tracking-[-0.02em]">
+            We&apos;re building the infrastructure layer for API-first products
           </h1>
-          <p className="about-desc mt-8 text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            We believe launching an API product should be about your core logic, not about 
-            configuring rate limits, managing keys, and wiring up Stripe webhooks.
+          <p className="fade-in mt-6 max-w-xl text-[16px] leading-relaxed text-[#a1a1aa]">
+            Every API company rewrites the same code: auth, rate limits, usage tracking, billing integration. We believe that work should be invisible.
           </p>
         </div>
       </section>
 
-      {/* Values */}
-      <section className="values-section py-24 border-t border-white/5">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {[
-              { icon: Target, title: "Our Mission", desc: "Democratize API monetization by providing a beautiful, unified dashboard that handles everything out-of-the-box." },
-              { icon: Eye, title: "Our Vision", desc: "A world where anyone can launch a perfectly metered, beautifully documented API product in a single weekend." },
-              { icon: Users, title: "Our Team", desc: "A passionate group of engineers and designers who have built infrastructure at scale for millions of users." },
-              { icon: Sparkles, title: "Our Values", desc: "Developer experience first. Ship fast, iterate faster. Build tools we would want to use ourselves every day." },
-            ].map((v, i) => (
-              <div key={i} className="value-card group relative rounded-2xl border border-white/5 bg-white/[0.02] p-8 transition-all hover:border-blue-500/30 hover:bg-blue-500/[0.03]">
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="relative">
-                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-blue-500/10">
-                    <v.icon className="h-6 w-6 text-blue-400" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">{v.title}</h3>
-                  <p className="text-sm text-slate-400 leading-relaxed">{v.desc}</p>
-                </div>
-              </div>
-            ))}
+      {/* Two-column story */}
+      <section className="py-24 lg:py-32">
+        <div className="mx-auto max-w-[1120px] px-6 grid lg:grid-cols-2 gap-16">
+          <div className="fade-in">
+            <p className="text-[13px] font-medium tracking-wide text-[#a1a1aa] mb-3">Mission</p>
+            <h2 className="text-xl font-semibold mb-4">Focus on your product, not plumbing</h2>
+            <p className="text-[15px] leading-[1.7] text-[#71717a]">
+              We started Nigris because we kept building the same backend scaffolding for every API project — authentication middleware, Stripe webhook handlers, usage dashboards. We believe these solved problems should be infrastructure, not custom code. Our mission is to reduce the time from idea to production-ready API from weeks to hours.
+            </p>
+          </div>
+          <div className="fade-in">
+            <p className="text-[13px] font-medium tracking-wide text-[#a1a1aa] mb-3">Vision</p>
+            <h2 className="text-xl font-semibold mb-4">APIs as a first-class product</h2>
+            <p className="text-[15px] leading-[1.7] text-[#71717a]">
+              We envision a world where launching a metered, documented, and monetized API is as simple as deploying a Vercel project. Nigris provides the dashboard, the SDK, the billing, and the analytics — you provide the business logic. That&apos;s the division of labor that makes sense.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* Story */}
-      <section className="story-section py-24 border-t border-white/5">
-        <div className="mx-auto max-w-3xl px-6 space-y-12">
-          <div className="story-block">
-            <p className="text-sm font-semibold uppercase tracking-wider text-blue-400 mb-3">Why we built Nigris</p>
-            <h2 className="text-2xl font-bold mb-4">The problem we saw</h2>
-            <p className="text-slate-400 leading-relaxed">
-              Every time a developer wants to monetize an API, they end up writing the same 
-              boilerplate: authentication middleware, rate limiting, usage tracking, Stripe integration, 
-              and a dashboard to manage it all. We built Nigris so you never have to write that code again.
-            </p>
-          </div>
-          <div className="story-block">
-            <h2 className="text-2xl font-bold mb-4">What makes us different</h2>
-            <p className="text-slate-400 leading-relaxed">
-              Unlike other platforms, Nigris gives you dynamic schemas that adapt to your data model, 
-              a published npm SDK for instant integration, and a real-time usage dashboard that your 
-              customers will love. Everything is connected — from the first API call to the Stripe invoice.
-            </p>
+      {/* Principles — horizontal list */}
+      <section className="py-24 lg:py-32 border-t border-[#1c1c1f]">
+        <div className="mx-auto max-w-[1120px] px-6">
+          <p className="fade-in text-[13px] font-medium tracking-wide text-[#a1a1aa] mb-8">How we work</p>
+          <div className="grid gap-px bg-[#1c1c1f] rounded-xl overflow-hidden sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { title: "Ship daily", desc: "Small, frequent releases over big-bang launches." },
+              { title: "Developer-first", desc: "If the DX is bad, it doesn't matter how powerful the feature is." },
+              { title: "Earn trust", desc: "Open roadmap, honest changelogs, no surprise pricing." },
+              { title: "Stay lean", desc: "A small team making deliberate choices beats a large team making safe ones." },
+            ].map((p) => (
+              <div key={p.title} className="fade-in bg-[#09090b] p-7">
+                <h3 className="text-[15px] font-semibold mb-2">{p.title}</h3>
+                <p className="text-[13px] leading-relaxed text-[#71717a]">{p.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

@@ -4,63 +4,60 @@ import Link from "next/link";
 import { Layers, Menu, X } from "lucide-react";
 import { useState } from "react";
 
+const NAV = [
+  { label: "About", href: "/about" },
+  { label: "Docs", href: "/docs" },
+  { label: "Blog", href: "/blog" },
+  { label: "Contact", href: "/contact" },
+];
+
 export default function PublicHeader() {
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-slate-950/80 backdrop-blur-xl backdrop-saturate-150">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/25 transition-transform group-hover:scale-110">
-            <Layers className="h-4.5 w-4.5 text-white" />
-          </div>
-          <span className="text-lg font-bold tracking-tight text-white">
-            Nigris
-          </span>
+    <header className="sticky top-0 z-50 w-full border-b border-[#1c1c1f] bg-[#09090b]/80 backdrop-blur-xl">
+      <div className="mx-auto flex h-14 max-w-[1120px] items-center justify-between px-6">
+        <Link href="/" className="flex items-center gap-2">
+          <Layers className="h-5 w-5 text-white" />
+          <span className="text-[15px] font-semibold tracking-tight text-white">Nigris</span>
         </Link>
 
-        <nav className="hidden gap-8 md:flex">
-          {["About", "Docs", "Blog", "Contact"].map((item) => (
-            <Link
-              key={item}
-              href={`/${item.toLowerCase()}`}
-              className="relative text-sm font-medium text-slate-400 transition-colors hover:text-white after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 after:bg-blue-500 after:transition-all hover:after:w-full"
-            >
-              {item}
+        <nav className="hidden md:flex items-center gap-6">
+          {NAV.map((n) => (
+            <Link key={n.href} href={n.href} className="text-[13px] text-[#a1a1aa] transition-colors hover:text-white">
+              {n.label}
             </Link>
           ))}
         </nav>
 
-        <div className="hidden md:flex items-center gap-4">
-          <Link href="/login" className="text-sm font-medium text-slate-400 transition-colors hover:text-white">
+        <div className="hidden md:flex items-center gap-3">
+          <Link href="/login" className="text-[13px] text-[#a1a1aa] transition-colors hover:text-white">
             Log in
           </Link>
           <Link
             href="/register"
-            className="rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition-all hover:shadow-blue-500/40 hover:scale-105"
+            className="inline-flex h-8 items-center rounded-md bg-white px-3.5 text-[13px] font-medium text-[#09090b] transition hover:bg-[#e4e4e7]"
           >
-            Get Started Free
+            Get Started
           </Link>
         </div>
 
-        {/* Mobile toggle */}
-        <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden text-slate-300">
-          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        <button onClick={() => setOpen(!open)} className="md:hidden text-[#a1a1aa]">
+          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
 
-      {/* Mobile dropdown */}
-      {mobileOpen && (
-        <div className="md:hidden border-t border-white/5 bg-slate-950/95 backdrop-blur-xl px-6 py-4 space-y-3">
-          {["About", "Docs", "Blog", "Contact"].map((item) => (
-            <Link key={item} href={`/${item.toLowerCase()}`} className="block text-sm text-slate-300 hover:text-white py-1">
-              {item}
+      {open && (
+        <div className="md:hidden border-t border-[#1c1c1f] bg-[#09090b] px-6 py-4 space-y-3">
+          {NAV.map((n) => (
+            <Link key={n.href} href={n.href} onClick={() => setOpen(false)} className="block text-[14px] text-[#a1a1aa] hover:text-white py-1">
+              {n.label}
             </Link>
           ))}
-          <div className="pt-3 border-t border-white/10 flex flex-col gap-2">
-            <Link href="/login" className="text-sm text-slate-300 hover:text-white py-1">Log in</Link>
-            <Link href="/register" className="rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white text-center">
-              Get Started Free
+          <div className="pt-3 border-t border-[#1c1c1f] flex flex-col gap-2">
+            <Link href="/login" className="text-[14px] text-[#a1a1aa] hover:text-white py-1">Log in</Link>
+            <Link href="/register" className="mt-1 inline-flex h-9 items-center justify-center rounded-md bg-white text-[13px] font-medium text-[#09090b]">
+              Get Started
             </Link>
           </div>
         </div>
