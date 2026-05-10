@@ -1,26 +1,98 @@
+"use client";
+
 import Link from "next/link";
+import { useRef } from "react";
 import { ArrowRight, Database, Shield, Zap, Code, CreditCard, BarChart } from "lucide-react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+// Register ScrollTrigger plugin
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger, useGSAP);
+}
 
 export default function Home() {
+  const container = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    // 1. Hero Section Initial Load Animation
+    const heroTl = gsap.timeline();
+    heroTl
+      .from(".hero-badge", { y: -20, opacity: 0, duration: 0.6, ease: "power3.out" })
+      .from(".hero-title", { y: 30, opacity: 0, duration: 0.8, ease: "power3.out" }, "-=0.4")
+      .from(".hero-desc", { y: 30, opacity: 0, duration: 0.8, ease: "power3.out" }, "-=0.6")
+      .from(".hero-buttons", { y: 20, opacity: 0, duration: 0.6, ease: "power3.out" }, "-=0.4");
+
+    // 2. Features Grid Scroll Animation
+    gsap.from(".feature-header", {
+      scrollTrigger: {
+        trigger: ".features-section",
+        start: "top 80%",
+      },
+      y: 40,
+      opacity: 0,
+      duration: 0.8,
+      ease: "power3.out",
+    });
+
+    gsap.from(".feature-card", {
+      scrollTrigger: {
+        trigger: ".features-section",
+        start: "top 70%",
+      },
+      y: 50,
+      opacity: 0,
+      duration: 0.8,
+      stagger: 0.2, // This creates the staggered timeline effect
+      ease: "back.out(1.7)",
+    });
+
+    // 3. SDK Section Scroll Animation
+    const sdkTl = gsap.timeline({
+      scrollTrigger: {
+        trigger: ".sdk-section",
+        start: "top 75%",
+      },
+    });
+
+    sdkTl
+      .from(".sdk-text", { x: -50, opacity: 0, duration: 0.8, ease: "power3.out" })
+      .from(".sdk-code", { x: 50, opacity: 0, duration: 0.8, ease: "power3.out" }, "-=0.6");
+
+    // 4. Final CTA Scroll Animation
+    gsap.from(".cta-box", {
+      scrollTrigger: {
+        trigger: ".cta-section",
+        start: "top 85%",
+      },
+      scale: 0.9,
+      y: 30,
+      opacity: 0,
+      duration: 0.8,
+      ease: "power3.out",
+    });
+  }, { scope: container });
+
   return (
-    <div className="flex flex-col min-h-screen">
+    <div ref={container} className="flex flex-col min-h-screen overflow-hidden">
       {/* Hero Section */}
       <section className="bg-[radial-gradient(circle_at_top,_#dbeafe,_#f8fafc_55%,_#ffffff)] py-20 lg:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8 text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-blue-600 mb-6">
+          <p className="hero-badge text-sm font-semibold uppercase tracking-widest text-blue-600 mb-6">
             The Nigris Platform
           </p>
-          <h1 className="mx-auto max-w-4xl text-5xl font-bold tracking-tight text-slate-900 sm:text-7xl">
+          <h1 className="hero-title mx-auto max-w-4xl text-5xl font-bold tracking-tight text-slate-900 sm:text-7xl">
             Build, meter, and ship APIs <span className="text-blue-600">with confidence.</span>
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-slate-600">
+          <p className="hero-desc mx-auto mt-6 max-w-2xl text-lg leading-8 text-slate-600">
             Nigris is the complete infrastructure for your API products. Manage dynamic schemas, 
             generate API keys, meter usage, and automatically sync with Stripe billing—all from a single dashboard.
           </p>
-          <div className="mt-10 flex items-center justify-center gap-x-6">
+          <div className="hero-buttons mt-10 flex items-center justify-center gap-x-6">
             <Link
               href="/register"
-              className="rounded-full bg-slate-900 px-8 py-3.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 transition-all"
+              className="rounded-full bg-slate-900 px-8 py-3.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 transition-all hover:scale-105"
             >
               Start building for free
             </Link>
@@ -32,9 +104,9 @@ export default function Home() {
       </section>
 
       {/* Features Grid */}
-      <section className="py-24 sm:py-32 bg-white">
+      <section className="features-section py-24 sm:py-32 bg-white">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center">
+          <div className="feature-header mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Everything you need to launch</h2>
             <p className="mt-4 text-lg text-slate-600">
               Stop writing boilerplate code for authentication and billing. Focus on your core product.
@@ -42,7 +114,7 @@ export default function Home() {
           </div>
           <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
             <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
-              <div className="flex flex-col">
+              <div className="feature-card flex flex-col">
                 <dt className="flex items-center gap-x-3 text-lg font-semibold leading-7 text-slate-900">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
                     <Database className="h-5 w-5 text-blue-600" />
@@ -53,7 +125,7 @@ export default function Home() {
                   <p className="flex-auto">Create and modify your database schemas on the fly from the dashboard. Nigris automatically provisions MongoDB collections for you.</p>
                 </dd>
               </div>
-              <div className="flex flex-col">
+              <div className="feature-card flex flex-col">
                 <dt className="flex items-center gap-x-3 text-lg font-semibold leading-7 text-slate-900">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
                     <Shield className="h-5 w-5 text-blue-600" />
@@ -64,7 +136,7 @@ export default function Home() {
                   <p className="flex-auto">Generate secure API keys for your users. Nigris automatically validates every request against your usage limits.</p>
                 </dd>
               </div>
-              <div className="flex flex-col">
+              <div className="feature-card flex flex-col">
                 <dt className="flex items-center gap-x-3 text-lg font-semibold leading-7 text-slate-900">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
                     <BarChart className="h-5 w-5 text-blue-600" />
@@ -81,10 +153,10 @@ export default function Home() {
       </section>
 
       {/* Code SDK Section */}
-      <section className="bg-slate-900 py-24 sm:py-32">
+      <section className="sdk-section bg-slate-900 py-24 sm:py-32 overflow-hidden">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div>
+            <div className="sdk-text">
               <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Developer-first SDK</h2>
               <p className="mt-6 text-lg text-slate-300">
                 Integrate Nigris into your codebase in minutes using our official JavaScript SDK. 
@@ -96,8 +168,9 @@ export default function Home() {
                 <li className="flex items-center gap-3"><CreditCard className="h-5 w-5 text-blue-400" /> Automatically counts towards billing</li>
               </ul>
             </div>
-            <div className="rounded-2xl bg-slate-800/50 p-8 border border-slate-700 shadow-2xl">
-              <pre className="text-sm text-slate-300 overflow-x-auto">
+            <div className="sdk-code rounded-2xl bg-slate-800/50 p-8 border border-slate-700 shadow-2xl relative">
+              <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-500 opacity-20 blur-xl"></div>
+              <pre className="relative text-sm text-slate-300 overflow-x-auto z-10">
                 <code className="language-javascript">
 {`import { NigrisClient } from '@nishant4806/nigris-sdk';
 
@@ -120,9 +193,9 @@ console.log("Success:", record);`}
       </section>
 
       {/* CTA Section */}
-      <section className="bg-white py-24 sm:py-32">
+      <section className="cta-section bg-white py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center rounded-3xl bg-blue-50 px-6 py-16 sm:p-20 border border-blue-100">
+          <div className="cta-box mx-auto max-w-2xl text-center rounded-3xl bg-gradient-to-br from-blue-50 to-indigo-50 px-6 py-16 sm:p-20 border border-blue-100 shadow-xl shadow-blue-900/5">
             <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
               Ready to launch your API?
             </h2>
@@ -132,7 +205,7 @@ console.log("Success:", record);`}
             <div className="mt-10 flex items-center justify-center gap-x-6">
               <Link
                 href="/register"
-                className="rounded-full bg-blue-600 px-8 py-3.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 transition-colors"
+                className="rounded-full bg-blue-600 px-8 py-3.5 text-sm font-semibold text-white shadow-md shadow-blue-600/20 hover:bg-blue-500 transition-all hover:scale-105"
               >
                 Create your workspace
               </Link>
