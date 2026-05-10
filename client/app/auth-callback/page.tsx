@@ -12,13 +12,26 @@ function AuthCallbackHandler() {
     const token = searchParams.get("token");
 
     if (token) {
-      // Save the token to localStorage for authenticated requests
       localStorage.setItem("token", token);
       
-      // Redirect to the protected dashboard
-      router.replace("/dashboard");
+      // Fetch user profile to check role
+      fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/users/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.role === "admin") {
+          router.replace("/admin");
+        } else {
+          router.replace("/dashboard");
+        }
+      })
+      .catch(() => {
+        router.replace("/dashboard");
+      });
     } else {
-      // If no token is found, redirect back to login
       router.replace("/login?error=auth_failed");
     }
   }, [router, searchParams]);

@@ -57,7 +57,11 @@ export function AuthForm({ defaultMode = "login" }: { defaultMode?: "login" | "s
         setMfaRequired(true);
       } else {
         localStorage.setItem("token", res.data.token);
-        router.replace("/dashboard");
+        if (res.data.user?.role === "admin") {
+          router.replace("/admin");
+        } else {
+          router.replace("/dashboard");
+        }
       }
     } catch (err) {
       setError(getApiErrorMessage(err, "Invalid credentials"));
@@ -92,7 +96,11 @@ export function AuthForm({ defaultMode = "login" }: { defaultMode?: "login" | "s
 
       const res = await api.post(endpoint, payload);
       localStorage.setItem("token", res.data.token);
-      router.replace("/dashboard");
+      if (res.data.user?.role === "admin") {
+        router.replace("/admin");
+      } else {
+        router.replace("/dashboard");
+      }
     } catch (err) {
       setError("Invalid MFA code");
     } finally {
@@ -108,7 +116,11 @@ export function AuthForm({ defaultMode = "login" }: { defaultMode?: "login" | "s
       const assertion = await startAuthentication(options.data);
       const res = await api.post("/auth/passkey/login-verify", { email, body: assertion });
       localStorage.setItem("token", res.data.token);
-      router.replace("/dashboard");
+      if (res.data.user?.role === "admin") {
+        router.replace("/admin");
+      } else {
+        router.replace("/dashboard");
+      }
     } catch (err) {
       console.error(err);
       setError(getApiErrorMessage(err, "Passkey authentication failed"));

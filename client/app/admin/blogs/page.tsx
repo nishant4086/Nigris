@@ -41,7 +41,7 @@ export default function BlogListPage() {
           <p className="text-sm text-gray-500">Create and manage blog content.</p>
         </div>
         <Link
-          href="/dashboard/admin/blogs/new"
+          href="/admin/blogs/new"
           className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition"
         >
           <Plus className="h-4 w-4" /> New Post
@@ -67,7 +67,7 @@ export default function BlogListPage() {
               {blogs.map((b) => (
                 <tr key={b._id} className="border-b last:border-0 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition">
                   <td className="px-4 py-3">
-                    <button onClick={() => router.push(`/dashboard/admin/blogs/${b._id}`)} className="text-left font-medium hover:text-blue-600 transition">
+                    <button onClick={() => router.push(`/admin/blogs/${b._id}`)} className="text-left font-medium hover:text-blue-600 transition">
                       {b.title}
                     </button>
                     {b.tags.length > 0 && (

@@ -17,9 +17,9 @@ export default function AdminPage() {
   if (!stats) return <div className="py-12 text-center text-red-500">Failed to load admin stats. Make sure your account has admin role.</div>;
 
   const cards = [
-    { title: "Messages", value: stats.messageCount, sub: `${stats.unreadCount} unread`, icon: Mail, href: "/dashboard/admin/messages", color: "text-blue-500" },
-    { title: "Blog Posts", value: stats.blogCount, sub: `${stats.publishedCount} published`, icon: FileText, href: "/dashboard/admin/blogs", color: "text-emerald-500" },
-    { title: "Activity Log", value: stats.activityCount, sub: "total events", icon: Activity, href: "/dashboard/admin/activity", color: "text-amber-500" },
+    { title: "Messages", value: stats.messageCount, sub: `${stats.unreadCount} unread`, icon: Mail, href: "/admin/messages", color: "text-blue-500" },
+    { title: "Blog Posts", value: stats.blogCount, sub: `${stats.publishedCount} published`, icon: FileText, href: "/admin/blogs", color: "text-emerald-500" },
+    { title: "Activity Log", value: stats.activityCount, sub: "total events", icon: Activity, href: "/admin/activity", color: "text-amber-500" },
   ];
 
   return (
