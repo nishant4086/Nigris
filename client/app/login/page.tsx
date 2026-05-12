@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { api, getApiErrorMessage } from "@/lib/api";
@@ -23,6 +23,7 @@ export function AuthForm({ defaultMode = "login" }: { defaultMode?: "login" | "s
   const router = useRouter();
   const searchParams = useSearchParams();
   const [mode, setMode] = useState(defaultMode);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
