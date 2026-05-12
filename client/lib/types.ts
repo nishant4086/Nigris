@@ -10,5 +10,7 @@ export interface CollectionField {
 
 export interface CollectionData {
   _id: string;
+  createdAt: string;
+  updatedAt: string;
   [key: string]: FieldValue;
 }

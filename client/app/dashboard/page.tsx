@@ -48,7 +48,7 @@ type ProjectPreview = {
 type TemplatePreview = {
   _id: string;
   name: string;
-  project: string | { name: string };
+  project: string | { _id: string; name: string };
   createdAt: string;
 };
 
@@ -471,7 +471,7 @@ export default function Dashboard() {
                     onClick={() => {
                       // We need the project ID to navigate. 
                       // If t.project is an object, use t.project._id, otherwise use t.project
-                      const pId = typeof t.project === 'object' ? (t.project as { _id: string })._id : t.project;
+                      const pId = typeof t.project === 'object' ? t.project._id : t.project;
                       window.location.href = `/dashboard/projects/${pId}/templates/${t._id}`;
                     }}
                     className="group flex items-center gap-3 p-3 rounded-2xl hover:bg-white/50 dark:hover:bg-white/10 transition-colors border border-transparent hover:border-white/60 dark:hover:border-white/10 cursor-pointer"

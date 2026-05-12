@@ -117,7 +117,7 @@ export default function WorkspaceDatabasePage() {
     
     let val = row[f.name];
     if (f.type === "reference" && val && typeof val === "object") {
-      val = val._id;
+      val = (val as { _id: string })._id;
     }
     setEditValue(val || "");
   };
@@ -126,6 +126,7 @@ export default function WorkspaceDatabasePage() {
     if (!editingCell) return;
     const { rowId, fieldName } = editingCell;
     const originalRow = data.find(r => r._id === rowId);
+    if (!originalRow) return;
     
     // Optimistic Update
     setData(prev => prev.map(r => r._id === rowId ? { ...r, [fieldName]: editValue } : r));
@@ -175,8 +176,9 @@ export default function WorkspaceDatabasePage() {
     }
     
     if (f.type === "reference") {
-      if (typeof val === "object") {
-        const display = val.name || val.title || val.email || val.slug || val._id;
+      if (val && typeof val === "object") {
+        const v = val as any;
+        const display = v.name || v.title || v.email || v.slug || v._id;
         return (
           <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-[#202020] text-slate-700 dark:text-slate-300 text-xs font-medium border border-slate-200 dark:border-slate-800">
             <LinkIcon className="w-3 h-3 text-slate-400 dark:text-slate-500" />
@@ -188,10 +190,11 @@ export default function WorkspaceDatabasePage() {
     }
 
     if (["image", "video", "file"].includes(f.type)) {
+      const url = String(val);
       return (
-        <a href={val} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline">
+        <a href={url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline">
           <Paperclip className="w-3 h-3" />
-          <span className="truncate max-w-[120px]">{val.split('/').pop()}</span>
+          <span className="truncate max-w-[120px]">{url.split('/').pop()}</span>
         </a>
       );
     }

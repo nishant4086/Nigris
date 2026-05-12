@@ -36,7 +36,7 @@ function NewCollectionForm() {
     newFields[index] = { ...newFields[index], [key]: value };
     // Clean up incompatible properties when switching types
     if (key === "type") {
-      if (!["text", "number"].includes(value)) newFields[index].unique = false;
+      if (!["text", "number"].includes(value as string)) newFields[index].unique = false;
       if (value !== "reference") newFields[index].ref = undefined;
     }
     setFields(newFields);
