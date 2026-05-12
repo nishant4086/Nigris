@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense, useRef } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { api, getApiErrorMessage } from "@/lib/api";
@@ -23,7 +23,6 @@ export function AuthForm({ defaultMode = "login" }: { defaultMode?: "login" | "s
   const router = useRouter();
   const searchParams = useSearchParams();
   const [mode, setMode] = useState(defaultMode);
-  const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -137,7 +136,7 @@ export function AuthForm({ defaultMode = "login" }: { defaultMode?: "login" | "s
 
   if (mfaRequired) {
     return (
-      <div className="min-h-screen flex items-center justify-center liquid-shell p-6 animate-in fade-in duration-500" ref={containerRef}>
+      <div className="min-h-screen flex items-center justify-center liquid-shell p-6 animate-in fade-in duration-500">
         <div className="w-full max-w-md glass-card border border-white/20 dark:border-white/10 rounded-[2.5rem] p-10 shadow-xl text-center">
           <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
             <ShieldCheck className="w-10 h-10" />

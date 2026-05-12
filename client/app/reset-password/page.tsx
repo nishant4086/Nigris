@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense, useRef } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { api, getApiErrorMessage } from "@/lib/api";
@@ -10,7 +10,6 @@ function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -72,7 +71,7 @@ function ResetPasswordForm() {
 
   if (!token) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center liquid-shell py-12 px-6 animate-in fade-in duration-500" ref={containerRef}>
+      <div className="min-h-screen flex flex-col items-center justify-center liquid-shell py-12 px-6 animate-in fade-in duration-500">
         <div className="w-full max-w-md glass-card border border-white/20 dark:border-white/10 rounded-[2.5rem] p-8 md:p-10 shadow-xl text-center">
           <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
             <AlertTriangle className="w-10 h-10" />
@@ -96,7 +95,7 @@ function ResetPasswordForm() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center liquid-shell py-12 px-6 animate-in fade-in duration-500" ref={containerRef}>
+      <div className="min-h-screen flex flex-col items-center justify-center liquid-shell py-12 px-6 animate-in fade-in duration-500">
         <div className="w-full max-w-md glass-card border border-white/20 dark:border-white/10 rounded-[2.5rem] pt-12 p-8 md:p-10 shadow-xl text-center relative">
           <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 blur-[80px] -z-10" />
 
