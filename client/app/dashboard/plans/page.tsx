@@ -204,9 +204,9 @@ function PlansContent() {
       priceLabel: billingCycle === "monthly" ? "₹199" : "₹1,999",
       period: billingCycle === "monthly" ? "/ month" : "/ year",
       description: "For teams and growing businesses",
-      gradient: "from-indigo-50 to-violet-50 dark:from-indigo-900/20 dark:to-violet-900/20",
-      borderColor: isCurrentPro ? "border-indigo-600 dark:border-indigo-400" : "border-indigo-300 dark:border-indigo-700",
-      iconBg: "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400",
+      gradient: "from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20",
+      borderColor: isCurrentPro ? "border-red-600 dark:border-red-400" : "border-red-300 dark:border-red-700",
+      iconBg: "bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400",
       isCurrent: isCurrentPro,
       buttonAction: () => startSubscription(billingCycle === "monthly" ? "pro_monthly" : "pro_yearly"),
     },
@@ -308,7 +308,7 @@ function PlansContent() {
                 {/* Most Popular Badge */}
                 {isHighlight && !card.isCurrent && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                    <span className="flex items-center gap-1 bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                    <span className="flex items-center gap-1 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
                       <Sparkles className="w-3 h-3" /> Most Popular
                     </span>
                   </div>
@@ -364,7 +364,7 @@ function PlansContent() {
                     disabled={!!busyPlan}
                     className={`w-full py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${
                       isHighlight
-                        ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-lg"
+                        ? "bg-red-600 hover:bg-red-700 text-white shadow-md hover:shadow-lg"
                         : "bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-200 text-white dark:text-slate-900 shadow-sm"
                     } disabled:opacity-60`}
                   >

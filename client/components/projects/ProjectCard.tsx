@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FolderGit2, Trash2, Settings, ArrowRight, Database, Users } from "lucide-react";
+import { FolderGit2, Trash2, Settings, ArrowRight, Database, Users, Mail, FileCode, History } from "lucide-react";
 
 export type Project = {
   _id: string;
@@ -17,30 +17,51 @@ type ProjectCardProps = {
 export default function ProjectCard({ project, onDelete }: ProjectCardProps) {
   return (
     <div className="group relative bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col h-full">
-      
+
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
           <FolderGit2 className="w-6 h-6" />
         </div>
-        
+
         {/* Hover Actions */}
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-          <Link 
+          <Link
             href={`/dashboard/projects/${project._id}/team`}
             className="p-2 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
             title="Team Management"
           >
             <Users className="w-4 h-4" />
           </Link>
-          <Link 
+          <Link
             href={`/dashboard/collections?project=${project._id}`}
             className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#252525] rounded-lg transition-colors"
             title="Manage Collections"
           >
             <Settings className="w-4 h-4" />
           </Link>
-          <button 
+          <Link
+            href={`/dashboard/projects/${project._id}/smtp`}
+            className="p-2 text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
+            title="SMTP Settings"
+          >
+            <Mail className="w-4 h-4" />
+          </Link>
+          <Link
+            href={`/dashboard/projects/${project._id}/templates`}
+            className="p-2 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
+            title="Email Templates"
+          >
+            <FileCode className="w-4 h-4" />
+          </Link>
+          <Link
+            href={`/dashboard/projects/${project._id}/mail-logs`}
+            className="p-2 text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
+            title="Mail Logs"
+          >
+            <History className="w-4 h-4" />
+          </Link>
+          <button
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();

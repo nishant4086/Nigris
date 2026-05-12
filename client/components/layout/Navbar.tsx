@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { api } from "@/lib/api";
-import { Bell, Search, Menu, LogOut, ChevronDown } from "lucide-react";
+import { Bell, Search, Menu, LogOut, ChevronDown, Command } from "lucide-react";
 import ThemeToggle3D from "@/components/ui/ThemeToggle3D";
+import CommandPalette from "@/components/layout/CommandPalette";
+import NotificationPopover from "@/components/layout/NotificationPopover";
 
 type NavbarProps = {
   toggleSidebar?: () => void;
@@ -17,6 +19,9 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
   const [plan, setPlan] = useState("...");
   const [name, setName] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Convert /dashboard/api-keys to "Api Keys"
   const getPageTitle = () => {
@@ -38,6 +43,22 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
       }
     };
     loadProfile();
+
+    const handleGlobalKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener("keydown", handleGlobalKey);
+
+    // Initial unread count
+    api.get("/keys/alerts").then(res => {
+      const unread = (res.data || []).filter((n: any) => !n.isRead).length;
+      setUnreadCount(unread);
+    }).catch(() => {});
+
+    return () => window.removeEventListener("keydown", handleGlobalKey);
   }, []);
 
   const logout = () => {
@@ -67,20 +88,34 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
         {/* Search */}
         <div className="hidden md:flex items-center relative">
           <Search className="w-4 h-4 absolute left-3 text-slate-400" />
-          <input 
-            type="text" 
-            placeholder="Search..." 
-            className="glass-input w-72 rounded-full py-2 pl-9 pr-4 text-sm text-slate-700 outline-none transition-all placeholder:text-slate-400 focus:border-blue-400 focus:bg-white/70 focus:ring-2 focus:ring-blue-500/20 dark:text-slate-200 dark:focus:bg-slate-950/55"
-          />
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="glass-input w-72 rounded-full py-2 pl-9 pr-4 text-sm text-slate-500 text-left transition-all hover:bg-white/70 dark:text-slate-400 dark:hover:bg-slate-950/55 flex items-center justify-between"
+          >
+            <span>Search...</span>
+            <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-slate-100 dark:bg-white/10 rounded border border-slate-200 dark:border-white/5">
+              <Command className="w-2.5 h-2.5" />
+              <span className="text-[10px]">K</span>
+            </div>
+          </button>
         </div>
 
         {/* Theme & Notifications */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 relative">
           <ThemeToggle3D />
-          <button className="glass-pill relative rounded-full p-2 text-slate-500 transition-all hover:scale-105 hover:text-slate-700 dark:text-slate-300 dark:hover:text-white" type="button" aria-label="Notifications">
+          <button 
+            onClick={() => setNotifOpen(!notifOpen)}
+            className="glass-pill relative rounded-full p-2 text-slate-500 transition-all hover:scale-105 hover:text-slate-700 dark:text-slate-300 dark:hover:text-white" 
+            type="button" 
+            aria-label="Notifications"
+          >
             <Bell className="w-5 h-5" />
-            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full border-2 border-white bg-blue-500 dark:border-slate-900"></span>
+            {unreadCount > 0 && (
+              <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-blue-600 dark:border-slate-900 animate-pulse"></span>
+            )}
           </button>
+
+          <NotificationPopover isOpen={notifOpen} onClose={() => setNotifOpen(false)} />
         </div>
 
         <div className="mx-1 hidden h-7 w-px bg-slate-200/80 dark:bg-white/10 md:block"></div>
@@ -125,6 +160,8 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
           )}
         </div>
       </div>
+
+      <CommandPalette isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </header>
   );
 }

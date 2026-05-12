@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Layers, Menu, X } from "lucide-react";
+import Logo from "./ui/Logo";
+import { Menu, X } from "lucide-react";
 import { useState } from "react";
 
 const NAV = [
@@ -17,10 +18,7 @@ export default function PublicHeader() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[#1c1c1f] bg-[#09090b]/80 backdrop-blur-xl">
       <div className="mx-auto flex h-14 max-w-[1120px] items-center justify-between px-6">
-        <Link href="/" className="flex items-center gap-2">
-          <Layers className="h-5 w-5 text-white" />
-          <span className="text-[15px] font-semibold tracking-tight text-white">Nigris</span>
-        </Link>
+        <Logo size={32} />
 
         <nav className="hidden md:flex items-center gap-6">
           {NAV.map((n) => (

@@ -31,8 +31,8 @@ export default function ForgotPasswordPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0a0a0a] p-6 animate-in fade-in duration-500">
-        <div className="w-full max-w-md bg-white dark:bg-[#111111] border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-10 shadow-xl text-center overflow-hidden relative">
+      <div className="min-h-screen flex flex-col items-center justify-center liquid-shell py-12 px-6">
+        <div className="w-full max-w-md glass-card border border-white/20 dark:border-white/10 rounded-[2.5rem] pt-12 p-8 md:p-10 shadow-xl text-center relative">
           <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 blur-[80px] -z-10" />
 
           <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/20 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
@@ -51,14 +51,14 @@ export default function ForgotPasswordPage() {
 
             <button
               onClick={() => setSubmitted(false)}
-              className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-2xl shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full py-4 gradient-button text-white font-bold rounded-2xl transition-all"
             >
               Send another email
             </button>
 
             <Link
               href="/login"
-              className="w-full py-4 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-bold rounded-2xl transition-all flex items-center justify-center gap-2 hover:bg-slate-50 dark:hover:bg-[#161616]"
+              className="w-full py-4 glass-input border border-white/10 text-slate-900 dark:text-slate-100 font-bold rounded-2xl transition-all flex items-center justify-center gap-2 hover:bg-white/5 dark:hover:bg-white/5"
             >
               Back to login
             </Link>
@@ -69,13 +69,13 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0a0a0a] p-6 animate-in fade-in duration-500">
-      <div className="w-full max-w-md bg-white dark:bg-[#111111] border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-10 shadow-xl overflow-hidden relative">
+    <div className="min-h-screen flex flex-col items-center justify-center liquid-shell py-12 px-6">
+      <div className="w-full max-w-md glass-card border border-white/20 dark:border-white/10 rounded-[2.5rem] pt-12 p-8 md:p-10 shadow-xl relative">
         {/* Background Accent */}
         <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 blur-[80px] -z-10" />
 
         <div className="mb-10 text-center">
-          <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4 text-white font-black text-xl shadow-lg shadow-blue-600/20">N</div>
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-4 text-white font-black text-xl shadow-lg shadow-blue-600/20">N</div>
           <h1 className="text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Forgot password?</h1>
           <p className="text-sm text-slate-500 mt-2">Enter your email and we'll send you a link to reset it.</p>
         </div>
@@ -96,14 +96,14 @@ export default function ForgotPasswordPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-[#0d0d0d] border border-slate-100 dark:border-slate-900 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+              className="w-full pl-12 pr-4 py-4 glass-input rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2 group hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+            className="auth-animate-item w-full py-4 gradient-button text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-2 group disabled:opacity-50"
           >
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Send reset link"}
             {!loading && <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}

@@ -3,13 +3,15 @@ import speakeasy from "speakeasy";
 import bcrypt from "bcryptjs";
 import User from "../../models/User.js";
 import asyncHandler from "../../utils/asyncHandler.js";
-import { generateToken } from "../../utils/tokenUtils.js";
+import { generateToken, sendTokenResponse } from "../../utils/tokenUtils.js";
 import { sendVerificationEmail, sendResetPasswordEmail } from "../../utils/emailService.js";
 import {
   validateEmail,
   validateName,
   validatePassword,
 } from "../../utils/validation.js";
+import { blacklistToken } from "../../utils/tokenBlacklist.js";
+import jwt from "jsonwebtoken";
 
 const normalizeEmail = (email) => email.trim().toLowerCase();
 const VERIFICATION_TOKEN_EXPIRY_MS = 24 * 60 * 60 * 1000;
@@ -209,18 +211,35 @@ export const login = asyncHandler(async (req, res) => {
     });
   }
 
-  const token = generateToken(user._id);
-  res.json({
-    token,
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      plan: user.plan,
-      planStatus: user.planStatus,
-    },
+  sendTokenResponse(user, 200, res);
+});
+
+export const logout = asyncHandler(async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  
+  if (token) {
+    try {
+      // Decode without verification to get the expiration time
+      const decoded = jwt.decode(token);
+      if (decoded && typeof decoded === "object" && decoded.exp) {
+        const now = Math.floor(Date.now() / 1000);
+        const expiresIn = decoded.exp - now;
+        
+        if (expiresIn > 0) {
+          await blacklistToken(token, expiresIn);
+        }
+      }
+    } catch (err) {
+      console.error("[Logout] Failed to blacklist token:", err.message);
+    }
+  }
+
+  res.cookie("token", "none", {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
   });
+
+  res.status(200).json({ success: true, message: "User logged out successfully" });
 });
 
 export const verifyMfaLogin = asyncHandler(async (req, res) => {
@@ -240,18 +259,7 @@ export const verifyMfaLogin = asyncHandler(async (req, res) => {
     return res.status(401).json({ error: "Invalid MFA code" });
   }
 
-  const jwtToken = generateToken(user._id);
-  res.json({
-    token: jwtToken,
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      plan: user.plan,
-      planStatus: user.planStatus,
-    },
-  });
+  sendTokenResponse(user, 200, res);
 });
 
 export const verifyRecoveryCode = asyncHandler(async (req, res) => {
@@ -278,16 +286,5 @@ export const verifyRecoveryCode = asyncHandler(async (req, res) => {
   user.recoveryCodes.splice(codeIndex, 1);
   await user.save();
 
-  const jwtToken = generateToken(user._id);
-  res.json({
-    token: jwtToken,
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      plan: user.plan,
-      planStatus: user.planStatus,
-    },
-  });
+  sendTokenResponse(user, 200, res);
 });

@@ -29,6 +29,9 @@ import BlogPost from "./models/BlogPost.js";
 import session from "express-session";
 import MongoDBStore from "connect-mongodb-session";
 import passport from "./config/passportConfig.js";
+import smtpRoutes from "./modules/smtp/smtpRoutes.js";
+import emailTemplateRoutes from "./modules/emailTemplate/emailTemplateRoutes.js";
+import mailRoutes from "./modules/mail/mailRoutes.js";
 
 const MongoStore = MongoDBStore(session);
 
@@ -196,6 +199,9 @@ app.use("/api/webhooks", webhookRoutes);
 app.use("/api/public", dynamicRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/smtp", smtpRoutes);
+app.use("/api/email-templates", emailTemplateRoutes);
+app.use("/api/mail", mailRoutes);
 
 // Public blog posts endpoint (no auth)
 app.get("/api/blogs", async (req, res) => {

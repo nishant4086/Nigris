@@ -1,4 +1,11 @@
 import redis, { isRedisAvailable } from "../config/redis.js";
+import { LRUCache } from "lru-cache";
+
+// Fallback in-memory cache if Redis is down
+const localCache = new LRUCache({
+  max: 5000,
+  ttl: 60 * 1000, // 1 minute default
+});
 
 const PLAN_MULTIPLIERS = {
   free: 1,
@@ -6,72 +13,61 @@ const PLAN_MULTIPLIERS = {
   enterprise: 100,
 };
 
+/**
+ * Robust Rate Limiter with Redis Atomicity and Local Fallback
+ */
 export const redisRateLimit = (baseLimit, windowSeconds) => {
   return async (req, res, next) => {
-    // If Redis is unavailable, skip rate limiting and allow the request
-    if (!redis || !isRedisAvailable) {
-      return next();
-    }
-
     try {
-      // Tenant isolation: build a stable redis key based on the API key document.
-      // publicApiKeyMiddleware attaches `req.apiKey` as a Mongo document.
-      // IMPORTANT: Always use _id (immutable) for keying. Never use hashedKey
-      // because it changes on key rotation, which would reset the rate-limit
-      // window and allow a bypass.
       const apiKeyId = req.apiKey?._id?.toString?.() || null;
       const tenantId = req.project?._id?.toString?.() || null;
-
-      // Tenant isolation key.
-      // Note: req.apiKey is only attached for API-key protected routes.
-      // For routes without apiKey (e.g. public routes), we fall back to IP-based partition.
-      const keyPartition = apiKeyId
-        ? `k:${apiKeyId}`
-        : `ip:${req.ip || req.headers['x-forwarded-for'] || 'unknown'}`;
-
-      // If no tenant info exists but we still want isolation, we still use a partitioned key.
-      const tenantPartition = tenantId || 'tenant?';
-
-      // Determine plan (default to free)
       const plan = req.project?.user?.plan || "free";
-
       const multiplier = PLAN_MULTIPLIERS[plan] || 1;
       const totalLimit = baseLimit * multiplier;
 
-      // Include tenant partition + key/IP partition to prevent cross-tenant collisions.
+      // Key construction
+      const keyPartition = apiKeyId
+        ? `k:${apiKeyId}`
+        : `ip:${req.ip || req.headers['x-forwarded-for'] || 'unknown'}`;
+      
+      const tenantPartition = tenantId || 'system';
       const redisKey = `rate:${tenantPartition}:${keyPartition}`;
 
+      let count = 0;
 
-
-      // Execute MULTI to ensure atomic INCR + EXPIRE
-      const multi = redis.multi();
-      multi.incr(redisKey);
-      
-      // Execute the block and retrieve the new count
-      const results = await multi.exec();
-      
-      // results[0][1] contains the value of INCR
-      const count = results[0][1];
-
-      // If it's the first request in the window, set the EXPIRE
-      if (count === 1) {
-        await redis.expire(redisKey, windowSeconds);
+      if (redis && isRedisAvailable) {
+        // 🔒 ATOMIC: INCR + EXPIRE in one MULTI block
+        const multi = redis.multi();
+        multi.incr(redisKey);
+        multi.expire(redisKey, windowSeconds, 'NX'); // 'NX' only sets expiry if not already set
+        
+        const results = await multi.exec();
+        if (!results || !results[0]) throw new Error("Redis execution failed");
+        
+        count = results[0][1];
+      } else {
+        // 🛡️ FALLBACK: Use local memory if Redis is down
+        const localKey = `local:${redisKey}`;
+        const current = localCache.get(localKey) || 0;
+        count = current + 1;
+        localCache.set(localKey, count); // TTL is handled by LRUCache config
       }
 
       const remaining = Math.max(0, totalLimit - count);
-
-      // Add response headers
       res.setHeader("X-RateLimit-Limit", totalLimit);
       res.setHeader("X-RateLimit-Remaining", remaining);
 
       if (count > totalLimit) {
-        return res.status(429).json({ error: "Too many requests" });
+        return res.status(429).json({ 
+          error: "Too many requests",
+          retryAfter: windowSeconds
+        });
       }
 
       next();
     } catch (error) {
-      // Fail-safe behavior: Log the error and allow the request
-      console.error("Redis Rate Limiting Error:", error.message);
+      console.error("[RateLimiter] Critical Error:", error.message);
+      // Fail-safe: allow request but log warning
       next();
     }
   };

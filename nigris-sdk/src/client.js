@@ -76,6 +76,42 @@ export default class NigrisClient {
       throw formatAxiosError(error);
     }
   }
+
+  /**
+   * Manually synchronize the schema cache for a specific collection
+   * or all collections.
+   */
+  async syncSchema(collectionIdOrSlug = null) {
+    if (collectionIdOrSlug) {
+      const schema = await this.request({
+        url: `/collections/${collectionIdOrSlug}/schema`,
+        method: "GET"
+      });
+      this.schemaCache.set(collectionIdOrSlug, schema);
+      if (schema.slug) this.schemaCache.set(schema.slug, schema);
+      return schema;
+    } else {
+      const collections = await this.request({
+        url: "/collections",
+        method: "GET"
+      });
+      this.schemaCache.clear();
+      collections.forEach(c => {
+        this.schemaCache.set(c._id, c);
+        if (c.slug) this.schemaCache.set(c.slug, c);
+      });
+      return collections;
+    }
+  }
+
+  /**
+   * Clear all local caches
+   */
+  clearCache() {
+    this.schemaCache.clear();
+    this.entryCollectionCache.clear();
+    this.entryCache.clear();
+  }
 }
 
 export { DEFAULT_BASE_URL, DEFAULT_TIMEOUT, NigrisError, formatAxiosError, NigrisClient };

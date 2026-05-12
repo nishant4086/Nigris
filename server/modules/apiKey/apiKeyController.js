@@ -511,15 +511,25 @@ export const exportAnalyticsCsv = async (req, res, next) => {
     }));
 
     if (formattedData.length === 0) {
-      return res.status(404).json({ message: "No usage data found to export." });
+      // Return a 200 with headers but empty content/only headers instead of 404
+      // This prevents the frontend from showing an error alert when there's just no data
+      const emptyCsv = "Timestamp,Project,API Key,Environment,Method,Endpoint,Status,Latency (ms)\n";
+      res.header("Content-Type", "text/csv");
+      res.attachment(`nigris_usage_${days}d_empty.csv`);
+      return res.send(emptyCsv);
     }
 
-    const parser = new Parser();
-    const csv = parser.parse(formattedData);
+    try {
+      const parser = new Parser();
+      const csv = parser.parse(formattedData);
 
-    res.header("Content-Type", "text/csv");
-    res.attachment(`nigris_usage_${days}d.csv`);
-    return res.send(csv);
+      res.header("Content-Type", "text/csv");
+      res.attachment(`nigris_usage_${days}d.csv`);
+      return res.send(csv);
+    } catch (parserError) {
+      console.error("CSV Parsing Error:", parserError);
+      return res.status(500).json({ message: "Error generating CSV file." });
+    }
   } catch (error) {
     next(error);
   }

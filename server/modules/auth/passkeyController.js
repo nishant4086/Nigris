@@ -6,7 +6,7 @@ import {
 } from "@simplewebauthn/server";
 import User from "../../models/User.js";
 import asyncHandler from "../../utils/asyncHandler.js";
-import { generateToken } from "../../utils/tokenUtils.js";
+import { generateToken, sendTokenResponse } from "../../utils/tokenUtils.js";
 
 const rpName = "Nigris SaaS";
 const rpID = process.env.RP_ID || "localhost";
@@ -133,17 +133,7 @@ export const verifyPasskeyAuthentication = asyncHandler(async (req, res) => {
     passkey.counter = verification.authenticationInfo.newCounter;
     await user.save();
 
-    const token = generateToken(user._id);
-    res.json({
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        plan: user.plan,
-      },
-    });
+    sendTokenResponse(user, 200, res);
   } else {
     res.status(401).json({ error: "Authentication failed" });
   }

@@ -9,7 +9,8 @@ import {
   forgotPassword, 
   resetPassword,
   verifyMfaLogin,
-  verifyRecoveryCode
+  verifyRecoveryCode,
+  logout
 } from "../modules/auth/authController.js";
 import { generateToken } from "../utils/tokenUtils.js";
 import { 
@@ -40,6 +41,7 @@ router.post("/register", signup);
 router.get("/verify-email/:token", verifyEmail);
 router.post("/resend-verification", resendVerificationLimiter, resendVerificationEmail);
 router.post("/login", login);
+router.post("/logout", logout);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 

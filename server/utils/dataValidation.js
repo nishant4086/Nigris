@@ -14,6 +14,7 @@ import Collection from "../models/Collection.js";
  */
 export const validateData = async (collection, data, entryId = null, skipRequired = false) => {
   const errors = [];
+  const cleanedData = {};
 
   for (const field of collection.fields || []) {
     const value = data[field.name];
@@ -33,6 +34,7 @@ export const validateData = async (collection, data, entryId = null, skipRequire
     if (missing) continue;
 
     // Type check
+    let validatedValue = value;
     if (field.type === "number" && typeof value !== "number") {
       errors.push(`${field.name} must be a number`);
     } else if (field.type === "boolean" && typeof value !== "boolean") {
@@ -40,6 +42,10 @@ export const validateData = async (collection, data, entryId = null, skipRequire
     } else if (["text", "image", "video", "file"].includes(field.type)) {
       if (typeof value !== "string" && typeof value !== "object") {
         errors.push(`${field.name} has an invalid type`);
+      }
+      // Basic XSS prevention for strings (strip script tags)
+      if (typeof value === "string") {
+        validatedValue = value.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gmi, "");
       }
     } else if (field.type === "reference") {
       if (!mongoose.Types.ObjectId.isValid(value)) {
@@ -88,7 +94,10 @@ export const validateData = async (collection, data, entryId = null, skipRequire
         errors.push(`Value for ${field.name} already exists (must be unique)`);
       }
     }
+
+    // If no errors for this field, add to cleaned data
+    cleanedData[field.name] = validatedValue;
   }
 
-  return errors;
+  return { errors, cleanedData };
 };

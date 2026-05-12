@@ -121,6 +121,14 @@ export default function FieldRenderer({ field, value, rowId, onUpdate, refData }
     }
   };
 
+  const isSafeUrl = (url: string) => {
+    if (!url) return false;
+    const lower = url.toLowerCase().trim();
+    // Allow http, https, and relative paths starting with /
+    // Block javascript:, data: (can be used for XSS), etc.
+    return lower.startsWith("http://") || lower.startsWith("https://") || lower.startsWith("/");
+  };
+
   const renderDisplay = () => {
     const displayValue = saving ? localValue : value;
     if (saving) return <span className="text-slate-400 text-xs animate-pulse">Saving...</span>;
@@ -164,6 +172,7 @@ export default function FieldRenderer({ field, value, rowId, onUpdate, refData }
       
       case "image":
         const imageUrl = typeof displayValue === "string" ? displayValue : "";
+        if (!isSafeUrl(imageUrl)) return <span className="text-red-400 text-xs italic">Invalid URL</span>;
         return (
           <a href={imageUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
             <img src={imageUrl} alt="preview" className="h-8 w-8 object-cover rounded shadow-sm border border-slate-200 dark:border-slate-700 hover:scale-110 transition-transform" />
@@ -173,6 +182,7 @@ export default function FieldRenderer({ field, value, rowId, onUpdate, refData }
       case "video":
       case "file":
         const fileUrl = typeof displayValue === "string" ? displayValue : "";
+        if (!isSafeUrl(fileUrl)) return <span className="text-red-400 text-xs italic">Invalid URL</span>;
         return (
           <a href={fileUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-indigo-600 dark:text-indigo-400 hover:underline text-xs flex items-center gap-1">
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>

@@ -7,6 +7,7 @@ import ProjectUser from "../../models/ProjectUser.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { validateData } from "../../utils/dataValidation.js";
 import { getPlanLimits } from "../../utils/planLimits.js";
+import { createNotification } from "../../utils/notificationUtils.js";
 
 // 🔧 slug generator
 const generateSlug = (name) => {
@@ -83,6 +84,9 @@ export const createCollection = asyncHandler(async (req, res) => {
     }
   }
 
+  // 🔔 Create Notification
+  await createNotification(req.user.userId, "collection", `Collection "${name}" created in project.`, projectId);
+
   res.status(201).json(collection);
 });
 
@@ -152,6 +156,9 @@ export const deleteCollection = asyncHandler(async (req, res) => {
   }
 
   await collection.deleteOne();
+
+  // 🔔 Create Notification
+  await createNotification(req.user.userId, "collection", `Collection "${collection.name}" deleted.`, collection.project);
 
   res.json({ message: "Collection deleted" });
 });
@@ -285,7 +292,7 @@ export const publicCreateEntry = asyncHandler(async (req, res) => {
     return res.status(404).json({ error: "Collection not found" });
   }
 
-  const errors = await validateData(collection, payload);
+  const { errors, cleanedData } = await validateData(collection, payload);
   if (errors.length > 0) {
     return res.status(400).json({ errors });
   }
@@ -293,7 +300,7 @@ export const publicCreateEntry = asyncHandler(async (req, res) => {
   const newData = await Data.create({
     collectionId: collection._id,
     project: project._id,
-    data: payload,
+    data: cleanedData,
     createdBy: req.apiKey?.user, // Using API key user
   });
 

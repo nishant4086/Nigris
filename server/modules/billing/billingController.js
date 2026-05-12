@@ -9,6 +9,7 @@ import {
   getStripePriceIdForPlan,
 } from "../../utils/planUtils.js";
 import getRazorpayInstance from "../../config/razorpay.js";
+import { createNotification } from "../../utils/notificationUtils.js";
 
 const getStripeClient = () => {
   if (!process.env.STRIPE_SECRET_KEY) {
@@ -37,6 +38,9 @@ const applyPlanToUser = async (user, planName, options = {}) => {
     { user: user._id },
     { $set: { limit: plan.requestLimit } }
   );
+
+  // 🔔 Create Notification
+  await createNotification(user._id, "plan", `Your account has been upgraded to the ${plan.name} plan!`);
 
   return plan;
 };
@@ -219,6 +223,8 @@ export const handleStripeWebhook = async (req, res) => {
         if (user) {
           user.planStatus = "past_due";
           await user.save();
+          // 🔔 Create Notification
+          await createNotification(user._id, "billing", "Payment failed for your subscription. Please update your payment method.");
         }
         break;
       }

@@ -95,6 +95,31 @@ const result = await client.delete("entryId");
 // { success: true, message: "Entry deleted successfully" }
 ```
 
+### Mail
+
+Send emails using your configured SMTP settings and templates.
+
+#### Send Template
+```js
+const result = await client.mail.sendTemplate({
+  template: "welcome-email", // template slug
+  to: "user@example.com",
+  variables: {
+    name: "Alice",
+    login_url: "https://example.com/login"
+  }
+});
+```
+
+#### Send Direct (Raw HTML)
+```js
+const result = await client.mail.send({
+  to: "user@example.com",
+  subject: "Direct Notification",
+  html: "<h1>Hello Alice</h1><p>This is a direct message.</p>"
+});
+```
+
 ### Namespace Syntax
 
 All methods are also available under `client.entries.*`:
@@ -123,6 +148,21 @@ try {
   console.error(error.data);    // Response body from server
   console.error(error.code);    // Error code (e.g. "ECONNREFUSED")
 }
+```
+
+## Schema Synchronization
+
+The SDK caches collection schemas to improve performance and provide offline validation. If you modify your schema in the dashboard, you can sync the SDK manually:
+
+```js
+// Sync a specific collection
+await client.syncSchema("collectionIdOrSlug");
+
+// Sync all collections
+await client.syncSchema();
+
+// Clear all local caches
+client.clearCache();
 ```
 
 ## Requirements

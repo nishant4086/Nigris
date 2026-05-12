@@ -7,6 +7,7 @@ import User from "../../models/User.js";
 import ProjectUser from "../../models/ProjectUser.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { getPlanLimits } from "../../utils/planLimits.js";
+import { createNotification } from "../../utils/notificationUtils.js";
 
 const generateSlug = (name) =>
   name
@@ -64,6 +65,9 @@ export const createProject = asyncHandler(async (req, res) => {
     role: "owner",
     status: "accepted",
   });
+
+  // 🔔 Create Notification
+  await createNotification(userId, "project", `New project "${name}" created successfully.`, project._id);
 
   return res.status(201).json(project);
 });
@@ -141,6 +145,9 @@ export const deleteProject = asyncHandler(async (req, res) => {
     ProjectUser.deleteMany({ project: id }),
     project.deleteOne(),
   ]);
+
+  // 🔔 Create Notification
+  await createNotification(userId, "project", `Project "${project.name}" has been deleted.`);
 
   return res.json({ message: "Project deleted" });
 });

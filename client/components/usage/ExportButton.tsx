@@ -21,9 +21,24 @@ export default function ExportButton({ timeRange }: { timeRange: string }) {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Export failed", error);
-      alert("Failed to export usage data.");
+      
+      // Try to parse the error message if the response is a blob
+      if (error.response?.data instanceof Blob) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const errorData = JSON.parse(reader.result as string);
+            alert(errorData.message || "Failed to export usage data.");
+          } catch {
+            alert("Failed to export usage data.");
+          }
+        };
+        reader.readAsText(error.response.data);
+      } else {
+        alert(error.response?.data?.message || "Failed to export usage data.");
+      }
     } finally {
       setExporting(false);
     }

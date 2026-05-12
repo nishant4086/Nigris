@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 import Sidebar from "@/components/layout/Sidebar";
 import Navbar from "@/components/layout/Navbar";
 
@@ -12,16 +13,28 @@ export default function Layout({
 }) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [plan, setPlan] = useState("free");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
       router.replace("/login");
+      return;
     }
+
+    const loadProfile = async () => {
+      try {
+        const res = await api.get("/users/me");
+        setPlan(res.data?.plan || "free");
+      } catch {
+        setPlan("free");
+      }
+    };
+    loadProfile();
   }, [router]);
 
   return (
-    <div className="liquid-shell flex h-screen overflow-hidden">
+    <div className="liquid-shell flex h-screen overflow-hidden" data-plan={plan}>
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
       <div className="flex-1 flex flex-col min-w-0">

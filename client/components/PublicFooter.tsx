@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Layers } from "lucide-react";
+import Logo from "./ui/Logo";
 
 export default function PublicFooter() {
   return (
@@ -7,10 +7,7 @@ export default function PublicFooter() {
       <div className="mx-auto max-w-[1120px] px-6">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <Link href="/" className="flex items-center gap-2 mb-4">
-              <Layers className="h-5 w-5 text-white" />
-              <span className="text-[15px] font-semibold tracking-tight text-white">Nigris</span>
-            </Link>
+            <Logo size={24} className="mb-4" />
             <p className="text-[13px] leading-relaxed text-[#52525b]">
               The complete API infrastructure platform.
             </p>

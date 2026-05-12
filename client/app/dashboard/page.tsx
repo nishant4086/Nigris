@@ -10,6 +10,7 @@ import {
   ArrowUpRight,
   Database,
   Filter,
+  Mail,
   type LucideIcon
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -44,6 +45,13 @@ type ProjectPreview = {
   name: string;
 };
 
+type TemplatePreview = {
+  _id: string;
+  name: string;
+  project: string | { name: string };
+  createdAt: string;
+};
+
 type ApiKeyPreview = {
   _id: string;
   name?: string;
@@ -68,8 +76,8 @@ function StatsCard({
   return (
     <GlassCard className="min-h-45 overflow-hidden" delay={delay}>
       <div className="flex items-start justify-between mb-4">
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-linear-to-br from-blue-500 to-indigo-500 shadow-lg shadow-blue-500/20">
-          <Icon className="h-5 w-5 text-white" />
+        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+          <Icon className="h-5 w-5" />
         </div>
         <span className="glass-pill rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
           Live
@@ -228,6 +236,7 @@ export default function Dashboard() {
   const [projectFilter, setProjectFilter] = useState("all");
   const [apiKeyFilter, setApiKeyFilter] = useState("all");
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
+  const [recentTemplates, setRecentTemplates] = useState<TemplatePreview[]>([]);
   const [loading, setLoading] = useState(true);
 
   const mapChartData = useCallback((raw: { date: string; requests: number }[]) => {
@@ -275,6 +284,17 @@ export default function Dashboard() {
         setProjects(projectList);
         const keysRes = await api.get("/keys");
         setApiKeys(Array.isArray(keysRes.data) ? keysRes.data : []);
+
+        // Fetch recent templates across all projects (or just recent ones)
+        // Since we don't have a global recent templates API yet, let's just fetch from the first project or similar
+        // For now, let's assume we might need a new API endpoint for global recent templates
+        // But we can try to fetch from all projects if they are few
+        if (projectList.length > 0) {
+           const templatePromises = projectList.slice(0, 3).map(p => api.get(`/email-templates/${p._id}`));
+           const templateResults = await Promise.all(templatePromises);
+           const allTemplates = templateResults.flatMap(res => res.data).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+           setRecentTemplates(allTemplates.slice(0, 5));
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -311,7 +331,7 @@ export default function Dashboard() {
       >
         <p className="mb-2 text-sm font-bold uppercase tracking-[0.22em] text-blue-500">Nigris Cloud</p>
         <h1 className="text-3xl font-black tracking-tight text-slate-950 dark:text-white md:text-4xl">
-          <span className="gradient-text">Overview</span>
+          Overview
         </h1>
         <p className="mt-2 max-w-2xl text-slate-500 dark:text-slate-400">A clean control surface for projects, API keys, billing, and usage.</p>
       </motion.div>
@@ -409,6 +429,61 @@ export default function Dashboard() {
                       <p className="text-xs text-slate-500 truncate mt-0.5">ID: {p._id.slice(-6)}</p>
                     </div>
                     <Key className="w-4 h-4 text-slate-300 dark:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </GlassCard>
+
+        <GlassCard className="flex flex-col" hover={false} delay={0.28}>
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Recent Templates</h3>
+            <Link href="/dashboard/projects" className="text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 flex items-center gap-1">
+              View projects <ArrowUpRight className="w-4 h-4" />
+            </Link>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto pr-2">
+            {loading ? (
+              <div className="space-y-4">
+                {[1,2].map(i => (
+                  <div key={i} className="flex items-center gap-3 animate-pulse">
+                    <div className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-lg"></div>
+                    <div className="space-y-2 flex-1">
+                      <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-1/2"></div>
+                      <div className="h-3 bg-slate-50 dark:bg-slate-800 rounded w-1/3"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : recentTemplates.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-center p-6 rounded-2xl border border-dashed border-slate-200/80 bg-white/35 dark:border-white/10 dark:bg-white/5">
+                <Mail className="w-8 h-8 text-slate-300 dark:text-slate-600 mb-3" />
+                <p className="text-sm font-medium text-slate-900 dark:text-slate-200">No templates yet</p>
+                <p className="text-xs text-slate-500 mt-1">Create templates within your projects.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recentTemplates.map(t => (
+                  <div 
+                    key={t._id} 
+                    onClick={() => {
+                      // We need the project ID to navigate. 
+                      // If t.project is an object, use t.project._id, otherwise use t.project
+                      const pId = typeof t.project === 'object' ? (t.project as any)._id : t.project;
+                      window.location.href = `/dashboard/projects/${pId}/templates/${t._id}`;
+                    }}
+                    className="group flex items-center gap-3 p-3 rounded-2xl hover:bg-white/50 dark:hover:bg-white/10 transition-colors border border-transparent hover:border-white/60 dark:hover:border-white/10 cursor-pointer"
+                  >
+                    <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                      <Mail className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{t.name}</p>
+                      <p className="text-xs text-slate-500 truncate mt-0.5">Updated {new Date(t.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <ArrowUpRight className="w-4 h-4 text-slate-300 dark:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                 ))}
               </div>

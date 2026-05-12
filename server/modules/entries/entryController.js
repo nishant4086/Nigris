@@ -132,12 +132,12 @@ export const updateEntry = asyncHandler(async (req, res) => {
 
   const mergedData = { ...entry.data, ...req.body };
 
-  const errors = await validateData(collection, mergedData, entryId);
+  const { errors, cleanedData } = await validateData(collection, mergedData, entryId);
   if (errors.length > 0) {
     return res.status(400).json({ errors });
   }
 
-  entry.data = mergedData;
+  entry.data = cleanedData;
   await entry.save();
 
   res.json({ _id: entry._id, ...entry.data, createdAt: entry.createdAt, updatedAt: entry.updatedAt });
