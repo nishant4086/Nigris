@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import { Users, Shield, ArrowRight, FolderGit2, Loader2 } from "lucide-react";
+import { Users, FolderGit2, Loader2, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 export default function TeamSettings() {
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<{ _id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

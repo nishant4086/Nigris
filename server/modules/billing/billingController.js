@@ -10,6 +10,7 @@ import {
 } from "../../utils/planUtils.js";
 import getRazorpayInstance from "../../config/razorpay.js";
 import { createNotification } from "../../utils/notificationUtils.js";
+import ProcessedEvent from "../../models/ProcessedEvent.js";
 
 const getStripeClient = () => {
   if (!process.env.STRIPE_SECRET_KEY) {
@@ -153,6 +154,20 @@ export const handleStripeWebhook = async (req, res) => {
     );
   } catch (err) {
     return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // 🛡️ IDEMPOTENCY CHECK
+  try {
+    const alreadyProcessed = await ProcessedEvent.findOne({ eventId: event.id });
+    if (alreadyProcessed) {
+      console.log(`[Billing] Event ${event.id} already processed. Skipping.`);
+      return res.status(200).json({ received: true, duplication: true });
+    }
+    
+    await ProcessedEvent.create({ eventId: event.id, provider: "stripe" });
+  } catch (err) {
+    console.error("[Billing] Idempotency check failed:", err.message);
+    // Continue anyway to avoid blocking payment if DB is slow but entry exists
   }
 
   try {
@@ -527,6 +542,19 @@ export const handleRazorpayWebhook = async (req, res) => {
     event = JSON.parse(req.body.toString());
   } catch {
     return res.status(400).send("Invalid JSON");
+  }
+
+  // 🛡️ IDEMPOTENCY CHECK
+  try {
+    const alreadyProcessed = await ProcessedEvent.findOne({ eventId: event.id });
+    if (alreadyProcessed) {
+      console.log(`[Billing] Razorpay Event ${event.id} already processed. Skipping.`);
+      return res.status(200).json({ received: true, duplication: true });
+    }
+    
+    await ProcessedEvent.create({ eventId: event.id, provider: "razorpay" });
+  } catch (err) {
+    console.error("[Billing] Razorpay Idempotency check failed:", err.message);
   }
 
   const eventType = event.event;

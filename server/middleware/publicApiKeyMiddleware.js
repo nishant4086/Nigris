@@ -67,10 +67,20 @@ const publicApiKeyMiddleware = async (req, res, next) => {
       }
     }
 
-    // increment usage
+    // 🚀 SCALABILITY FIX: Atomic increment to prevent race conditions
+    await ApiKey.updateOne(
+      { _id: apiKey._id },
+      { 
+        $inc: { usage: 1 }, 
+        $set: { 
+          lastUsedAt: new Date(),
+          resetAt: apiKey.resetAt 
+        } 
+      }
+    );
+
+    // Update local object for downstream middleware (e.g. usage tracking)
     apiKey.usage += 1;
-    apiKey.lastUsedAt = new Date();
-    await apiKey.save();
 
     next();
   } catch (error) {

@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { api, getApiErrorMessage } from "@/lib/api";
 import { Paperclip, Loader2, Image as ImageIcon, Video as VideoIcon } from "lucide-react";
+import { CollectionField, FieldValue } from "@/lib/types";
 
-type Field = { name: string; type: string; required?: boolean; unique?: boolean; ref?: string };
-type FieldValue = string | number | boolean | null | undefined | Record<string, unknown>;
+type Field = CollectionField;
+
 type ReferenceOption = Record<string, FieldValue> & { _id: string };
 
 type FieldRendererProps = {
@@ -166,7 +168,13 @@ export default function FieldRenderer({ field, value, onChange, onBlur, onKeyDow
           {value ? (
             <div className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg bg-slate-50 group">
               {isImage ? (
-                <img src={String(value)} alt="Preview" className="w-10 h-10 object-cover rounded shadow-sm bg-white" />
+                <Image 
+                  src={String(value)} 
+                  alt="Preview" 
+                  width={40} 
+                  height={40} 
+                  className="w-10 h-10 object-cover rounded shadow-sm bg-white" 
+                />
               ) : (
                 <div className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm text-slate-400">
                   <Icon className="w-5 h-5" />

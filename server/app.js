@@ -5,7 +5,9 @@ import cors from "cors";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import compression from "compression";
-import morgan from "morgan";
+import { pinoHttp } from "pino-http";
+import { pino } from "pino";
+import crypto from "crypto";
 
 import authRoutes from "./routes/authRoutes.js";
 import projectRoutes from "./routes/projectRoutes.js";
@@ -19,6 +21,7 @@ import billingRoutes from "./routes/billingRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import { handleStripeWebhook, handleRazorpayWebhook } from "./modules/billing/billingController.js";
 import mongoSanitize from "express-mongo-sanitize";
+import depthCheckMiddleware from "./middleware/depthCheckMiddleware.js";
 import publicRoutes from "./routes/publicRoutes.js";
 import webhookRoutes from "./routes/webhookRoutes.js";
 import usageRoutes from "./routes/usageRoutes.js";
@@ -110,10 +113,45 @@ app.use(passport.session());
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "https://checkout.razorpay.com"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
+        connectSrc: ["'self'", "https://api.stripe.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'self'"],
+        frameSrc: ["'self'", "https://api.razorpay.com", "https://js.stripe.com"],
+      },
+    },
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    },
   })
 );
 
-app.use(morgan("combined"));
+// ================== 📊 OBSERVABILITY ==================
+const logger = pino({
+  level: process.env.LOG_LEVEL || "info",
+});
+
+app.use(pinoHttp({
+  logger,
+  genReqId: (req) => req.headers["x-request-id"] || crypto.randomUUID(),
+  serializers: {
+    req: (req) => ({
+      id: req.id,
+      method: req.method,
+      url: req.url,
+    }),
+  },
+}));
+
 app.use(compression());
 
 
@@ -148,16 +186,25 @@ const globalUrlParser = express.urlencoded({ limit: "10mb", extended: true });
 app.use((req, res, next) => {
   if (req.originalUrl.startsWith("/api/public")) {
     publicJsonParser(req, res, (err) => {
+      if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
+        return res.status(400).json({ error: "Malformed JSON payload" });
+      }
       if (err) return next(err);
       publicUrlParser(req, res, next);
     });
   } else {
     globalJsonParser(req, res, (err) => {
+      if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
+        return res.status(400).json({ error: "Malformed JSON payload" });
+      }
       if (err) return next(err);
       globalUrlParser(req, res, next);
     });
   }
 });
+
+// ================== DEPTH CHECK ==================
+app.use(depthCheckMiddleware);
 
 
 // ================== SANITIZE ==================
@@ -180,8 +227,23 @@ app.get("/", (req, res) => {
   res.json({ status: "ok", message: "Server is running" });
 });
 
-app.get("/api/health", (req, res) => {
-  res.status(200).json({ status: "healthy", uptime: process.uptime() });
+app.get("/api/health", async (req, res) => {
+  const { default: mongoose } = await import("mongoose");
+  const { isRedisAvailable } = await import("./config/redis.js");
+
+  const health = {
+    status: "healthy",
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    services: {
+      database: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
+      cache: isRedisAvailable ? "connected" : "disconnected",
+    },
+    version: process.env.npm_package_version || "1.0.0",
+  };
+
+  const isHealthy = health.services.database === "connected";
+  res.status(isHealthy ? 200 : 503).json(health);
 });
 
 app.use("/api/auth", authRoutes);

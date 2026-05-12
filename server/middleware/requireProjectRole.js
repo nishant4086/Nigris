@@ -10,7 +10,7 @@ import { hasPermission } from "../utils/permissions.js";
 const requireProjectRole = (action) => {
   return async (req, res, next) => {
     try {
-      const userId = req.user?.userId;
+      const userId = req.user?._id || req.user?.userId;
       const projectId = req.params.id || req.params.projectId || req.body.projectId;
 
       if (!userId || !projectId) {

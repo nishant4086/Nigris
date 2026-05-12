@@ -34,6 +34,8 @@ const processJob = async (job) => {
         event,
         data,
         timestamp: new Date(),
+      }, {
+        timeout: 5000, // 🛡️ 5 second timeout
       });
 
       await WebhookLog.create({
@@ -67,8 +69,10 @@ const processJob = async (job) => {
 };
 
 // Only start the worker if Redis is available
+export let webhookWorker = null;
+
 if (connection) {
-  const webhookWorker = new Worker("webhookQueue", processJob, {
+  webhookWorker = new Worker("webhookQueue", processJob, {
     connection,
   });
 

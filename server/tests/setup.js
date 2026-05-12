@@ -6,11 +6,12 @@ let mongoServer;
 beforeAll(async () => {
   process.env.JWT_SECRET = process.env.JWT_SECRET || "test-secret";
 
-  // Ensure all Mongo consumers (mongoose + session store) use the same in-memory server.
-  mongoServer = await MongoMemoryServer.create();
-  const uri = mongoServer.getUri();
+  // Use the URI from globalSetup.js
+  const uri = process.env.__MONGOD_URI__;
+  if (!uri) {
+    throw new Error("MONGODB_URI not found in process.env. Ensure globalSetup.js is running.");
+  }
 
-  // `connect-mongodb-session` in `server/app.js` reads MONGODB_URI.
   process.env.MONGODB_URI = uri;
   process.env.MONGO_URI = uri;
 
@@ -27,7 +28,4 @@ afterEach(async () => {
 
 afterAll(async () => {
   await mongoose.disconnect();
-  if (mongoServer) {
-    await mongoServer.stop();
-  }
 });

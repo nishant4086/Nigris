@@ -4,8 +4,8 @@ import { useState } from "react";
 import { User, Mail, Camera, Loader2, CheckCircle2 } from "lucide-react";
 
 type ProfileSettingsProps = {
-  user: any;
-  onUpdate: (data: any) => Promise<void>;
+  user: { name?: string; email?: string } | null;
+  onUpdate: (data: { name: string }) => Promise<void>;
 };
 
 export default function ProfileSettings({ user, onUpdate }: ProfileSettingsProps) {
@@ -23,8 +23,8 @@ export default function ProfileSettings({ user, onUpdate }: ProfileSettingsProps
       await onUpdate({ name: name.trim() });
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
-    } catch (err) {
-      console.error(err);
+    } catch (_err) {
+      console.error(_err);
     } finally {
       setSaving(false);
     }

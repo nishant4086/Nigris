@@ -31,7 +31,7 @@ function NewCollectionForm() {
     setFields(fields.filter((_, i) => i !== index));
   };
 
-  const updateField = (index: number, key: keyof FieldInput, value: any) => {
+  const updateField = (index: number, key: keyof FieldInput, value: string | number | boolean | undefined) => {
     const newFields = [...fields];
     newFields[index] = { ...newFields[index], [key]: value };
     // Clean up incompatible properties when switching types

@@ -91,7 +91,8 @@ async function runTests() {
     try {
       const keyRes = await axios.post(`${BASE_URL}/keys`, {
         name: "E2E Key",
-        projectId: projectId
+        projectId: projectId,
+        permissions: ["read", "write"]
       }, authConfig);
       apiKey = keyRes.data.key;
       logStatus("4", "API Key Generation", "PASS", `Generated API Key ending in ${apiKey.slice(-4)}`);
@@ -152,7 +153,7 @@ async function runTests() {
       // Delay for async upserts
       await new Promise(r => setTimeout(r, 2000));
 
-      const usageRes = await axios.get(`${BASE_URL}/usage?projectId=${projectId}`, authConfig);
+      const usageRes = await axios.get(`${BASE_URL}/usage/summary?projectId=${projectId}`, authConfig);
       if (usageRes.data.totalRequests > 0) {
         logStatus("7", "Analytics API", "PASS", `Total Requests tracked: ${usageRes.data.totalRequests}`);
       } else {

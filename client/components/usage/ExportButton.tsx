@@ -21,7 +21,8 @@ export default function ExportButton({ timeRange }: { timeRange: string }) {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const _err = error as { response?: { data?: unknown } };
       console.error("Export failed", error);
       
       // Try to parse the error message if the response is a blob

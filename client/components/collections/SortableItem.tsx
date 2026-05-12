@@ -15,7 +15,7 @@ export default function SortableItem({ id, children }: SortableItemProps) {
     transform: CSS.Transform.toString(transform),
     transition,
     zIndex: isDragging ? 10 : 1,
-    position: "relative" as "relative",
+    position: "relative" as const,
   };
 
   return (

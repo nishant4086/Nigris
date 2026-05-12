@@ -3,10 +3,11 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api, getApiErrorMessage } from "@/lib/api";
-import { Plus, Loader2, Type, Hash, ToggleLeft, Link as LinkIcon, Image, Video, Paperclip, ArrowDown, ArrowUp, Filter, X } from "lucide-react";
+import { Plus, Loader2, Type, Hash, ToggleLeft, Link as LinkIcon, Image as ImageIcon, Video as VideoIcon, Paperclip, ArrowDown, ArrowUp, Filter, X } from "lucide-react";
 import FieldRenderer from "@/components/workspace/FieldRenderer";
+import { CollectionField, CollectionData, FieldValue } from "@/lib/types";
 
-type Field = { name: string; type: string; required: boolean; unique?: boolean; ref?: string };
+type Field = CollectionField;
 
 const getFieldIcon = (type: string) => {
   switch (type) {
@@ -14,8 +15,8 @@ const getFieldIcon = (type: string) => {
     case "number": return <Hash className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />;
     case "boolean": return <ToggleLeft className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />;
     case "reference": return <LinkIcon className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />;
-    case "image": return <Image className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />;
-    case "video": return <Video className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />;
+    case "image": return <ImageIcon className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />;
+    case "video": return <VideoIcon className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />;
     case "file": return <Paperclip className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />;
     default: return <Type className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />;
   }
@@ -31,7 +32,7 @@ export default function WorkspaceDatabasePage() {
 
   const [collectionName, setCollectionName] = useState("");
   const [fields, setFields] = useState<Field[]>([]);
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<CollectionData[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
 
@@ -40,7 +41,7 @@ export default function WorkspaceDatabasePage() {
   const [filters, setFilters] = useState<FilterRule[]>([]);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [editingCell, setEditingCell] = useState<{ rowId: string, fieldName: string } | null>(null);
-  const [editValue, setEditValue] = useState<any>("");
+  const [editValue, setEditValue] = useState<FieldValue>("");
 
   const fetchData = async () => {
     try {
@@ -100,7 +101,7 @@ export default function WorkspaceDatabasePage() {
   
   const updateFilter = (index: number, key: keyof FilterRule, value: string) => {
     const newFilters = [...filters];
-    newFilters[index][key] = value as any;
+    (newFilters[index][key] as string) = value;
     setFilters(newFilters);
   };
   
@@ -109,7 +110,7 @@ export default function WorkspaceDatabasePage() {
   };
 
   // Inline Editing Logic
-  const startEdit = (row: any, f: Field, e: React.MouseEvent) => {
+  const startEdit = (row: CollectionData, f: Field, e: React.MouseEvent) => {
     e.stopPropagation(); // prevent row click navigation
     if (["image", "video", "file"].includes(f.type)) return; // disable inline for complex files
     setEditingCell({ rowId: row._id, fieldName: f.name });
@@ -148,7 +149,7 @@ export default function WorkspaceDatabasePage() {
     if (e.key === "Escape") setEditingCell(null);
   };
 
-  const renderCell = (row: any, f: Field) => {
+  const renderCell = (row: CollectionData, f: Field) => {
     const isEditing = editingCell?.rowId === row._id && editingCell?.fieldName === f.name;
 
     if (isEditing) {

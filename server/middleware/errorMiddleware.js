@@ -43,15 +43,24 @@ const errorMiddleware = (err, req, res, next) => {
     traceId: traceId || undefined,
   };
 
-  if (process.env.NODE_ENV === "development") {
+  // 🛡️ CRITICAL: Only leak stack/internal details if EXPLICITLY in development mode.
+  // We use a strict check to avoid accidental leakage if NODE_ENV is unset or malformed.
+  const isDev = process.env.NODE_ENV === "development";
+
+  if (isDev) {
     payload.stack = err?.stack;
     payload.code = err?.code;
     payload.name = err?.name;
   }
 
-  // Avoid leaking internal error messages from unknown errors.
-  if (!payload.error || status >= 500) {
+  // Avoid leaking internal error messages from unknown errors in production.
+  if (!isDev && (!payload.error || status >= 500)) {
     payload.error = "Internal Server Error";
+  }
+
+  // Scrub malformed JSON messages that might reveal internal parser details
+  if (!isDev && payload.error.includes("SyntaxError")) {
+    payload.error = "Malformed JSON";
   }
 
 

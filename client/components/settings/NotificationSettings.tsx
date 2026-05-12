@@ -58,7 +58,7 @@ export default function NotificationSettings() {
                       </div>
                     </div>
                     <button 
-                      onClick={() => toggle(item.id as any)}
+                      onClick={() => toggle(item.id as keyof typeof prefs)}
                       className={`
                         relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none
                         ${prefs[item.id as keyof typeof prefs] ? "bg-blue-600" : "bg-slate-200 dark:bg-slate-700"}

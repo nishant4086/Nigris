@@ -6,6 +6,7 @@ const dataSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Collection",
       required: true,
+      index: true,
     },
 
     project: {

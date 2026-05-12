@@ -13,7 +13,10 @@ import {
 import { blacklistToken } from "../../utils/tokenBlacklist.js";
 import jwt from "jsonwebtoken";
 
-const normalizeEmail = (email) => email.trim().toLowerCase();
+const normalizeEmail = (email) => {
+  if (typeof email !== "string") return "";
+  return email.trim().toLowerCase();
+};
 const VERIFICATION_TOKEN_EXPIRY_MS = 24 * 60 * 60 * 1000;
 const RESET_PASSWORD_TOKEN_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
 

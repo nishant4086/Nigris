@@ -261,8 +261,8 @@ export default function Dashboard() {
       const mapped = mapChartData(Array.isArray(usageSeriesRes.data) ? usageSeriesRes.data : []);
       setChartData(mapped);
       setLastUpdatedAt(new Date());
-    } catch (err) {
-      console.error(err);
+    } catch (_err) {
+      console.error(_err);
       setChartData([]);
     } finally {
       setChartLoading(false);
@@ -295,8 +295,8 @@ export default function Dashboard() {
            const allTemplates = templateResults.flatMap(res => res.data).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
            setRecentTemplates(allTemplates.slice(0, 5));
         }
-      } catch (err) {
-        console.error(err);
+      } catch (_err) {
+        console.error(_err);
       } finally {
         setLoading(false);
       }
@@ -471,7 +471,7 @@ export default function Dashboard() {
                     onClick={() => {
                       // We need the project ID to navigate. 
                       // If t.project is an object, use t.project._id, otherwise use t.project
-                      const pId = typeof t.project === 'object' ? (t.project as any)._id : t.project;
+                      const pId = typeof t.project === 'object' ? (t.project as { _id: string })._id : t.project;
                       window.location.href = `/dashboard/projects/${pId}/templates/${t._id}`;
                     }}
                     className="group flex items-center gap-3 p-3 rounded-2xl hover:bg-white/50 dark:hover:bg-white/10 transition-colors border border-transparent hover:border-white/60 dark:hover:border-white/10 cursor-pointer"

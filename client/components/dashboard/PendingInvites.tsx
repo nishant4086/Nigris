@@ -67,7 +67,7 @@ export default function PendingInvites() {
         <div>
           <h2 className="text-lg font-bold text-slate-950 dark:text-white">Project Invitations</h2>
           <p className="text-slate-500 dark:text-slate-400 text-sm">
-            You've been invited to collaborate on {invites.length} {invites.length === 1 ? "project" : "projects"}.
+            You&apos;ve been invited to collaborate on {invites.length} {invites.length === 1 ? "project" : "projects"}.
           </p>
         </div>
       </div>

@@ -1,7 +1,11 @@
+interface RazorpayWindow extends Window {
+  Razorpay?: unknown;
+}
+
 export function loadRazorpayScript(): Promise<boolean> {
   return new Promise((resolve) => {
     // Already loaded
-    if (typeof (window as any).Razorpay !== "undefined") {
+    if (typeof (window as RazorpayWindow).Razorpay !== "undefined") {
       return resolve(true);
     }
 

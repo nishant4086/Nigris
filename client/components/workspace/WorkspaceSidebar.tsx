@@ -2,27 +2,27 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { api } from "@/lib/api";
-import { ChevronRight, Database, Plus, Search, Settings, FileText, Moon, Sun } from "lucide-react";
+import { Database, Plus, Search, Settings, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useIsMounted } from "@/lib/hooks";
 
 type Project = { _id: string; name: string };
 type Collection = { _id: string; name: string; slug: string };
 
 export default function WorkspaceSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useIsMounted();
   
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectId, setProjectId] = useState<string>("");
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // 🚀 Initial projects load
   useEffect(() => {
-    setMounted(true);
     let active = true;
     const loadProjects = async () => {
       try {
@@ -30,7 +30,7 @@ export default function WorkspaceSidebar() {
         const list = Array.isArray(res.data) ? res.data : [];
         if (!active) return;
         setProjects(list);
-        if (list.length > 0) {
+        if (list.length > 0 && !projectId) {
           setProjectId(list[0]._id);
         }
       } catch (err) {
@@ -39,8 +39,9 @@ export default function WorkspaceSidebar() {
     };
     loadProjects();
     return () => { active = false; };
-  }, []);
+  }, [projectId]);
 
+  // 📦 Load collections when project changes
   useEffect(() => {
     let active = true;
     const loadCollections = async () => {

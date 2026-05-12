@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { api } from "@/lib/api";
-import { Shield, Eye, EyeOff, Loader2, CheckCircle2, Lock, Smartphone, Key, Fingerprint, Copy, AlertCircle, X } from "lucide-react";
+import { Shield, Eye, EyeOff, Loader2, Lock, Smartphone, Fingerprint, X } from "lucide-react";
+import Image from "next/image";
 import { startRegistration } from "@simplewebauthn/browser";
 
 export default function SecuritySettings() {
@@ -40,8 +41,9 @@ export default function SecuritySettings() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch (err: any) {
-      setError(err?.response?.data?.error || "Failed to update password");
+    } catch (err: unknown) {
+      const errorData = err as { response?: { data?: { error?: string } } };
+      setError(errorData.response?.data?.error || "Failed to update password");
     } finally {
       setSaving(false);
     }
@@ -54,7 +56,7 @@ export default function SecuritySettings() {
       setQrCode(res.data.qrCodeUrl);
       setIsMfaModalOpen(true);
       setMfaStep(1);
-    } catch (err) {
+    } catch (_err) {
       setError("Failed to start MFA setup");
     } finally {
       setMfaLoading(false);
@@ -67,8 +69,9 @@ export default function SecuritySettings() {
       const res = await api.post("/auth/mfa/enable", { token: mfaToken });
       setRecoveryCodes(res.data.recoveryCodes);
       setMfaStep(2);
-    } catch (err: any) {
-      alert(err?.response?.data?.error || "Invalid MFA code");
+    } catch (err: unknown) {
+      const errorData = err as { response?: { data?: { error?: string } } };
+      alert(errorData.response?.data?.error || "Invalid MFA code");
     } finally {
       setMfaLoading(false);
     }
@@ -226,8 +229,8 @@ export default function SecuritySettings() {
               {mfaStep === 1 ? (
                 <div className="space-y-6 text-center">
                   <p className="text-sm text-slate-500">Scan this QR code in your authenticator app (Google Authenticator, Authy, etc.)</p>
-                  <div className="w-48 h-48 mx-auto bg-white p-2 rounded-2xl border-4 border-slate-50 shadow-inner">
-                    <img src={qrCode} alt="MFA QR Code" className="w-full h-full" />
+                  <div className="w-48 h-48 mx-auto bg-white p-2 rounded-2xl border-4 border-slate-50 shadow-inner relative">
+                    {qrCode && <Image src={qrCode} alt="MFA QR Code" fill className="object-contain" />}
                   </div>
                   <div className="space-y-4 pt-4">
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Verification Code</label>
