@@ -38,7 +38,8 @@ export default function ExportButton({ timeRange }: { timeRange: string }) {
         };
         reader.readAsText(err.response.data);
       } else {
-        alert(err.response?.data?.message || "Failed to export usage data.");
+        const data = err.response?.data as { message?: string } | undefined;
+        alert(data?.message || "Failed to export usage data.");
       }
     } finally {
       setExporting(false);
