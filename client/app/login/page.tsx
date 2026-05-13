@@ -42,7 +42,12 @@ export function AuthForm({ defaultMode = "login" }: { defaultMode?: "login" | "s
 
   useEffect(() => {
     const verified = searchParams.get("verified");
-    if (verified) setMessage("Email verified successfully! You can now log in.");
+    if (verified) {
+      // Use a microtask to avoid the synchronous setState warning
+      Promise.resolve().then(() => {
+        setMessage("Email verified successfully! You can now log in.");
+      });
+    }
   }, [searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -119,7 +124,7 @@ export function AuthForm({ defaultMode = "login" }: { defaultMode?: "login" | "s
       } else {
         router.replace("/dashboard");
       }
-    } catch (err) {
+    } catch {
       setError("Invalid MFA code");
     } finally {
       setLoading(false);

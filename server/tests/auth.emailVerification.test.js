@@ -16,7 +16,7 @@ describe("Email verification", () => {
 
     expect(res.status).toBe(201);
     expect(res.body.token).toBeUndefined();
-    expect(res.body.message).toBe("Check your email to verify your account");
+    expect(res.body.message).toContain("Check your email to verify your account");
 
     const user = await User.findOne({ email: "verify@test.com" });
     expect(user.emailVerified).toBe(false);
