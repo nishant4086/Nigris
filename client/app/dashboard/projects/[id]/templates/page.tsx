@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { toast } from "react-hot-toast";
@@ -8,34 +8,47 @@ import GlassCard from "@/components/ui/GlassCard";
 import { Loader2, Plus, Mail, Edit3, Trash2, Copy, Eye } from "lucide-react";
 import { CreateTemplateModal, ConfirmDeleteModal } from "@/components/mail/TemplateModals";
 
+interface Template {
+  _id: string;
+  name: string;
+  slug: string;
+  subject: string;
+  html: string;
+  variables: string[];
+  type?: string;
+}
+
 export default function TemplatesList() {
-  const { id: projectId } = useParams();
+  const params = useParams();
+  const projectId = params.id as string;
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [templates, setTemplates] = useState<any[]>([]);
+  const [templates, setTemplates] = useState<Template[]>([]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<any>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Template | null>(null);
 
-  useEffect(() => {
-    fetchTemplates();
-  }, [projectId]);
-
-  const fetchTemplates = async () => {
+  const fetchTemplates = useCallback(async () => {
     try {
       const { data } = await api.get(`/email-templates/${projectId}`);
       setTemplates(data);
-    } catch (error) {
+    } catch {
       toast.error("Failed to fetch templates");
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectId]);
+
+  useEffect(() => {
+    Promise.resolve().then(() => {
+      fetchTemplates();
+    });
+  }, [fetchTemplates]);
 
   const handleCreate = async (name: string, starterId?: string) => {
     const slug = name.toLowerCase().replace(/\s+/g, "-");
     
     // Find starter HTML
-    const starters: any = {
+    const starters: Record<string, string> = {
       blank: "<h1>Hello {{name}}</h1>",
       welcome: "<div style='font-family:sans-serif;padding:20px;'><h1 style='color:#3b82f6;'>Welcome to Nigris!</h1><p>We are excited to have you on board.</p></div>",
       otp: "<div style='font-family:sans-serif;text-align:center;padding:40px;'><h2 style='color:#1e293b;'>Verification Code</h2><div style='font-size:32px;font-weight:bold;color:#3b82f6;'>{{otp}}</div></div>",
@@ -53,7 +66,7 @@ export default function TemplatesList() {
       });
       toast.success("Template created");
       router.push(`/dashboard/projects/${projectId}/templates/${data._id}`);
-    } catch (error) {
+    } catch {
       toast.error("Failed to create template");
     }
   };
@@ -64,16 +77,16 @@ export default function TemplatesList() {
       await api.delete(`/email-templates/${deleteTarget._id}`);
       toast.success("Template deleted");
       fetchTemplates();
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete template");
     } finally {
       setDeleteTarget(null);
     }
   };
 
-  const handleDuplicate = async (template: any) => {
+  const handleDuplicate = async (template: Template) => {
     try {
-      const { data } = await api.post(`/email-templates/${projectId}`, {
+      await api.post(`/email-templates/${projectId}`, {
         name: `${template.name} (Copy)`,
         slug: `${template.slug}-copy-${Date.now().toString().slice(-4)}`,
         subject: template.subject,
@@ -82,7 +95,7 @@ export default function TemplatesList() {
       });
       toast.success("Template duplicated");
       fetchTemplates();
-    } catch (error) {
+    } catch {
       toast.error("Failed to duplicate template");
     }
   };

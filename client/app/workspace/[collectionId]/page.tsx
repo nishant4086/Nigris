@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
+import { useParams } from "next/navigation";
 import { api, getApiErrorMessage } from "@/lib/api";
 import { Plus, Loader2, Type, Hash, ToggleLeft, Link as LinkIcon, Image as ImageIcon, Video as VideoIcon, Paperclip, ArrowDown, ArrowUp, Filter, X } from "lucide-react";
 import FieldRenderer from "@/components/workspace/FieldRenderer";
@@ -27,7 +27,6 @@ type FilterRule = { field: string; operator: "eq" | "contains" | "gt" | "lt"; va
 
 export default function WorkspaceDatabasePage() {
   const params = useParams();
-  const router = useRouter();
   const collectionId = params.collectionId as string;
 
   const [collectionName, setCollectionName] = useState("");
@@ -43,7 +42,7 @@ export default function WorkspaceDatabasePage() {
   const [editingCell, setEditingCell] = useState<{ rowId: string, fieldName: string } | null>(null);
   const [editValue, setEditValue] = useState<FieldValue>("");
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       let query = `?limit=100`;
@@ -68,11 +67,15 @@ export default function WorkspaceDatabasePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [collectionId, sortConfig, filters]);
 
   useEffect(() => {
-    if (collectionId) fetchData();
-  }, [collectionId, sortConfig, filters]);
+    if (collectionId) {
+      Promise.resolve().then(() => {
+        fetchData();
+      });
+    }
+  }, [collectionId, fetchData]);
 
   const handleNewEntry = async () => {
     setCreating(true);
@@ -177,7 +180,7 @@ export default function WorkspaceDatabasePage() {
     
     if (f.type === "reference") {
       if (val && typeof val === "object") {
-        const v = val as any;
+        const v = val as { name?: string; title?: string; email?: string; slug?: string; _id?: string };
         const display = v.name || v.title || v.email || v.slug || v._id;
         return (
           <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-[#202020] text-slate-700 dark:text-slate-300 text-xs font-medium border border-slate-200 dark:border-slate-800">

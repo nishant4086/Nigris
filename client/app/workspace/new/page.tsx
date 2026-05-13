@@ -65,7 +65,7 @@ function NewCollectionForm() {
       router.push(`/workspace/${res.data._id}`);
       // Force a full refresh to update the sidebar collections
       window.location.href = `/workspace/${res.data._id}`;
-    } catch (err) {
+    } catch {
       setError("Failed to create collection");
       setSaving(false);
     }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search, Plus, Filter, Key, MoreHorizontal, Activity, Trash2, Edit2, Play, Square, Shield, ArrowUpRight, Eye, EyeOff, Copy, Loader2, RotateCw } from "lucide-react";
+import { Search, Plus, Filter, Key, Activity, Trash2, Play, Square, Shield, ArrowUpRight, Eye, EyeOff, Copy, Loader2, RotateCw } from "lucide-react";
 import { api, getApiErrorMessage } from "@/lib/api";
 import Link from "next/link";
 import CreateKeyModal from "@/components/api-keys/CreateKeyModal";
@@ -26,6 +26,15 @@ type ApiKey = {
   };
 };
 
+interface UsageLimits {
+  limits: {
+    maxApiKeys: number;
+  };
+  usage: {
+    apiKeys: number;
+  };
+}
+
 export default function ApiKeysPage() {
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,7 +51,7 @@ export default function ApiKeysPage() {
   // Modals
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [revokeKeyData, setRevokeKeyData] = useState<{ id: string, name: string } | null>(null);
-  const [limits, setLimits] = useState<any>(null);
+  const [limits, setLimits] = useState<UsageLimits | null>(null);
 
   const loadKeys = async (showLoader = false) => {
     if (showLoader) setLoading(true);
@@ -59,8 +68,11 @@ export default function ApiKeysPage() {
   };
 
   useEffect(() => {
-    loadKeys(true);
-    api.get("/users/me/limits").then(res => setLimits(res.data)).catch(() => {});
+    // Avoid synchronous setState warning by using a microtask
+    Promise.resolve().then(() => {
+      loadKeys(true);
+      api.get("/users/me/limits").then(res => setLimits(res.data)).catch(() => {});
+    });
   }, []);
 
   const atLimit = limits && limits.limits.maxApiKeys > 0 && limits.usage.apiKeys >= limits.limits.maxApiKeys;

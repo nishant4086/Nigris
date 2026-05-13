@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { api, getApiErrorMessage } from "@/lib/api";
 import { Mail, Check, X } from "lucide-react";
 import GlassCard from "@/components/ui/GlassCard";
@@ -22,7 +22,7 @@ export default function PendingInvites() {
   const [invites, setInvites] = useState<Invite[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadInvites = async () => {
+  const loadInvites = useCallback(async () => {
     try {
       const res = await api.get("/projects/invites/mine");
       setInvites(res.data);
@@ -31,11 +31,13 @@ export default function PendingInvites() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    loadInvites();
-  }, []);
+    Promise.resolve().then(() => {
+      loadInvites();
+    });
+  }, [loadInvites]);
 
   const handleAccept = async (projectId: string) => {
     try {
@@ -48,7 +50,7 @@ export default function PendingInvites() {
     }
   };
 
-  const handleDecline = async (projectId: string) => {
+  const handleDecline = async (_projectId: string) => {
     // Declining is effectively removing yourself from the project (pending state)
     // We can use a delete endpoint for this later if we add it.
     // For now, let's just leave it or add a specific decline endpoint.

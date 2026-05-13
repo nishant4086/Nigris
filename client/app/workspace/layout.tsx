@@ -17,7 +17,9 @@ export default function WorkspaceLayout({
     if (!token) {
       router.replace("/login");
     } else {
-      setIsAuthChecking(false);
+      Promise.resolve().then(() => {
+        setIsAuthChecking(false);
+      });
     }
   }, [router]);
 

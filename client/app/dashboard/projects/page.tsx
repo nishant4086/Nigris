@@ -1,11 +1,20 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { api, getApiErrorMessage } from "@/lib/api";
 import { Search, Plus, FolderGit2, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import ProjectCard, { Project } from "@/components/projects/ProjectCard";
 import CreateProjectModal from "@/components/projects/CreateProjectModal";
+
+interface ProjectLimits {
+  limits: {
+    maxProjects: number;
+  };
+  usage: {
+    projects: number;
+  };
+}
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -16,9 +25,9 @@ export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | "name">("newest");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [limits, setLimits] = useState<any>(null);
+  const [limits, setLimits] = useState<ProjectLimits | null>(null);
 
-  const loadProjects = async (showLoader = false) => {
+  const loadProjects = useCallback(async (showLoader = false) => {
     if (showLoader) setLoading(true);
     setError("");
     try {
@@ -27,7 +36,7 @@ export default function ProjectsPage() {
 
       // Fetch collections count for each project
       const projectsWithCounts = await Promise.all(
-        list.map(async (project) => {
+        list.map(async (project: Project) => {
           try {
             const collectionsRes = await api.get(`/collections/${project._id}`);
             const collections = Array.isArray(collectionsRes.data) ? collectionsRes.data : [];
@@ -44,17 +53,19 @@ export default function ProjectsPage() {
     } finally {
       if (showLoader) setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    loadProjects(true);
-    api.get("/users/me/limits").then(res => setLimits(res.data)).catch(() => {});
-  }, []);
+    Promise.resolve().then(() => {
+      loadProjects(true);
+      api.get("/users/me/limits").then(res => setLimits(res.data)).catch(() => {});
+    });
+  }, [loadProjects]);
 
   const atLimit = limits && limits.limits.maxProjects > 0 && limits.usage.projects >= limits.limits.maxProjects;
 
   const handleCreateProject = async (name: string, description: string, template: string) => {
-    const res = await api.post("/projects", { name, description, template });
+    await api.post("/projects", { name, description, template });
     setIsModalOpen(false);
     await loadProjects();
     api.get("/users/me/limits").then(res => setLimits(res.data)).catch(() => {});
@@ -125,7 +136,7 @@ export default function ProjectsPage() {
             </div>
             <select 
               value={sortOrder}
-              onChange={e => setSortOrder(e.target.value as any)}
+              onChange={e => setSortOrder(e.target.value as "newest" | "oldest" | "name")}
               className="glass-select rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none dark:text-slate-200"
             >
               <option value="newest">Newest first</option>

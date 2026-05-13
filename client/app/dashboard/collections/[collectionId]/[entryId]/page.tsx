@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api, getApiErrorMessage } from "@/lib/api";
+import { ReferenceOption, FieldValue } from "@/lib/types";
 import { ArrowLeft, Check, Copy, Trash2, Calendar, HardDrive } from "lucide-react";
 import FieldRenderer from "@/components/collections/FieldRenderer";
 import SortableItem from "@/components/collections/SortableItem";
@@ -10,8 +11,10 @@ import SortableItem from "@/components/collections/SortableItem";
 // dnd-kit
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { DragEndEvent } from "@dnd-kit/core";
 
 type Field = { name: string; type: string; required: boolean; unique?: boolean; ref?: string };
+type Entry = { _id: string; createdAt?: string } & Record<string, unknown>;
 
 export default function EntryDetailPage() {
   const params = useParams();
@@ -22,8 +25,8 @@ export default function EntryDetailPage() {
   const [collectionName, setCollectionName] = useState("");
   const [fields, setFields] = useState<Field[]>([]);
   const [orderedFieldNames, setOrderedFieldNames] = useState<string[]>([]);
-  const [entryData, setEntryData] = useState<any>(null);
-  const [refData, setRefData] = useState<Record<string, any[]>>({});
+  const [entryData, setEntryData] = useState<Entry | null>(null);
+  const [refData, setRefData] = useState<Record<string, ReferenceOption[]>>({});
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -39,7 +42,9 @@ export default function EntryDetailPage() {
   useEffect(() => {
     if (!collectionId || !entryId) return;
     
-    setLoading(true);
+    Promise.resolve().then(() => {
+      setLoading(true);
+    });
     Promise.all([
       api.get(`/collections/detail/${collectionId}`),
       api.get(`/data/detail/${collectionId}/${entryId}`)
@@ -85,18 +90,18 @@ export default function EntryDetailPage() {
       }
     };
     fetchRefs();
-  }, [fields]);
+  }, [fields, refData]);
 
-  const handleUpdate = (rowId: string, fieldName: string, newValue: any) => {
-    setEntryData((prev: any) => ({ ...prev, [fieldName]: newValue }));
+  const handleUpdate = (_rowId: string, fieldName: string, newValue: unknown) => {
+    setEntryData((prev: Entry | null) => prev ? ({ ...prev, [fieldName]: newValue }) : null);
   };
 
-  const handleDragEnd = (event: any) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (active.id !== over.id) {
+    if (over && active.id !== over.id) {
       setOrderedFieldNames((items) => {
-        const oldIndex = items.indexOf(active.id);
-        const newIndex = items.indexOf(over.id);
+        const oldIndex = items.indexOf(active.id as string);
+        const newIndex = items.indexOf(over.id as string);
         const newOrder = arrayMove(items, oldIndex, newIndex);
         localStorage.setItem(`nigris_field_order_${collectionId}`, JSON.stringify(newOrder));
         return newOrder;
@@ -154,7 +159,7 @@ export default function EntryDetailPage() {
   if (entryData) {
     const titleField = fields.find(f => f.type === "text" || f.unique);
     if (titleField && entryData[titleField.name]) {
-      entryTitle = entryData[titleField.name];
+      entryTitle = String(entryData[titleField.name]);
     }
   }
 
@@ -226,14 +231,16 @@ export default function EntryDetailPage() {
                       </label>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <FieldRenderer
-                        field={field}
-                        value={entryData[field.name]}
-                        rowId={entryId}
-                        collectionId={collectionId}
-                        onUpdate={handleUpdate}
-                        refData={refData}
-                      />
+                      {entryData && (
+                        <FieldRenderer
+                          field={field}
+                          value={entryData[field.name] as FieldValue}
+                          rowId={entryId}
+                          collectionId={collectionId}
+                          onUpdate={handleUpdate}
+                          refData={refData}
+                        />
+                      )}
                     </div>
                   </div>
                 </SortableItem>

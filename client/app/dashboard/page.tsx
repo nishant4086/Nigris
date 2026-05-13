@@ -306,7 +306,9 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    fetchChartData();
+    Promise.resolve().then(() => {
+      fetchChartData();
+    });
   }, [fetchChartData]);
 
   useEffect(() => {

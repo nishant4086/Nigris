@@ -2,11 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import { Key, Shield, Plus, Trash2, Loader2, Lock } from "lucide-react";
+import { Key, Plus, Trash2, Loader2, Lock } from "lucide-react";
 import Link from "next/link";
 
+interface ApiKey {
+  _id: string;
+  name: string;
+  maskedKey: string;
+  permissions: string[];
+}
+
 export default function ApiKeySettings() {
-  const [keys, setKeys] = useState<any[]>([]);
+  const [keys, setKeys] = useState<ApiKey[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

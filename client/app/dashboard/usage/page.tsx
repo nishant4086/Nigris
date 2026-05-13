@@ -13,13 +13,27 @@ import ExportButton from "@/components/usage/ExportButton";
 import LiveIndicator from "@/components/usage/LiveIndicator";
 import AlertBanner, { AlertType } from "@/components/usage/AlertBanner";
 
+interface SummaryData {
+  totalUsage: number;
+  totalLimit: number;
+  remaining: number;
+  activeKeys: number;
+  dailyAvg: number;
+  nextResetAt: string;
+}
+
+interface DistributionData {
+  statusData: Record<string, unknown>[];
+  endpointsData: Record<string, unknown>[];
+}
+
 export default function UsageDashboard() {
   const [timeRange, setTimeRange] = useState("30"); // 7, 30, 90 days
   
-  const [summaryData, setSummaryData] = useState<any>(null);
-  const [timeSeriesData, setTimeSeriesData] = useState<any[]>([]);
-  const [distributionData, setDistributionData] = useState<any>(null);
-  const [logsData, setLogsData] = useState<any[]>([]);
+  const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
+  const [timeSeriesData, setTimeSeriesData] = useState<Record<string, unknown>[]>([]);
+  const [distributionData, setDistributionData] = useState<DistributionData | null>(null);
+  const [logsData, setLogsData] = useState<Record<string, unknown>[]>([]);
   
   const [loadingSummary, setLoadingSummary] = useState(true);
   const [loadingCharts, setLoadingCharts] = useState(true);
@@ -28,7 +42,7 @@ export default function UsageDashboard() {
   const [connected, setConnected] = useState(false);
   const [alerts, setAlerts] = useState<AlertType[]>([]);
 
-  const loadAlerts = async () => {
+  const loadAlerts = useCallback(async () => {
     try {
       const res = await api.get("/keys/alerts");
       const unread = (res.data || []).filter((a: AlertType) => !a.isRead);
@@ -36,7 +50,7 @@ export default function UsageDashboard() {
     } catch (err) {
       console.error("Failed to load alerts", err);
     }
-  };
+  }, []);
 
   // Fetch top summary numbers
   const fetchSummary = useCallback(async () => {
@@ -64,39 +78,34 @@ export default function UsageDashboard() {
 
   // Initial Fetch Effect
   useEffect(() => {
-    setLoadingSummary(true);
-    setLoadingCharts(true);
-    setLoadingLogs(true);
-    
-    fetchSummary();
-    loadAlerts();
+    Promise.resolve().then(() => {
+      setLoadingSummary(true);
+      setLoadingCharts(true);
+      setLoadingLogs(true);
+      
+      fetchSummary();
+      loadAlerts();
 
-    Promise.all([
-      api.get(`/keys/analytics/time-series?days=${timeRange}`),
-      api.get(`/keys/analytics/distribution?days=${timeRange}`),
-      api.get("/keys/analytics/logs?limit=50")
-    ])
-    .then(([timeRes, distRes, logsRes]) => {
-      setTimeSeriesData(timeRes.data || []);
-      setDistributionData(distRes.data || { statusData: [], endpointsData: [] });
-      setLogsData(logsRes.data || []);
-    })
-    .catch(err => console.error("Failed to load charts", err))
-    .finally(() => {
-      setLoadingCharts(false);
-      setLoadingLogs(false);
+      Promise.all([
+        api.get(`/keys/analytics/time-series?days=${timeRange}`),
+        api.get(`/keys/analytics/distribution?days=${timeRange}`),
+        api.get("/keys/analytics/logs?limit=50")
+      ])
+      .then(([timeRes, distRes, logsRes]) => {
+        setTimeSeriesData(timeRes.data || []);
+        setDistributionData(distRes.data || { statusData: [], endpointsData: [] });
+        setLogsData(logsRes.data || []);
+      })
+      .catch(err => console.error("Failed to load charts", err))
+      .finally(() => {
+        setLoadingCharts(false);
+        setLoadingLogs(false);
+      });
     });
-  }, [timeRange, fetchSummary]);
+  }, [timeRange, fetchSummary, loadAlerts]);
 
   // Live SSE Connection
   useEffect(() => {
-    const token = localStorage.getItem("token"); // Since SSE doesn't send Bearer easily via EventSource standard, 
-    // Wait, our backend uses `authMiddleware`. EventSource does NOT send custom headers natively in browser.
-    // If authMiddleware requires Bearer token, we need a workaround or pass it in query.
-    // Let's assume we fetch updates periodically for now if EventSource fails due to Auth.
-    // However, I will try to use EventSource and append ?token= if the backend supports it.
-    // Standard `api` instance doesn't work for SSE. We will poll every 10s as a fallback.
-    
     const interval = setInterval(() => {
       api.get("/keys/analytics/logs?limit=50").then(res => {
         setLogsData(res.data || []);
@@ -106,10 +115,12 @@ export default function UsageDashboard() {
       loadAlerts();
     }, 10000); // 10s poll
 
-    setConnected(true);
+    Promise.resolve().then(() => {
+      setConnected(true);
+    });
 
     return () => clearInterval(interval);
-  }, [fetchSummary]);
+  }, [fetchSummary, loadAlerts]);
 
   const topAlert = alerts.length > 0 ? alerts[0] : null;
 

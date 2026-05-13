@@ -1,13 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api, getApiErrorMessage } from "@/lib/api";
 import { Mail, ArrowRight, Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 
 export default function ForgotPasswordPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -41,12 +39,12 @@ export default function ForgotPasswordPage() {
 
           <h1 className="text-2xl font-black text-slate-900 dark:text-slate-100 mb-2">Check your email</h1>
           <p className="text-sm text-slate-500 mb-8">
-            We've sent a password reset link to <span className="font-bold text-slate-700 dark:text-slate-300">{email}</span>
+            We&apos;ve sent a password reset link to <span className="font-bold text-slate-700 dark:text-slate-300">{email}</span>
           </p>
 
           <div className="space-y-4">
             <p className="text-xs text-slate-500">
-              The link will expire in <span className="font-bold">1 hour</span>. If you don't see the email, check your spam folder.
+              The link will expire in <span className="font-bold">1 hour</span>. If you don&apos;t see the email, check your spam folder.
             </p>
 
             <button
@@ -77,7 +75,7 @@ export default function ForgotPasswordPage() {
         <div className="mb-10 text-center">
           <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-4 text-white font-black text-xl shadow-lg shadow-blue-600/20">N</div>
           <h1 className="text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Forgot password?</h1>
-          <p className="text-sm text-slate-500 mt-2">Enter your email and we'll send you a link to reset it.</p>
+          <p className="text-sm text-slate-500 mt-2">Enter your email and we&apos;ll send you a link to reset it.</p>
         </div>
 
         {error && (

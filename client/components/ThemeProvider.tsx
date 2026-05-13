@@ -40,13 +40,11 @@ const applyDocumentTheme = (mode: AppThemeMode) => {
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // Initialize with light theme to match server
   const [mode, setMode] = useState<AppThemeMode>("light");
-  const [mounted, setMounted] = useState(false);
-
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
     const initialMode = getInitialMode();
-    setMode(initialMode);
+    Promise.resolve().then(() => {
+      setMode(initialMode);
+    });
     applyDocumentTheme(initialMode);
   }, []);
 

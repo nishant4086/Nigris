@@ -15,8 +15,17 @@ import {
   Shield,
 } from "lucide-react";
 
+interface User {
+  plan: string;
+  subscriptionStatus?: string;
+  planStatus?: string;
+  nextBillingDate?: string;
+  razorpaySubscriptionId?: string;
+  requestLimit?: number;
+}
+
 export default function BillingPage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
   const [notice, setNotice] = useState("");
@@ -48,9 +57,10 @@ export default function BillingPage() {
       setNotice(res.data.message || "Subscription cancelled.");
       const meRes = await api.get("/users/me");
       setUser(meRes.data);
-    } catch (err: any) {
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: string } } };
       setError(
-        err?.response?.data?.error || "Failed to cancel subscription"
+        err.response?.data?.error || "Failed to cancel subscription"
       );
     } finally {
       setCancelling(false);
@@ -201,7 +211,7 @@ export default function BillingPage() {
                 Subscription ID
               </span>
               <code className="text-xs font-mono text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-950/50 backdrop-blur-md px-2 py-1 rounded-md border border-slate-200 dark:border-slate-800">
-                {user.razorpaySubscriptionId}
+                {user?.razorpaySubscriptionId}
               </code>
             </div>
 

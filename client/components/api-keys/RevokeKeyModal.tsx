@@ -30,8 +30,9 @@ export default function RevokeKeyModal({ isOpen, onClose, onSuccess, keyId, keyN
       await api.delete(`/keys/${keyId}`);
       onSuccess();
       onClose();
-    } catch (err: any) {
-      setError(err.response?.data?.message || err.message || "Failed to revoke key");
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } }; message?: string };
+      setError(error.response?.data?.message || error.message || "Failed to revoke key");
     } finally {
       setRevoking(false);
     }

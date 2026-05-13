@@ -212,7 +212,14 @@ export function TestEmailModal({ isOpen, onClose, onSend }: TestEmailModalProps)
   );
 }
 
-export function ComposeModal({ isOpen, onClose, onSend, loading }: any) {
+type ComposeModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  onSend: (to: string, subject: string, html: string) => Promise<void>;
+  loading: boolean;
+};
+
+export function ComposeModal({ isOpen, onClose, onSend, loading }: ComposeModalProps) {
   const [to, setTo] = useState("");
   const [subject, setSubject] = useState("");
   const [html, setHtml] = useState("");

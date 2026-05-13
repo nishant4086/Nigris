@@ -50,8 +50,9 @@ export default function CreateProjectModal({ isOpen, onClose, onSubmit }: Create
         setDescription("");
         setTemplate("blank");
       }, 300); // Wait for modal close animation
-    } catch (err: any) {
-      setError(err.message || "Failed to create project.");
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      setError(error.message || "Failed to create project.");
     } finally {
       setSaving(false);
     }

@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { api, getApiErrorMessage } from "@/lib/api";
-
-type FieldValue = string | number | boolean | null | undefined | Record<string, unknown>;
-type ReferenceOption = Record<string, FieldValue> & { _id: string };
+import { FieldValue, ReferenceOption } from "@/lib/types";
 
 type FieldProps = {
   field: { name: string; type: string; required: boolean; ref?: string };
@@ -175,7 +174,13 @@ export default function FieldRenderer({ field, value, rowId, onUpdate, refData }
         if (!isSafeUrl(imageUrl)) return <span className="text-red-400 text-xs italic">Invalid URL</span>;
         return (
           <a href={imageUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-            <img src={imageUrl} alt="preview" className="h-8 w-8 object-cover rounded shadow-sm border border-slate-200 dark:border-slate-700 hover:scale-110 transition-transform" />
+            <Image 
+              src={imageUrl} 
+              alt="preview" 
+              width={32} 
+              height={32} 
+              className="h-8 w-8 object-cover rounded shadow-sm border border-slate-200 dark:border-slate-700 hover:scale-110 transition-transform" 
+            />
           </a>
         );
 

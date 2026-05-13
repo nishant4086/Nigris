@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api, getApiErrorMessage } from "@/lib/api";
-import { Plus, ArrowLeft, MoreHorizontal, FileText, Search, GripVertical, Edit3, Trash2, Save, X } from "lucide-react";
+import { ReferenceOption, FieldValue } from "@/lib/types";
+import { Plus, ArrowLeft, FileText, Search, GripVertical, Edit3, Trash2, Save, X } from "lucide-react";
 import FieldRenderer from "@/components/collections/FieldRenderer";
 import AddFieldModal from "@/components/collections/AddFieldModal";
 import {
@@ -25,6 +26,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 type Field = { name: string; type: string; required: boolean; unique?: boolean; ref?: string };
+type Entry = { _id: string; createdAt?: string } & Record<string, unknown>;
 
 export default function CollectionDataPage() {
   const params = useParams();
@@ -34,8 +36,8 @@ export default function CollectionDataPage() {
   const [collectionName, setCollectionName] = useState("");
   const [projectId, setProjectId] = useState<string>("");
   const [fields, setFields] = useState<Field[]>([]);
-  const [data, setData] = useState<any[]>([]);
-  const [refData, setRefData] = useState<Record<string, any[]>>({});
+  const [data, setData] = useState<Entry[]>([]);
+  const [refData, setRefData] = useState<Record<string, ReferenceOption[]>>({});
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
@@ -46,7 +48,7 @@ export default function CollectionDataPage() {
   // Modals
   const [isAddFieldOpen, setIsAddFieldOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [editingEntry, setEditingEntry] = useState<any>(null);
+  const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
   const [fieldsOrder, setFieldsOrder] = useState<string[]>([]);
   const [isReorderMode, setIsReorderMode] = useState(false);
 
@@ -79,9 +81,9 @@ export default function CollectionDataPage() {
       }
     };
     fetchRefs();
-  }, [fields]);
+  }, [fields, refData]);
 
-  const loadData = () => {
+  const loadData = useCallback(() => {
     setLoading(true);
     setError("");
     api.get(`/data/${collectionId}?page=${page}&limit=${limit}`)
@@ -95,14 +97,16 @@ export default function CollectionDataPage() {
         setData([]);
       })
       .finally(() => setLoading(false));
-  };
+  }, [collectionId, page, limit]);
 
   useEffect(() => {
     if (!collectionId) return;
-    loadData();
-  }, [collectionId, page, limit]);
+    Promise.resolve().then(() => {
+      loadData();
+    });
+  }, [collectionId, loadData]);
 
-  const handleAddField = async (newField: any) => {
+  const handleAddField = async (newField: Field) => {
     // Optimistically add the field
     const updatedFields = [...fields, newField];
     setFields(updatedFields);
@@ -124,7 +128,7 @@ export default function CollectionDataPage() {
   const handleCreateEmptyEntry = async () => {
     try {
       // Create empty entry
-      const payload: Record<string, any> = {};
+      const payload: Record<string, unknown> = {};
       fields.forEach(f => {
         if (f.type === "boolean") payload[f.name] = false;
         else if (f.type === "number") payload[f.name] = 0;
@@ -140,7 +144,7 @@ export default function CollectionDataPage() {
     }
   };
 
-  const handleInlineUpdate = (rowId: string, fieldName: string, newValue: any) => {
+  const handleInlineUpdate = (rowId: string, fieldName: string, newValue: unknown) => {
     setData(prev => prev.map(row =>
       row._id === rowId ? { ...row, [fieldName]: newValue } : row
     ));
@@ -328,7 +332,7 @@ export default function CollectionDataPage() {
                       <td colSpan={orderedFields.length + 3} className="px-4 py-12 text-center text-slate-500">
                         <div className="flex flex-col items-center justify-center">
                           <FileText className="w-10 h-10 text-slate-300 mb-3" />
-                          <p>No entries found. Click "New" to add one.</p>
+                          <p>No entries found. Click &quot;New&quot; to add one.</p>
                         </div>
                       </td>
                     </tr>
@@ -356,7 +360,7 @@ export default function CollectionDataPage() {
                           <td key={f.name} className="px-4 py-2 border-r border-slate-100 dark:border-slate-800">
                             <FieldRenderer
                               field={f}
-                              value={row[f.name]}
+                              value={row[f.name] as FieldValue}
                               rowId={row._id}
                               collectionId={collectionId}
                               onUpdate={handleInlineUpdate}
@@ -434,7 +438,7 @@ export default function CollectionDataPage() {
                   </label>
                   <FieldRenderer
                     field={f}
-                    value={editingEntry[f.name]}
+                    value={editingEntry[f.name] as FieldValue}
                     rowId={editingEntry._id}
                     collectionId={collectionId}
                     onUpdate={(_, fieldName, val) => setEditingEntry({ ...editingEntry, [fieldName]: val })}

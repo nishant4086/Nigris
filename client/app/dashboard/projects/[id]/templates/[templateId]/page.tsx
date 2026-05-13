@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { api } from "@/lib/api";
@@ -10,7 +10,7 @@ import { Loader2, Save, ArrowLeft, Eye, Code, Terminal, Sparkles, Send } from "l
 import { TestEmailModal } from "@/components/mail/TemplateModals";
 
 export default function TemplateEditor() {
-  const { id: projectId, templateId } = useParams();
+  const { templateId } = useParams();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -22,27 +22,29 @@ export default function TemplateEditor() {
   const htmlContent = watch("html", "");
   const subject = watch("subject", "");
 
-  useEffect(() => {
-    fetchTemplate();
-  }, [templateId]);
-
-  const fetchTemplate = async () => {
+  const fetchTemplate = useCallback(async () => {
     try {
       const { data } = await api.get(`/email-templates/detail/${templateId}`);
       reset(data);
-    } catch (error) {
+    } catch {
       toast.error("Failed to fetch template");
     } finally {
       setLoading(false);
     }
-  };
+  }, [templateId, reset]);
 
-  const onSubmit = async (data: any) => {
+  useEffect(() => {
+    Promise.resolve().then(() => {
+      fetchTemplate();
+    });
+  }, [fetchTemplate]);
+
+  const onSubmit = async (data: Record<string, unknown>) => {
     setSaving(true);
     try {
       await api.put(`/email-templates/${templateId}`, data);
       toast.success("Template saved");
-    } catch (error) {
+    } catch {
       toast.error("Failed to save template");
     } finally {
       setSaving(false);
@@ -52,7 +54,7 @@ export default function TemplateEditor() {
   const handleSendTest = async (to: string) => {
     setSendingTest(true);
     try {
-      const variables: any = {};
+      const variables: Record<string, string> = {};
       const matches = htmlContent.matchAll(/\{\{\s*(\w+)\s*\}\}/g);
       for (const match of matches) {
         variables[match[1]] = `[${match[1]}_test_value]`;
@@ -64,8 +66,9 @@ export default function TemplateEditor() {
         variables
       });
       toast.success("Test email sent!");
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || "Failed to send test email");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: string } } };
+      toast.error(err.response?.data?.error || "Failed to send test email");
     } finally {
       setSendingTest(false);
     }

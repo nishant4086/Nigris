@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Database, Trash2, Settings, Type, Hash, Link as LinkIcon, ToggleLeft, Paperclip, Image as ImageIcon, Video } from "lucide-react";
+import { Database, Trash2, Type, Hash, Link as LinkIcon, ToggleLeft, Paperclip, Image as ImageIcon, Video } from "lucide-react";
 
 export type Collection = {
   _id: string;

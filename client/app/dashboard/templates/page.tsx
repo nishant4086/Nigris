@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { api } from "@/lib/api";
 import { toast } from "react-hot-toast";
 import GlassCard from "@/components/ui/GlassCard";
@@ -9,36 +9,35 @@ import Link from "next/link";
 
 export default function GlobalTemplatesPage() {
   const [loading, setLoading] = useState(true);
-  const [templates, setTemplates] = useState<any[]>([]);
+  const [templates, setTemplates] = useState<Record<string, unknown>[]>([]);
 
-  useEffect(() => {
-    fetchTemplates();
-  }, []);
-
-  const fetchTemplates = async () => {
+  const fetchTemplates = useCallback(async () => {
     try {
-      // Fetch all projects first
       const { data: projects } = await api.get("/projects");
-
-      // Fetch templates for all projects in parallel
-      const templatePromises = projects.map((p: any) => api.get(`/email-templates/${p._id}`));
+      const templatePromises = projects.map((p: { _id: string }) => api.get(`/email-templates/${p._id}`));
       const templateResults = await Promise.all(templatePromises);
 
       const allTemplates = templateResults.flatMap((res, index) => {
-        return res.data.map((t: any) => ({
+        return res.data.map((t: Record<string, unknown>) => ({
           ...t,
           projectName: projects[index].name,
           projectId: projects[index]._id
         }));
       });
 
-      setTemplates(allTemplates.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-    } catch (error) {
+      setTemplates(allTemplates.sort((a: { createdAt: string }, b: { createdAt: string }) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+    } catch {
       toast.error("Failed to fetch templates");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    Promise.resolve().then(() => {
+      fetchTemplates();
+    });
+  }, [fetchTemplates]);
 
   if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin" /></div>;
 
@@ -94,7 +93,7 @@ export default function GlobalTemplatesPage() {
           <div className="col-span-full py-24 text-center glass-card border-dashed border-slate-800 rounded-3xl">
             <Mail className="w-16 h-16 text-slate-700 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-slate-400">No templates found</h2>
-            <p className="text-slate-500 mt-2 mb-8">You haven't created any templates yet. Go to a project to start designing.</p>
+            <p className="text-slate-500 mt-2 mb-8">You haven&apos;t created any templates yet. Go to a project to start designing.</p>
             <Link href="/dashboard/projects" className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition-all">
               Browse Projects
             </Link>

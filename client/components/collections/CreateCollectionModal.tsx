@@ -40,9 +40,11 @@ export default function CreateCollectionModal({ isOpen, onClose, onSubmit, initi
           setLoadingProjects(false);
         }
       };
-      fetchProjects();
+      Promise.resolve().then(() => {
+        fetchProjects();
+      });
     }
-  }, [isOpen]);
+  }, [isOpen, projectId]);
 
   if (!isOpen) return null;
 
@@ -64,8 +66,9 @@ export default function CreateCollectionModal({ isOpen, onClose, onSubmit, initi
         setName("");
         setIsPublic(false);
       }, 300);
-    } catch (err: any) {
-      setError(err.message || "Failed to create collection.");
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      setError(error.message || "Failed to create collection.");
     } finally {
       setSaving(false);
     }

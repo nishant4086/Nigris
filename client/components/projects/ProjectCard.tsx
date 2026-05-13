@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FolderGit2, Trash2, Settings, ArrowRight, Database, Users, Mail, FileCode, History } from "lucide-react";
+import { FolderGit2, Trash2, Settings, Database, Users, Mail, FileCode, History } from "lucide-react";
 
 export type Project = {
   _id: string;

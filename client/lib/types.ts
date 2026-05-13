@@ -1,5 +1,7 @@
 export type FieldValue = string | number | boolean | null | undefined | Record<string, unknown>;
 
+export type ReferenceOption = Record<string, FieldValue> & { _id: string };
+
 export interface CollectionField {
   name: string;
   type: string;

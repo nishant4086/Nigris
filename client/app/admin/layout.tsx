@@ -24,7 +24,7 @@ export default function AdminLayout({
         } else {
           setLoading(false);
         }
-      } catch (err) {
+      } catch {
         router.replace("/login");
       }
     };

@@ -4,10 +4,18 @@ import { api } from "@/lib/api";
 
 type Collection = { _id: string; name: string };
 
+interface CollectionField {
+  name: string;
+  type: string;
+  required: boolean;
+  unique?: boolean;
+  ref?: string;
+}
+
 type AddFieldModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (field: any) => Promise<void>;
+  onAdd: (field: CollectionField) => Promise<void>;
   projectId?: string; // Optional, to fetch other collections for References
 };
 
@@ -25,11 +33,13 @@ export default function AddFieldModal({ isOpen, onClose, onAdd, projectId }: Add
 
   useEffect(() => {
     if (isOpen && projectId && type === "reference" && collections.length === 0) {
-      setLoadingCollections(true);
-      api.get(`/collections/${projectId}`)
-        .then(res => setCollections(Array.isArray(res.data) ? res.data : []))
-        .catch(err => console.error("Failed to load collections for references", err))
-        .finally(() => setLoadingCollections(false));
+      Promise.resolve().then(() => {
+        setLoadingCollections(true);
+        api.get(`/collections/${projectId}`)
+          .then(res => setCollections(Array.isArray(res.data) ? res.data : []))
+          .catch(err => console.error("Failed to load collections for references", err))
+          .finally(() => setLoadingCollections(false));
+      });
     }
   }, [isOpen, projectId, type, collections.length]);
 
@@ -62,8 +72,9 @@ export default function AddFieldModal({ isOpen, onClose, onAdd, projectId }: Add
       setRequired(false);
       setUnique(false);
       setRef("");
-    } catch (err: any) {
-      setError(err.message || "Failed to add field");
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      setError(error.message || "Failed to add field");
     } finally {
       setSaving(false);
     }

@@ -56,7 +56,7 @@ export default function SecuritySettings() {
       setQrCode(res.data.qrCodeUrl);
       setIsMfaModalOpen(true);
       setMfaStep(1);
-    } catch (_err) {
+    } catch {
       setError("Failed to start MFA setup");
     } finally {
       setMfaLoading(false);

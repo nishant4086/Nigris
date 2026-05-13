@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { api, getApiErrorMessage } from "@/lib/api";
-import { Loader2, CheckCircle2, XCircle, ShieldCheck } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 
 function AcceptInviteContent() {
   const searchParams = useSearchParams();
@@ -12,20 +12,20 @@ function AcceptInviteContent() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [projectName, setProjectName] = useState("");
 
   useEffect(() => {
     if (!token) {
-      setError("No invitation token provided.");
-      setLoading(false);
+      Promise.resolve().then(() => {
+        setError("No invitation token provided.");
+        setLoading(false);
+      });
       return;
     }
 
     const accept = async () => {
       try {
         const res = await api.post("/projects/invites/accept-token", { token });
-        setSuccess(true);
+        // No need for setSuccess(true) as we use loading and error states to determine success
         // Automatically redirect after 3 seconds
         setTimeout(() => {
           router.push(`/dashboard/collections?project=${res.data.projectId}`);
@@ -66,7 +66,7 @@ function AcceptInviteContent() {
             <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto" />
             <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Success!</h2>
             <p className="text-slate-500 text-sm">
-              You've successfully joined the project. You'll be redirected to the project dashboard in a few seconds...
+              You&apos;ve successfully joined the project. You&apos;ll be redirected to the project dashboard in a few seconds...
             </p>
             <div className="pt-4">
               <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">

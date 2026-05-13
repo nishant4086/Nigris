@@ -3,21 +3,24 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
-import { CreditCard, ArrowUpCircle, Check, Crown, Zap, ShieldCheck } from "lucide-react";
+import { CreditCard, ArrowUpCircle, Crown } from "lucide-react";
 
-export default function BillingSettings({ user }: { user: any }) {
+interface BillingUser {
+  plan: string;
+}
+
+interface BillingStats {
+  projects?: { count: number; limit: number };
+  apiKeys?: { count: number; limit: number };
+}
+
+export default function BillingSettings({ user }: { user: BillingUser | null }) {
   const router = useRouter();
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<BillingStats | null>(null);
 
   useEffect(() => {
     api.get("/users/me/stats").then(res => setStats(res.data)).catch(() => { });
   }, []);
-
-  const plans = [
-    { name: "Free", price: "$0", features: ["1 Project", "2 API Keys"], current: user?.plan === "free" },
-    { name: "Starter", price: "$19", features: ["5 Projects", "10 API Keys", "Priority Support"], current: user?.plan === "starter" },
-    { name: "Pro", price: "$49", features: ["20 Projects", "50 API Keys", "Custom Branding", "SLA"], current: user?.plan === "pro" },
-  ];
 
   const handleGoPlan = () => {
     router.push("/dashboard/plans");

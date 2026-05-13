@@ -166,8 +166,8 @@ function PlansContent() {
         theme: { color: "#4f46e5" },
       };
 
-      const rzp = new (window as any).Razorpay(options);
-      rzp.on("payment.failed", (response: any) => {
+      const rzp = new (window as unknown as { Razorpay: new (options: unknown) => { on: (event: string, cb: (res: { error: { description: string } }) => void) => void; open: () => void } }).Razorpay(options);
+      rzp.on("payment.failed", (response: { error: { description: string } }) => {
         setError(response.error?.description || "Payment failed.");
         setBusyPlan(null);
       });

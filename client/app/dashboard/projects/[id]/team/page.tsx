@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api, getApiErrorMessage } from "@/lib/api";
 import { 
@@ -13,7 +13,6 @@ import {
   Clock, 
   CheckCircle2, 
   XCircle,
-  MoreVertical,
   Mail,
   ChevronLeft,
   Loader2,
@@ -46,7 +45,7 @@ export default function ProjectTeamPage() {
   const [inviteRole, setInviteRole] = useState<"admin" | "editor" | "viewer">("viewer");
   const [inviting, setInviting] = useState(false);
 
-  const loadMembers = async () => {
+  const loadMembers = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get(`/projects/${projectId}/members`);
@@ -56,11 +55,15 @@ export default function ProjectTeamPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectId]);
 
   useEffect(() => {
-    if (projectId) loadMembers();
-  }, [projectId]);
+    if (projectId) {
+      Promise.resolve().then(() => {
+        loadMembers();
+      });
+    }
+  }, [projectId, loadMembers]);
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,7 +104,7 @@ export default function ProjectTeamPage() {
   const handleChangeRole = async (userId: string, newRole: string) => {
     try {
       await api.patch(`/projects/${projectId}/members/${userId}`, { role: newRole });
-      setMembers(prev => prev.map(m => m.userId === userId ? { ...m, role: newRole as any } : m));
+      setMembers(prev => prev.map(m => m.userId === userId ? { ...m, role: newRole as Member["role"] } : m));
       setSuccess("Role updated successfully");
     } catch (err) {
       setError(getApiErrorMessage(err, "Failed to update role"));
@@ -292,7 +295,7 @@ export default function ProjectTeamPage() {
                     <button
                       key={r.id}
                       type="button"
-                      onClick={() => setInviteRole(r.id as any)}
+                      onClick={() => setInviteRole(r.id as "admin" | "editor" | "viewer")}
                       className={`flex items-center justify-between p-3 rounded-xl border text-left transition-all ${
                         inviteRole === r.id 
                           ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-500" 

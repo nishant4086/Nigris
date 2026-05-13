@@ -28,27 +28,29 @@ export default function CreateKeyModal({ isOpen, onClose, onSuccess }: CreateKey
 
   useEffect(() => {
     if (isOpen) {
-      // Reset state
-      setName("");
-      setEnvironment("Development");
-      setNewKey(null);
-      setError("");
-      setPermissions(["read"]);
-      
-      const fetchProjects = async () => {
-        setLoadingProjects(true);
-        try {
-          const res = await api.get("/projects");
-          const list = Array.isArray(res.data) ? res.data : [];
-          setProjects(list);
-          if (list.length > 0) setProjectId(list[0]._id);
-        } catch (err) {
-          console.error(err);
-        } finally {
-          setLoadingProjects(false);
-        }
-      };
-      fetchProjects();
+      Promise.resolve().then(() => {
+        // Reset state
+        setName("");
+        setEnvironment("Development");
+        setNewKey(null);
+        setError("");
+        setPermissions(["read"]);
+        
+        const fetchProjects = async () => {
+          setLoadingProjects(true);
+          try {
+            const res = await api.get("/projects");
+            const list = Array.isArray(res.data) ? res.data : [];
+            setProjects(list);
+            if (list.length > 0) setProjectId(list[0]._id);
+          } catch (err) {
+            console.error(err);
+          } finally {
+            setLoadingProjects(false);
+          }
+        };
+        fetchProjects();
+      });
     }
   }, [isOpen]);
 
@@ -76,8 +78,9 @@ export default function CreateKeyModal({ isOpen, onClose, onSuccess }: CreateKey
       // The backend now returns the raw `key` just this once
       setNewKey(res.data.key);
       onSuccess();
-    } catch (err: any) {
-      setError(err.response?.data?.message || err.message || "Failed to create API key");
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } }; message?: string };
+      setError(error.response?.data?.message || error.message || "Failed to create API key");
     } finally {
       setSaving(false);
     }

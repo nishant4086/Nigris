@@ -21,8 +21,7 @@ export default function AlertBanner({ alert, onDismiss }: AlertBannerProps) {
     try {
       await api.patch(`/keys/alerts/${alert._id}/read`);
       onDismiss();
-    } catch (error) {
-      console.error("Failed to dismiss alert", error);
+    } catch {
       // Dismiss locally anyway
       onDismiss();
     }

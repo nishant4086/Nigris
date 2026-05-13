@@ -5,10 +5,8 @@ import { api } from "@/lib/api";
 import { 
   Loader2, 
   Settings, 
-  ChevronRight, 
   Save, 
   ArrowLeft,
-  LayoutDashboard
 } from "lucide-react";
 import Link from "next/link";
 
@@ -22,9 +20,17 @@ import ApiKeySettings from "@/components/settings/ApiKeySettings";
 
 type TabId = "profile" | "billing" | "api-keys" | "team" | "security" | "notifications";
 
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  role: string;
+  avatar?: string;
+}
+
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<TabId>("profile");
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,7 +40,7 @@ export default function SettingsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleUpdateUser = async (data: any) => {
+  const handleUpdateUser = async (data: Partial<User>) => {
     try {
       const res = await api.patch("/users/me", data);
       setUser(res.data.user);

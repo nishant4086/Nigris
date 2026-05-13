@@ -21,11 +21,12 @@ export default function ExportButton({ timeRange }: { timeRange: string }) {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-    } catch (error: any) {
-      console.error("Export failed", error);
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: unknown } };
+      console.error("Export failed", err);
       
       // Try to parse the error message if the response is a blob
-      if (error.response?.data instanceof Blob) {
+      if (err.response?.data instanceof Blob) {
         const reader = new FileReader();
         reader.onload = () => {
           try {
@@ -35,9 +36,9 @@ export default function ExportButton({ timeRange }: { timeRange: string }) {
             alert("Failed to export usage data.");
           }
         };
-        reader.readAsText(error.response.data);
+        reader.readAsText(err.response.data);
       } else {
-        alert(error.response?.data?.message || "Failed to export usage data.");
+        alert(err.response?.data?.message || "Failed to export usage data.");
       }
     } finally {
       setExporting(false);

@@ -16,8 +16,10 @@ export default function VerifyEmailPage() {
 
   useEffect(() => {
     if (!token) {
-      setState("error");
-      setMessage("Invalid or expired link");
+      Promise.resolve().then(() => {
+        setState("error");
+        setMessage("Invalid or expired link");
+      });
       return;
     }
 

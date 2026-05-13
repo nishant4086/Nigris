@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { 
   Search, 
@@ -12,7 +12,6 @@ import {
   CreditCard,
   Settings,
   Mail,
-  X,
   Command as CommandIcon,
   ChevronRight
 } from "lucide-react";
@@ -22,18 +21,22 @@ type SearchResult = {
   id: string;
   name: string;
   href: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   category: string;
 };
+
+interface PaletteProject {
+  _id: string;
+  name: string;
+}
 
 export default function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<PaletteProject[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const staticResults: SearchResult[] = [
+  const staticResults: SearchResult[] = useMemo(() => [
     { id: "dashboard", name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, category: "Services" },
     { id: "projects", name: "All Projects", href: "/dashboard/projects", icon: FolderGit2, category: "Services" },
     { id: "collections", name: "Collections", href: "/dashboard/collections", icon: Database, category: "Services" },
@@ -42,22 +45,21 @@ export default function CommandPalette({ isOpen, onClose }: { isOpen: boolean; o
     { id: "plans", name: "Plans & Pricing", href: "/dashboard/plans", icon: CreditCard, category: "Services" },
     { id: "settings", name: "Account Settings", href: "/dashboard/settings", icon: Settings, category: "Services" },
     { id: "templates", name: "Mail Templates", href: "/dashboard/templates", icon: Mail, category: "Services" },
-  ];
+  ], []);
 
   useEffect(() => {
     if (isOpen) {
-      api.get("/projects").then(res => setProjects(res.data || [])).catch(() => {});
-      setQuery("");
-      setSelectedIndex(0);
+      Promise.resolve().then(() => {
+        api.get("/projects").then(res => setProjects(res.data || [])).catch(() => {});
+        setQuery("");
+        setSelectedIndex(0);
+      });
     }
   }, [isOpen]);
 
-  useEffect(() => {
+  const results = useMemo(() => {
     const q = query.toLowerCase().trim();
-    if (!q) {
-      setResults(staticResults);
-      return;
-    }
+    if (!q) return staticResults;
 
     const filteredStatic = staticResults.filter(s => s.name.toLowerCase().includes(q));
     const filteredProjects = projects
@@ -70,9 +72,14 @@ export default function CommandPalette({ isOpen, onClose }: { isOpen: boolean; o
         category: "Projects"
       }));
 
-    setResults([...filteredStatic, ...filteredProjects]);
-    setSelectedIndex(0);
-  }, [query, projects]);
+    return [...filteredStatic, ...filteredProjects];
+  }, [query, projects, staticResults]);
+
+  useEffect(() => {
+    Promise.resolve().then(() => {
+      setSelectedIndex(0);
+    });
+  }, [results.length]);
 
   const handleSelect = useCallback((result: SearchResult) => {
     router.push(result.href);
@@ -125,7 +132,7 @@ export default function CommandPalette({ isOpen, onClose }: { isOpen: boolean; o
         <div className="max-h-[60vh] overflow-y-auto p-2">
           {results.length === 0 ? (
             <div className="py-12 text-center">
-              <p className="text-slate-500 text-sm">No results found for "{query}"</p>
+              <p className="text-slate-500 text-sm">No results found for &quot;{query}&quot;</p>
             </div>
           ) : (
             <div className="space-y-4 pb-2">

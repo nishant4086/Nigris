@@ -8,9 +8,10 @@ import ThemeToggle3D from "@/components/ui/ThemeToggle3D";
 import CommandPalette from "@/components/layout/CommandPalette";
 import NotificationPopover from "@/components/layout/NotificationPopover";
 
-type NavbarProps = {
-  toggleSidebar?: () => void;
-};
+interface NotificationAlert {
+  _id: string;
+  isRead: boolean;
+}
 
 export default function Navbar({ toggleSidebar }: NavbarProps) {
   const router = useRouter();
@@ -42,7 +43,15 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
         setName("User");
       }
     };
-    loadProfile();
+    
+    Promise.resolve().then(() => {
+      loadProfile();
+      // Initial unread count
+      api.get("/keys/alerts").then(res => {
+        const unread = (res.data || []).filter((n: NotificationAlert) => !n.isRead).length;
+        setUnreadCount(unread);
+      }).catch(() => {});
+    });
 
     const handleGlobalKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -51,12 +60,6 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
       }
     };
     window.addEventListener("keydown", handleGlobalKey);
-
-    // Initial unread count
-    api.get("/keys/alerts").then(res => {
-      const unread = (res.data || []).filter((n: any) => !n.isRead).length;
-      setUnreadCount(unread);
-    }).catch(() => {});
 
     return () => window.removeEventListener("keydown", handleGlobalKey);
   }, []);

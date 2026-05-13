@@ -5,8 +5,16 @@ import Link from "next/link";
 import { api } from "@/lib/api";
 import { Mail, FileText, Activity, ArrowRight } from "lucide-react";
 
+interface AdminStats {
+  messageCount: number;
+  unreadCount: number;
+  blogCount: number;
+  publishedCount: number;
+  activityCount: number;
+}
+
 export default function AdminPage() {
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

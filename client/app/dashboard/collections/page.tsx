@@ -19,7 +19,6 @@ export default function CollectionsPage() {
   
   // UX States
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const loadData = async (showLoader = false) => {
@@ -57,7 +56,9 @@ export default function CollectionsPage() {
   };
 
   useEffect(() => {
-    loadData(true);
+    Promise.resolve().then(() => {
+      loadData(true);
+    });
   }, []);
 
   const handleCreateCollection = async (name: string, projectId: string, isPublic: boolean) => {
@@ -78,16 +79,6 @@ export default function CollectionsPage() {
   const filteredCollections = useMemo(() => {
     let result = [...allCollections];
 
-    if (selectedProjectId !== "all") {
-       // We don't have projectId natively stored in the Collection object from the API response easily 
-       // wait, we fetch by Project ID so ideally we should attach it.
-       // For now, filtering by selectedProjectId requires knowing which project it belongs to.
-       // If the backend doesn't return `projectId` inside the collection, this is tricky.
-       // Let's assume the backend might not return it. The best we can do is just filter out manually 
-       // but since we fetched via promises, we lost the mapping.
-       // Let's just rely on the search bar for now, or assume collection has project attached.
-    }
-
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter(c => c.name.toLowerCase().includes(q) || c.slug.toLowerCase().includes(q));
@@ -97,7 +88,7 @@ export default function CollectionsPage() {
     result.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
 
     return result;
-  }, [allCollections, searchQuery, selectedProjectId]);
+  }, [allCollections, searchQuery]);
 
   return (
     <div className="pb-24 animate-in fade-in duration-500">

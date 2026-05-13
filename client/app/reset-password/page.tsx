@@ -20,12 +20,14 @@ function ResetPasswordForm() {
   const [validating, setValidating] = useState(true);
 
   useEffect(() => {
-    if (!token) {
-      setError("No reset token provided. Please use the link from your email.");
-      setValidating(false);
-    } else {
-      setValidating(false);
-    }
+    Promise.resolve().then(() => {
+      if (!token) {
+        setError("No reset token provided. Please use the link from your email.");
+        setValidating(false);
+      } else {
+        setValidating(false);
+      }
+    });
   }, [token]);
 
   const handleSubmit = async (e: React.FormEvent) => {

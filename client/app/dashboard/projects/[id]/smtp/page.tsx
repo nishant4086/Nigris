@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { api } from "@/lib/api";
@@ -9,47 +9,64 @@ import GlassCard from "@/components/ui/GlassCard";
 import { Loader2, Send, Save, Trash2, CheckCircle2, XCircle, Mail as MailIcon } from "lucide-react";
 import { ConfirmDeleteModal, ComposeModal } from "@/components/mail/TemplateModals";
 
+interface SmtpConfig {
+  _id?: string;
+  provider: string;
+  host: string;
+  port: number;
+  secure: boolean;
+  username: string;
+  password?: string;
+  fromName: string;
+  fromEmail: string;
+  isActive: boolean;
+}
+
 export default function SmtpSettings() {
-  const { id: projectId } = useParams();
+  const params = useParams();
+  const projectId = params.id as string;
   const [loading, setLoading] = useState(true);
   const [testing, setTesting] = useState(false);
-  const [configs, setConfigs] = useState<any[]>([]);
+  const [configs, setConfigs] = useState<SmtpConfig[]>([]);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isComposeOpen, setIsComposeOpen] = useState(false);
   const [sendingDirect, setSendingDirect] = useState(false);
-  const { register, handleSubmit, reset, setValue, watch } = useForm();
+  const { register, handleSubmit, reset, watch, getValues } = useForm();
 
-  useEffect(() => {
-    fetchConfigs();
-  }, [projectId]);
-
-  const fetchConfigs = async () => {
+  const fetchConfigs = useCallback(async () => {
     try {
       const { data } = await api.get(`/smtp/${projectId}`);
       setConfigs(data);
       if (data.length > 0) {
         reset(data[0]);
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to fetch SMTP settings");
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectId, reset]);
 
-  const onTest = async (data: any) => {
+  useEffect(() => {
+    Promise.resolve().then(() => {
+      fetchConfigs();
+    });
+  }, [fetchConfigs]);
+
+  const onTest = async (data: Record<string, unknown>) => {
     setTesting(true);
     try {
       await api.post("/smtp/test", data);
       toast.success("SMTP Connection Successful!");
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || "SMTP Connection Failed");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: string } } };
+      toast.error(err.response?.data?.error || "SMTP Connection Failed");
     } finally {
       setTesting(false);
     }
   };
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: Record<string, unknown>) => {
     try {
       if (data._id) {
         await api.put(`/smtp/${data._id}`, data);
@@ -59,13 +76,13 @@ export default function SmtpSettings() {
         toast.success("SMTP Settings Saved");
       }
       fetchConfigs();
-    } catch (error) {
+    } catch {
       toast.error("Failed to save SMTP settings");
     }
   };
 
   const handleDelete = async () => {
-    const configId = watch("_id");
+    const configId = getValues("_id");
     if (!configId) return;
 
     try {
@@ -73,7 +90,7 @@ export default function SmtpSettings() {
       toast.success("SMTP Configuration deleted");
       setConfigs([]);
       reset({ provider: "custom", host: "", port: 587, secure: false, username: "", password: "", fromName: "", fromEmail: "" });
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete SMTP settings");
     } finally {
       setIsDeleteOpen(false);
@@ -91,8 +108,9 @@ export default function SmtpSettings() {
       });
       toast.success("Email sent successfully via Nodemailer!");
       setIsComposeOpen(false);
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || "Failed to send email");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: string } } };
+      toast.error(err.response?.data?.error || "Failed to send email");
     } finally {
       setSendingDirect(false);
     }

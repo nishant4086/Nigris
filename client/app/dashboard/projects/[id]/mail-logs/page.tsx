@@ -1,34 +1,48 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { toast } from "react-hot-toast";
 import GlassCard from "@/components/ui/GlassCard";
-import { Loader2, Search, Filter, Mail, CheckCircle, XCircle, Clock, ExternalLink, RefreshCw } from "lucide-react";
+import { Loader2, Search, CheckCircle, XCircle, Clock, ExternalLink, RefreshCw } from "lucide-react";
+
+interface MailLog {
+  _id: string;
+  status: string;
+  to: string;
+  subject: string;
+  template?: { _id: string; name: string };
+  variables?: Record<string, unknown>;
+  error?: string;
+  createdAt: string;
+}
 
 export default function EmailLogs() {
-  const { id: projectId } = useParams();
+  const params = useParams();
+  const projectId = params.id as string;
   const [loading, setLoading] = useState(true);
-  const [logs, setLogs] = useState<any[]>([]);
+  const [logs, setLogs] = useState<MailLog[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
-  useEffect(() => {
-    fetchLogs();
-  }, [projectId]);
-
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     try {
       const { data } = await api.get(`/mail/logs/${projectId}`);
       setLogs(data);
-    } catch (error) {
+    } catch {
       toast.error("Failed to fetch logs");
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectId]);
 
-  const retryEmail = async (log: any) => {
+  useEffect(() => {
+    Promise.resolve().then(() => {
+      fetchLogs();
+    });
+  }, [fetchLogs]);
+
+  const retryEmail = async (log: MailLog) => {
     try {
       await api.post("/mail/test-send", {
         templateId: log.template?._id,
@@ -37,7 +51,7 @@ export default function EmailLogs() {
       });
       toast.success("Retry initiated successfully!");
       fetchLogs();
-    } catch (error) {
+    } catch {
       toast.error("Failed to retry email");
     }
   };

@@ -13,10 +13,18 @@ import {
   Globe
 } from "lucide-react";
 import { api } from "@/lib/api";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+
+interface Notification {
+  _id: string;
+  type: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+}
 
 export default function NotificationPopover({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchNotifications = async () => {
@@ -32,7 +40,9 @@ export default function NotificationPopover({ isOpen, onClose }: { isOpen: boole
 
   useEffect(() => {
     if (isOpen) {
-      fetchNotifications();
+      Promise.resolve().then(() => {
+        fetchNotifications();
+      });
     }
   }, [isOpen]);
 
