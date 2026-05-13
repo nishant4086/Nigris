@@ -88,6 +88,23 @@ export function AuthForm({ defaultMode = "login" }: { defaultMode?: "login" | "s
     }
   };
 
+  const handleResendVerification = async () => {
+    if (!email) return setError("Please enter your email address first");
+    
+    setLoading(true);
+    setError("");
+    setMessage("");
+    
+    try {
+      const res = await api.post("/auth/resend-verification", { email: email.trim() });
+      setMessage(res.data.message || "Verification email sent! Please check your inbox.");
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Failed to resend verification email"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleMfaSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -201,9 +218,20 @@ export function AuthForm({ defaultMode = "login" }: { defaultMode?: "login" | "s
         )}
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800/50 rounded-2xl flex items-center gap-3 text-sm font-bold text-red-700 dark:text-red-400">
-            <AlertTriangle className="w-5 h-5 shrink-0" />
-            {error}
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800/50 rounded-2xl space-y-3">
+            <div className="flex items-center gap-3 text-sm font-bold text-red-700 dark:text-red-400">
+              <AlertTriangle className="w-5 h-5 shrink-0" />
+              {error}
+            </div>
+            {error.includes("verify your email") && (
+              <button 
+                onClick={handleResendVerification}
+                disabled={loading}
+                className="text-xs font-black uppercase tracking-wider text-blue-600 dark:text-blue-400 hover:underline disabled:no-underline"
+              >
+                Resend verification link?
+              </button>
+            )}
           </div>
         )}
 
