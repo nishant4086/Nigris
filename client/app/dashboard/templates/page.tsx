@@ -7,9 +7,18 @@ import GlassCard from "@/components/ui/GlassCard";
 import { Loader2, Mail, ArrowUpRight, FolderGit2 } from "lucide-react";
 import Link from "next/link";
 
+interface Template {
+  _id: string;
+  name: string;
+  projectId: string;
+  projectName: string;
+  variables: string[];
+  createdAt: string;
+}
+
 export default function GlobalTemplatesPage() {
   const [loading, setLoading] = useState(true);
-  const [templates, setTemplates] = useState<Record<string, unknown>[]>([]);
+  const [templates, setTemplates] = useState<Template[]>([]);
 
   const fetchTemplates = useCallback(async () => {
     try {
@@ -17,15 +26,15 @@ export default function GlobalTemplatesPage() {
       const templatePromises = projects.map((p: { _id: string }) => api.get(`/email-templates/${p._id}`));
       const templateResults = await Promise.all(templatePromises);
 
-      const allTemplates = templateResults.flatMap((res, index) => {
+      const allTemplates: Template[] = templateResults.flatMap((res, index) => {
         return res.data.map((t: Record<string, unknown>) => ({
           ...t,
           projectName: projects[index].name,
           projectId: projects[index]._id
-        }));
+        } as Template));
       });
 
-      setTemplates(allTemplates.sort((a: { createdAt: string }, b: { createdAt: string }) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      setTemplates(allTemplates.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
     } catch {
       toast.error("Failed to fetch templates");
     } finally {
@@ -71,7 +80,7 @@ export default function GlobalTemplatesPage() {
             </div>
 
             <div className="flex flex-wrap gap-2 mb-6">
-              {template.variables.map((v: string) => (
+              {template.variables.map((v) => (
                 <span key={v} className="px-2 py-1 dark:bg-slate-900/50 text-slate-400 text-[10px] uppercase tracking-wider rounded border border-slate-800">
                   {v}
                 </span>
