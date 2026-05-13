@@ -1,12 +1,13 @@
 "use client";
 
 export default function GlobalError({
-  error,
+  error: _error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  void _error; // Required by Next.js error boundary contract
   return (
     <html lang="en">
       <body className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-100 px-4">
