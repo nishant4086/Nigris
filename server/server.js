@@ -26,9 +26,10 @@ const startServer = async () => {
     await connectDB();
     
     // 2. Start Listening
-    const server = app.listen(PORT, "0.0.0.0", () => {
-      console.log(`\n✓ Server running on port ${PORT}`);
-      console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);
+    const server = app.listen(PORT, () => {
+      console.log(`==> 🚀 Nigris Server is live!`);
+      console.log(`==> 📡 Listening on port ${PORT}`);
+      console.log(`==> 🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
     });
 
     // ─── GRACEFUL SHUTDOWN ───────────────────────────────────
