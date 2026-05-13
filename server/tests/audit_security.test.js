@@ -13,7 +13,7 @@ describe("Production Security Audit", () => {
   let apiKey1;
   let apiKey2;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     process.env.NODE_ENV = "production"; // Force production mode for error scrubbing tests
     await Plan.create({ name: "free", requestLimit: 10, price: 0 });
     user = await User.create({
@@ -95,22 +95,23 @@ describe("Production Security Audit", () => {
 
   describe("4. Rate Limit Isolation", () => {
     test("Keys should have independent quotas", async () => {
-      // Exhaust key1
-      for (let i = 0; i < 11; i++) {
+      // Exhaust key1's per-key quota (limit: 10)
+      for (let i = 0; i < 10; i++) {
         await request(app)
-          .get("/api/public/health") // Assuming health is rate limited or some public endpoint
+          .get("/api/public/collections")
           .set("x-api-key", "key_one_123");
       }
-      
+
+      // key1 should now be 429 (quota exhausted)
       const res1 = await request(app)
-        .get("/api/public/health")
+        .get("/api/public/collections")
         .set("x-api-key", "key_one_123");
-      
-      // key2 should still work
+
+      // key2 should still work independently
       const res2 = await request(app)
-        .get("/api/public/health")
+        .get("/api/public/collections")
         .set("x-api-key", "key_two_456");
-      
+
       expect(res1.status).toBe(429);
       expect(res2.status).toBe(200);
     });

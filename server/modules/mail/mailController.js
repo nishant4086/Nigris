@@ -3,6 +3,15 @@ import EmailLog from "../../models/EmailLog.js";
 import mailService from "../../services/mailService.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 
+const sanitizeMailError = (error) => {
+  const msg = error.message || "";
+  if (error.code === "EAUTH" || msg.includes("auth")) return "SMTP authentication failed. Check project SMTP settings.";
+  if (error.code === "ECONNREFUSED" || msg.includes("ECONNREFUSED")) return "Mail server connection refused.";
+  if (error.code === "ETIMEDOUT" || msg.includes("timeout")) return "Mail server timed out.";
+  if (msg.includes("No recipients") || msg.includes("recipient")) return "Invalid recipient address.";
+  return "Email delivery failed. Please check your configuration.";
+};
+
 export const sendTemplatedEmail = asyncHandler(async (req, res) => {
   const { template: slug, to, variables } = req.body;
   const projectId = req.project._id; // Set by apiKeyMiddleware
@@ -22,7 +31,8 @@ export const sendTemplatedEmail = asyncHandler(async (req, res) => {
     });
     res.json(result);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error("[Mail] sendTemplatedEmail error:", error.message);
+    res.status(400).json({ error: sanitizeMailError(error) });
   }
 });
 
@@ -43,12 +53,14 @@ export const testSendTemplate = asyncHandler(async (req, res) => {
     });
     res.json(result);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error("[Mail] testSendTemplate error:", error.message);
+    res.status(400).json({ error: sanitizeMailError(error) });
   }
 });
 
 export const sendDirectEmail = asyncHandler(async (req, res) => {
-  const { projectId, to, subject, html } = req.body;
+  const { to, subject, html } = req.body;
+  const projectId = req.project?._id || req.body.projectId;
   
   try {
     const result = await mailService.sendDirectEmail({
@@ -59,7 +71,8 @@ export const sendDirectEmail = asyncHandler(async (req, res) => {
     });
     res.json(result);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error("[Mail] sendDirectEmail error:", error.message);
+    res.status(400).json({ error: sanitizeMailError(error) });
   }
 });
 

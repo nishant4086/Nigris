@@ -18,23 +18,33 @@ const validatePaginationParams = (page, limit) => {
   return { page: p, limit: l };
 };
 
-// Helper to populate references
+// Helper to populate references — single batched query for all ref fields
 const populateReferences = async (collection, dataItems) => {
   const refFields = (collection.fields || []).filter(f => f.type === "reference");
   if (refFields.length === 0 || dataItems.length === 0) return dataItems;
 
   const populatedItems = JSON.parse(JSON.stringify(dataItems));
 
+  // Collect ALL reference IDs across ALL fields in one pass
+  const allIds = new Set();
   for (const field of refFields) {
-    const idsToFetch = populatedItems.map(item => item.data?.[field.name]).filter(id => id);
-    if (idsToFetch.length === 0) continue;
-
-    const referencedEntries = await Data.find({ _id: { $in: idsToFetch } }).lean();
-    const entryMap = {};
-    for (const entry of referencedEntries) {
-      entryMap[entry._id.toString()] = entry.data; // Attach the actual data of the entry
+    for (const item of populatedItems) {
+      const refId = item.data?.[field.name];
+      if (refId) allIds.add(refId);
     }
+  }
 
+  if (allIds.size === 0) return populatedItems;
+
+  // Single batched DB query instead of one per field
+  const referencedEntries = await Data.find({ _id: { $in: [...allIds] } }).lean();
+  const entryMap = {};
+  for (const entry of referencedEntries) {
+    entryMap[entry._id.toString()] = entry.data;
+  }
+
+  // Distribute results across all fields
+  for (const field of refFields) {
     for (const item of populatedItems) {
       const refId = item.data?.[field.name];
       if (refId && entryMap[refId]) {

@@ -29,4 +29,7 @@ const dataSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Compound index for paginated entry listing sorted by createdAt
+dataSchema.index({ collectionId: 1, createdAt: -1 });
+
 export default mongoose.model("Data", dataSchema);

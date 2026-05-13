@@ -58,6 +58,7 @@ export const redisRateLimit = (baseLimit, windowSeconds) => {
       res.setHeader("X-RateLimit-Remaining", remaining);
 
       if (count > totalLimit) {
+        res.setHeader("Retry-After", windowSeconds);
         return res.status(429).json({ 
           error: "Too many requests",
           retryAfter: windowSeconds

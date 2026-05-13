@@ -22,19 +22,47 @@ interface SummaryData {
   nextResetAt: string;
 }
 
+interface TimeSeriesData {
+  date: string;
+  requests: number;
+  errors: number;
+  isAnomaly?: boolean;
+}
+
+interface StatusData {
+  name: string;
+  value: number;
+}
+
+interface EndpointData {
+  name: string;
+  value: number;
+}
+
 interface DistributionData {
-  statusData: Record<string, unknown>[];
-  endpointsData: Record<string, unknown>[];
+  statusData: StatusData[];
+  endpointsData: EndpointData[];
+}
+
+interface UsageLog {
+  _id: string;
+  projectId: { name: string } | string;
+  apiKeyId: { name: string; maskedKey: string; environment: string } | string | null;
+  endpoint: string;
+  method: string;
+  statusCode: number;
+  responseTime: number;
+  timestamp: string;
 }
 
 export default function UsageDashboard() {
   const [timeRange, setTimeRange] = useState("30"); // 7, 30, 90 days
-  
+
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
-  const [timeSeriesData, setTimeSeriesData] = useState<Record<string, unknown>[]>([]);
+  const [timeSeriesData, setTimeSeriesData] = useState<TimeSeriesData[]>([]);
   const [distributionData, setDistributionData] = useState<DistributionData | null>(null);
-  const [logsData, setLogsData] = useState<Record<string, unknown>[]>([]);
-  
+  const [logsData, setLogsData] = useState<UsageLog[]>([]);
+
   const [loadingSummary, setLoadingSummary] = useState(true);
   const [loadingCharts, setLoadingCharts] = useState(true);
   const [loadingLogs, setLoadingLogs] = useState(true);
@@ -82,7 +110,7 @@ export default function UsageDashboard() {
       setLoadingSummary(true);
       setLoadingCharts(true);
       setLoadingLogs(true);
-      
+
       fetchSummary();
       loadAlerts();
 
@@ -91,16 +119,16 @@ export default function UsageDashboard() {
         api.get(`/keys/analytics/distribution?days=${timeRange}`),
         api.get("/keys/analytics/logs?limit=50")
       ])
-      .then(([timeRes, distRes, logsRes]) => {
-        setTimeSeriesData(timeRes.data || []);
-        setDistributionData(distRes.data || { statusData: [], endpointsData: [] });
-        setLogsData(logsRes.data || []);
-      })
-      .catch(err => console.error("Failed to load charts", err))
-      .finally(() => {
-        setLoadingCharts(false);
-        setLoadingLogs(false);
-      });
+        .then(([timeRes, distRes, logsRes]) => {
+          setTimeSeriesData(timeRes.data || []);
+          setDistributionData(distRes.data || { statusData: [], endpointsData: [] });
+          setLogsData(logsRes.data || []);
+        })
+        .catch(err => console.error("Failed to load charts", err))
+        .finally(() => {
+          setLoadingCharts(false);
+          setLoadingLogs(false);
+        });
     });
   }, [timeRange, fetchSummary, loadAlerts]);
 
@@ -126,9 +154,9 @@ export default function UsageDashboard() {
 
   return (
     <div className="pb-24 animate-in fade-in duration-500 max-w-7xl mx-auto">
-      <AlertBanner 
-        alert={topAlert} 
-        onDismiss={() => setAlerts(prev => prev.filter(a => a._id !== topAlert?._id))} 
+      <AlertBanner
+        alert={topAlert}
+        onDismiss={() => setAlerts(prev => prev.filter(a => a._id !== topAlert?._id))}
       />
 
       {/* Header Area */}
@@ -158,15 +186,15 @@ export default function UsageDashboard() {
               <option value="90">Last 90 days</option>
             </select>
           </div>
-          
+
           <ExportButton timeRange={timeRange} />
         </div>
       </div>
 
       {/* Row 1: Summary Cards */}
-      <SummaryCards 
-        data={summaryData || { totalRequests: 0, totalLimit: 0, remaining: 0, activeKeys: 0, dailyAvg: 0, nextResetAt: "" }} 
-        loading={loadingSummary} 
+      <SummaryCards
+        data={summaryData || { totalRequests: 0, totalLimit: 0, remaining: 0, activeKeys: 0, dailyAvg: 0, nextResetAt: "" }}
+        loading={loadingSummary}
       />
 
       {/* Row 2: Main Area Chart */}

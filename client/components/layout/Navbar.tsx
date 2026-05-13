@@ -13,6 +13,10 @@ interface NotificationAlert {
   isRead: boolean;
 }
 
+interface NavbarProps {
+  toggleSidebar: () => void;
+}
+
 export default function Navbar({ toggleSidebar }: NavbarProps) {
   const router = useRouter();
   const path = usePathname();

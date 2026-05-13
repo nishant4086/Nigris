@@ -71,13 +71,22 @@ export const deleteSmtpConfig = asyncHandler(async (req, res) => {
 });
 
 export const testSmtpConnection = asyncHandler(async (req, res) => {
-  console.log("Testing SMTP connection with body:", { ...req.body, password: "****" });
   try {
     const result = await mailService.testConnection(req.body);
-    console.log("SMTP Test Success:", result);
     res.json(result);
   } catch (error) {
     console.error("SMTP Test Error:", error.message);
-    res.status(400).json({ error: error.message });
+    // Sanitize error messages — SMTP libraries may leak hostnames/credentials
+    let safeMessage = "Connection failed. Verify your SMTP settings.";
+    if (error.code === "EAUTH" || error.message?.includes("auth")) {
+      safeMessage = "Authentication failed. Check your username and password.";
+    } else if (error.code === "ECONNREFUSED" || error.message?.includes("ECONNREFUSED")) {
+      safeMessage = "Connection refused. Verify the host and port.";
+    } else if (error.code === "ETIMEDOUT" || error.message?.includes("timeout")) {
+      safeMessage = "Connection timed out. Check host, port, and firewall settings.";
+    } else if (error.message?.includes("certificate") || error.message?.includes("TLS")) {
+      safeMessage = "TLS/SSL error. Try toggling the 'secure' setting.";
+    }
+    res.status(400).json({ error: safeMessage });
   }
 });

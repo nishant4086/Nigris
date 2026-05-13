@@ -60,4 +60,7 @@ const collectionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Compound index for public API slug lookups scoped to project
+collectionSchema.index({ project: 1, slug: 1 });
+
 export default mongoose.model("Collection", collectionSchema);

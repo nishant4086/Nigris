@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Data from "../models/Data.js";
 import Collection from "../models/Collection.js";
+import { sanitizeText } from "./sanitizeHtml.js";
 
 /**
  * Validates data against a collection's schema.
@@ -43,9 +44,9 @@ export const validateData = async (collection, data, entryId = null, skipRequire
       if (typeof value !== "string" && typeof value !== "object") {
         errors.push(`${field.name} has an invalid type`);
       }
-      // Basic XSS prevention for strings (strip script tags)
+      // XSS prevention for strings
       if (typeof value === "string") {
-        validatedValue = value.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gmi, "");
+        validatedValue = sanitizeText(value);
       }
     } else if (field.type === "reference") {
       if (!mongoose.Types.ObjectId.isValid(value)) {

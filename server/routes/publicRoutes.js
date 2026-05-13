@@ -15,6 +15,7 @@ import {
   updateEntry,
   deleteEntry,
 } from "../modules/entries/entryController.js";
+import { sendTemplatedEmail, sendDirectEmail } from "../modules/mail/mailController.js";
 
 const router = express.Router();
 
@@ -33,5 +34,9 @@ router.get("/entries/:entryId", requireApiKeyPermission("read"), redisRateLimit(
 router.get("/collections/:id/entries", requireApiKeyPermission("read"), redisRateLimit(100, 60), getEntries);
 router.patch("/entries/:entryId", requireApiKeyPermission("write"), redisRateLimit(50, 60), depthCheckMiddleware, updateEntry);
 router.delete("/entries/:entryId", requireApiKeyPermission("write"), redisRateLimit(30, 60), deleteEntry);
+
+// Mail endpoints (SDK-compatible, API-key auth)
+router.post("/mail/send", requireApiKeyPermission("write"), redisRateLimit(20, 60), sendTemplatedEmail);
+router.post("/mail/send-direct", requireApiKeyPermission("write"), redisRateLimit(20, 60), sendDirectEmail);
 
 export default router;

@@ -14,7 +14,7 @@ describe("Dynamic Engine - Validation & Edge Cases", () => {
   let apiKey;
   let collection;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     await Plan.create({ name: "free", requestLimit: 100, price: 0 });
     user = await User.create({ name: "QA", email: "qa@val.com", password: "Password123" });
     token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
@@ -27,15 +27,16 @@ describe("Dynamic Engine - Validation & Edge Cases", () => {
       createdBy: user._id,
       fields: [
         { name: "title", type: "text", required: true },
-        { name: "price", type: "number", min: 0 },
-        { name: "tags", type: "array" }
+        { name: "price", type: "number" },
+        { name: "description", type: "text" }
       ]
     });
 
     apiKey = await ApiKey.create({
       user: user._id,
       project: project._id,
-      key: "test_val_key",
+      key: "test_val_key_dynamic",
+      isActive: true,
       permissions: ["read", "write"]
     });
   });
@@ -43,7 +44,7 @@ describe("Dynamic Engine - Validation & Edge Cases", () => {
   test("Should fail if required field is missing", async () => {
     const res = await request(app)
       .post(`/api/public/collections/${collection.slug}/entries`)
-      .set("x-api-key", "test_val_key")
+      .set("x-api-key", "test_val_key_dynamic")
       .send({ price: 10 });
 
     expect(res.status).toBe(400);
@@ -53,7 +54,7 @@ describe("Dynamic Engine - Validation & Edge Cases", () => {
   test("Should fail if type mismatch (number vs text)", async () => {
     const res = await request(app)
       .post(`/api/public/collections/${collection.slug}/entries`)
-      .set("x-api-key", "test_val_key")
+      .set("x-api-key", "test_val_key_dynamic")
       .send({ title: "Product", price: "expensive" });
 
     expect(res.status).toBe(400);
@@ -64,19 +65,18 @@ describe("Dynamic Engine - Validation & Edge Cases", () => {
     const nested = { a: { b: { c: { d: { e: 1 } } } } };
     const res = await request(app)
       .post(`/api/public/collections/${collection.slug}/entries`)
-      .set("x-api-key", "test_val_key")
+      .set("x-api-key", "test_val_key_dynamic")
       .send({ title: "Bad", ...nested });
 
     expect(res.status).toBe(400);
     expect(res.body.error).toContain("depth");
   });
 
-  test("Should handle huge arrays (memory safety check)", async () => {
-    const largeArray = new Array(1000).fill("tag");
+  test("Should handle large string payloads (memory safety check)", async () => {
     const res = await request(app)
       .post(`/api/public/collections/${collection.slug}/entries`)
-      .set("x-api-key", "test_val_key")
-      .send({ title: "Big Array", tags: largeArray });
+      .set("x-api-key", "test_val_key_dynamic")
+      .send({ title: "Large Desc", description: "x".repeat(5000) });
 
     expect(res.status).toBe(201);
   });

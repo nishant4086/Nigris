@@ -275,10 +275,6 @@ export const publicCreateEntry = asyncHandler(async (req, res) => {
   const project = req.project;
   const payload = req.body;
   
-  console.log("=== publicCreateEntry called ===");
-  console.log("Collection ID:", id);
-  console.log("Req Body:", JSON.stringify(payload, null, 2));
-
   if (!project) return res.status(400).json({ error: "Project not found on request" });
 
   let collection;
@@ -303,8 +299,6 @@ export const publicCreateEntry = asyncHandler(async (req, res) => {
     data: cleanedData,
     createdBy: req.apiKey?.user, // Using API key user
   });
-
-  console.log("newData saved:", JSON.stringify(newData, null, 2));
 
   const { triggerWebhook } = await import("../../webhookService.js");
   triggerWebhook("entry.created", { _id: newData._id, ...newData.data, createdAt: newData.createdAt, updatedAt: newData.updatedAt }, project._id).catch(console.error);

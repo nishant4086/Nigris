@@ -1,15 +1,15 @@
 export async function sendTemplate(client, { template, to, variables }) {
-  const response = await client.request("/mail/send", {
+  return client.request({
     method: "POST",
-    body: JSON.stringify({ template, to, variables }),
+    url: "/mail/send",
+    data: { template, to, variables },
   });
-  return response;
 }
 
 export async function sendDirect(client, { to, subject, html }) {
-  const response = await client.request("/mail/send-direct", {
+  return client.request({
     method: "POST",
-    body: JSON.stringify({ to, subject, html }),
+    url: "/mail/send-direct",
+    data: { to, subject, html },
   });
-  return response;
 }

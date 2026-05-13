@@ -1,4 +1,5 @@
 import axios from "axios";
+import LRUMap from "./utils/LRUMap.js";
 
 const DEFAULT_BASE_URL = "https://nigris-1.onrender.com/api/public";
 const DEFAULT_TIMEOUT = 10000;
@@ -63,9 +64,11 @@ export default class NigrisClient {
 
     this.baseURL = baseURL;
     this.timeout = timeout;
-    this.schemaCache = new Map();
-    this.entryCollectionCache = new Map();
-    this.entryCache = new Map();
+    const cacheMax = Number.isFinite(options.cacheMax) && options.cacheMax > 0 ? options.cacheMax : 500;
+    const cacheTTL = Number.isFinite(options.cacheTTL) && options.cacheTTL >= 0 ? options.cacheTTL : 5 * 60 * 1000;
+    this.schemaCache = new LRUMap(cacheMax, cacheTTL);
+    this.entryCollectionCache = new LRUMap(cacheMax, cacheTTL);
+    this.entryCache = new LRUMap(cacheMax, cacheTTL);
   }
 
   async request(config) {

@@ -27,23 +27,52 @@ import {
 import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
+
+// 🛡️ Auth-specific rate limiters (brute force protection)
+// Disabled in test environment to avoid blocking Jest suites
+const isTest = process.env.NODE_ENV === "test";
+
+const signupLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: isTest ? 1000 : 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many signup attempts. Please try again later." },
+});
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: isTest ? 1000 : 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many login attempts. Please try again later." },
+});
+
+const passwordResetLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: isTest ? 1000 : 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many password reset attempts. Please try again later." },
+});
+
 const resendVerificationLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 5,
+  max: isTest ? 1000 : 5,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Too many verification email requests. Please try again later." },
 });
 
 // 📧 Standard Auth
-router.post("/signup", signup);
-router.post("/register", signup);
+router.post("/signup", signupLimiter, signup);
+router.post("/register", signupLimiter, signup);
 router.get("/verify-email/:token", verifyEmail);
 router.post("/resend-verification", resendVerificationLimiter, resendVerificationEmail);
-router.post("/login", login);
+router.post("/login", loginLimiter, login);
 router.post("/logout", logout);
-router.post("/forgot-password", forgotPassword);
-router.post("/reset-password", resetPassword);
+router.post("/forgot-password", passwordResetLimiter, forgotPassword);
+router.post("/reset-password", passwordResetLimiter, resetPassword);
 
 // 🔐 MFA Routes
 router.post("/mfa/verify-login", verifyMfaLogin);

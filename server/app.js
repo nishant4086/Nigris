@@ -92,7 +92,7 @@ if (mongoSessionUri) {
 
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "nigris_secret_key",
+    secret: process.env.SESSION_SECRET || "nigris_dev_secret_key",
     resave: false,
     saveUninitialized: false,
     store: store || undefined,
@@ -110,13 +110,23 @@ app.use(passport.session());
 
 
 // ================== SECURITY ==================
+// Per-request nonce for CSP script-src (replaces unsafe-inline)
+app.use((req, res, next) => {
+  res.locals.cspNonce = crypto.randomBytes(16).toString("base64");
+  next();
+});
+
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "https://checkout.razorpay.com"],
+        scriptSrc: [
+          "'self'",
+          (req, res) => `'nonce-${res.locals.cspNonce}'`,
+          "https://checkout.razorpay.com",
+        ],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
         connectSrc: ["'self'", "https://api.stripe.com"],
