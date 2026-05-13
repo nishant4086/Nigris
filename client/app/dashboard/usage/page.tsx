@@ -14,7 +14,7 @@ import LiveIndicator from "@/components/usage/LiveIndicator";
 import AlertBanner, { AlertType } from "@/components/usage/AlertBanner";
 
 interface SummaryData {
-  totalUsage: number;
+  totalRequests: number;
   totalLimit: number;
   remaining: number;
   activeKeys: number;
