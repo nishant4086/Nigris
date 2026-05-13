@@ -1,4 +1,3 @@
-console.log("Loading smtpController.js...");
 import SmtpConfig from "../../models/SmtpConfig.js";
 import { encryptPassword } from "../../utils/smtpCrypto.js";
 import mailService from "../../services/mailService.js";

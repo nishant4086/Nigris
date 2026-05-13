@@ -52,17 +52,12 @@ const allowedOrigins = [
     : [])
 ];
 
-console.log("Allowed Origins:", allowedOrigins);
-
 const corsOptions = {
   origin: (origin, callback) => {
-    console.log("Incoming Origin:", origin);
-
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.log("Blocked by CORS:", origin);
-      callback(null, false); // ❗ error throw नहीं करना
+      callback(null, false);
     }
   },
   credentials: true,
@@ -146,12 +141,14 @@ app.use(
 );
 
 // ================== 📊 OBSERVABILITY ==================
+const isTest = process.env.NODE_ENV === "test";
 const logger = pino({
-  level: process.env.LOG_LEVEL || "info",
+  level: isTest ? "silent" : (process.env.LOG_LEVEL || "info"),
 });
 
 app.use(pinoHttp({
   logger,
+  autoLogging: !isTest,
   genReqId: (req) => req.headers["x-request-id"] || crypto.randomUUID(),
   serializers: {
     req: (req) => ({
