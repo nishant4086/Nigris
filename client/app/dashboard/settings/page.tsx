@@ -26,6 +26,7 @@ interface User {
   email: string;
   role: string;
   avatar?: string;
+  plan: string;
 }
 
 export default function SettingsPage() {
