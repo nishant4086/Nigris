@@ -29,9 +29,9 @@ async function runAdvancedTests() {
   let jwt2, proj2, key2;
 
   // USER 1 Setup (verified-user flow)
-  let res = await axios.post(`${BASE_URL}/auth/signup`, { name: "User 1", email: email1, password: "Password123!", confirmPassword: "Password123!" });
+  await axios.post(`${BASE_URL}/auth/signup`, { name: "User 1", email: email1, password: "Password123!", confirmPassword: "Password123!" });
   await User.updateOne({ email: email1 }, { emailVerified: true });
-  res = await axios.post(`${BASE_URL}/auth/login`, { email: email1, password: "Password123!" });
+  let res = await axios.post(`${BASE_URL}/auth/login`, { email: email1, password: "Password123!" });
   jwt1 = res.data.token;
   res = await axios.post(`${BASE_URL}/projects`, { name: "Project 1" }, { headers: { Authorization: `Bearer ${jwt1}` } });
   proj1 = res.data._id;
@@ -41,7 +41,7 @@ async function runAdvancedTests() {
   key1 = res.data.key;
 
   // USER 2 Setup (verified-user flow)
-  res = await axios.post(`${BASE_URL}/auth/signup`, { name: "User 2", email: email2, password: "Password123!", confirmPassword: "Password123!" });
+  await axios.post(`${BASE_URL}/auth/signup`, { name: "User 2", email: email2, password: "Password123!", confirmPassword: "Password123!" });
   await User.updateOne({ email: email2 }, { emailVerified: true });
   res = await axios.post(`${BASE_URL}/auth/login`, { email: email2, password: "Password123!" });
   jwt2 = res.data.token;

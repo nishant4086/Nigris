@@ -17,7 +17,9 @@ async function runTests() {
   await User.deleteMany({ email: email1 });
   try {
     await mongoose.connection.collection("usages").drop();
-  } catch(e) {}
+  } catch(e) {
+    // Collection might not exist
+  }
 
   let jwt1, proj1, key1, colSlug1;
   await axios.post(`${BASE_URL}/auth/signup`, { name: "Usage User", email: email1, password: "Password123!", confirmPassword: "Password123!" });
@@ -48,7 +50,9 @@ async function runTests() {
   for (let i = 0; i < 5; i++) {
     try {
       await axios.get(`${BASE_URL}/public/entries/invalid123`, keyConf);
-    } catch(e) {}
+    } catch(e) {
+      // Expected to fail for usage tracking test
+    }
   }
 
   // Wait for async usage tracking

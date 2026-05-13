@@ -72,7 +72,7 @@ class MailService {
       log.error = error.message;
       await log.save();
 
-      throw new Error(`Failed to send email: ${error.message}`);
+      throw new Error(`Failed to send email: ${error.message}`, { cause: error });
     }
   }
 
@@ -130,7 +130,7 @@ class MailService {
       log.status = "failed";
       log.error = error.message;
       await log.save();
-      throw new Error(`Failed to send email: ${error.message}`);
+      throw new Error(`Failed to send email: ${error.message}`, { cause: error });
     }
   }
 
@@ -157,7 +157,7 @@ class MailService {
       await transporter.verify();
       return { success: true, message: "SMTP connection successful" };
     } catch (error) {
-      throw new Error(`SMTP connection failed: ${error.message}`);
+      throw new Error(`SMTP connection failed: ${error.message}`, { cause: error });
     }
   }
 }

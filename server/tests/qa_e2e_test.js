@@ -33,11 +33,11 @@ async function runTests() {
   const testEmail = "qa_e2e@test.com";
   await User.deleteOne({ email: testEmail });
   
-  let jwt = "";
+  let jwt;
   let projectId = "";
   let apiKey = "";
   let collectionSlug = "";
-  let entryId = "";
+  let entryId;
 
   try {
     // 1. AUTH (verified-user flow)
@@ -196,7 +196,9 @@ async function runTests() {
       } catch (e) {
         logStatus("9", "Edge Cases", "PASS", `Caught bad request: ${e.response?.data?.error || e.message}`);
       }
-    } catch (e) {}
+    } catch (e) {
+      // Ignored for test purposes
+    }
 
     // 10. PERFORMANCE
     try {
