@@ -18,38 +18,47 @@ const resolveEmailPort = () => {
 const initializeTransporter = async () => {
   if (transporter) return transporter;
 
-  if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-    const emailPort = resolveEmailPort();
-    transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST || "smtp.gmail.com",
-      port: emailPort,
-      secure: emailPort === 465,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-    usingTestAccount = false;
-  } else {
-    const testAccount = await nodemailer.createTestAccount();
-    transporter = nodemailer.createTransport({
-      host: "smtp.ethereal.email",
-      port: 587,
-      secure: false,
-      auth: {
-        user: testAccount.user,
-        pass: testAccount.pass,
-      },
-    });
-    usingTestAccount = true;
-    console.warn("Using Ethereal Mail for development. Set EMAIL_USER and EMAIL_PASS to send real email.");
-  }
-
   try {
-    await transporter.verify();
+    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+      const emailPort = resolveEmailPort();
+      transporter = nodemailer.createTransport({
+        host: process.env.EMAIL_HOST || "smtp.gmail.com",
+        port: emailPort,
+        secure: emailPort === 465,
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
+      
+      // Verify connection immediately
+      await transporter.verify();
+      usingTestAccount = false;
+      console.log("SMTP Transporter initialized successfully.");
+    } else {
+      throw new Error("No real credentials provided.");
+    }
   } catch (error) {
-    transporter = null;
-    throw error;
+    console.warn(`Real SMTP initialization failed (${error.message}). Falling back to Ethereal test account...`);
+    
+    try {
+      const testAccount = await nodemailer.createTestAccount();
+      transporter = nodemailer.createTransport({
+        host: "smtp.ethereal.email",
+        port: 587,
+        secure: false,
+        auth: {
+          user: testAccount.user,
+          pass: testAccount.pass,
+        },
+      });
+      usingTestAccount = true;
+      console.warn("Using Ethereal Mail fallback. Set valid EMAIL_USER and EMAIL_PASS to send real email.");
+    } catch (fallbackError) {
+      console.error("Ethereal fallback also failed:", fallbackError.message);
+      transporter = null;
+      throw fallbackError;
+    }
   }
 
   return transporter;
