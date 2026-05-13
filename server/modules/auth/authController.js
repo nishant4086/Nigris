@@ -4,7 +4,11 @@ import bcrypt from "bcryptjs";
 import User from "../../models/User.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { generateToken, sendTokenResponse } from "../../utils/tokenUtils.js";
-import { sendVerificationEmail, sendResetPasswordEmail } from "../../utils/emailService.js";
+import { 
+  sendVerificationEmail, 
+  sendResetPasswordEmail, 
+  sendWelcomeEmail 
+} from "../../utils/emailService.js";
 import {
   validateEmail,
   validateName,
@@ -120,6 +124,14 @@ export const verifyEmail = asyncHandler(async (req, res) => {
   user.verificationToken = undefined;
   user.verificationTokenExpiry = undefined;
   await user.save();
+
+  // Send Welcome Email
+  try {
+    await sendWelcomeEmail(user.email, user.name);
+  } catch (error) {
+    console.error("[Welcome Email Failed]:", error.message);
+    // Don't block verification if welcome email fails
+  }
 
   res.json({ message: "Email verified successfully. You can now log in." });
 });

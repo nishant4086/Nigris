@@ -1,140 +1,134 @@
+import { Resend } from 'resend';
 import nodemailer from "nodemailer";
+import { 
+  verificationTemplate, 
+  passwordResetTemplate, 
+  welcomeTemplate 
+} from './emailTemplates.js';
 
-let transporter;
-let usingTestAccount = false;
+let resend;
+let testTransporter;
 
-const resolveFromAddress = () => {
-  if (process.env.EMAIL_FROM) return process.env.EMAIL_FROM;
-
-  const fallbackAddress = process.env.EMAIL_USER || "noreply@nigris.com";
-  return `"Nigris" <${fallbackAddress}>`;
-};
-
-const resolveEmailPort = () => {
-  const port = Number(process.env.EMAIL_PORT);
-  return Number.isInteger(port) && port > 0 ? port : 587;
-};
-
-const initializeTransporter = async () => {
-  if (transporter) return transporter;
-
-  try {
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-      const emailPort = resolveEmailPort();
-      transporter = nodemailer.createTransport({
-        host: process.env.EMAIL_HOST || "smtp.gmail.com",
-        port: emailPort,
-        secure: emailPort === 465,
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
-        },
-      });
-      
-      // Verify connection immediately
-      await transporter.verify();
-      usingTestAccount = false;
-      console.log("SMTP Transporter initialized successfully.");
-    } else {
-      throw new Error("No real credentials provided.");
-    }
-  } catch (error) {
-    console.warn(`Real SMTP initialization failed (${error.message}). Falling back to Ethereal test account...`);
-    
-    try {
-      const testAccount = await nodemailer.createTestAccount();
-      transporter = nodemailer.createTransport({
-        host: "smtp.ethereal.email",
-        port: 587,
-        secure: false,
-        auth: {
-          user: testAccount.user,
-          pass: testAccount.pass,
-        },
-      });
-      usingTestAccount = true;
-      console.warn("Using Ethereal Mail fallback. Set valid EMAIL_USER and EMAIL_PASS to send real email.");
-    } catch (fallbackError) {
-      console.error("Ethereal fallback also failed:", fallbackError.message);
-      transporter = null;
-      throw fallbackError;
-    }
-  }
-
-  return transporter;
-};
-
-if (process.env.NODE_ENV !== "test") {
-  initializeTransporter().catch((error) => {
-    console.error("Email transporter initialization failed:", error);
-  });
+// Initialize Resend
+if (process.env.RESEND_API_KEY) {
+  resend = new Resend(process.env.RESEND_API_KEY);
+  console.log("==> 📧 Resend Email Service initialized");
+} else if (process.env.NODE_ENV !== "production") {
+  console.warn("==> ⚠️ RESEND_API_KEY missing. Falling back to Ethereal for development.");
 }
 
-const sendMail = async (message) => {
-  if (process.env.NODE_ENV === "test") {
-    return { accepted: [message.to], messageId: "test-message-id" };
+/**
+ * Reusable send email function
+ * @param {Object} options
+ * @param {string} options.to - Recipient email
+ * @param {string} options.subject - Email subject
+ * @param {string} options.html - HTML content
+ * @param {string} [options.text] - Plain text fallback
+ */
+export const sendEmail = async ({ to, subject, html, text }) => {
+  // 1. Validation
+  if (!to || !subject || !html) {
+    throw new Error("Missing required email fields (to, subject, html)");
   }
 
-  const activeTransporter = await initializeTransporter();
-  const info = await activeTransporter.sendMail({
-    from: resolveFromAddress(),
-    ...message,
-  });
+  const from = process.env.EMAIL_FROM || "Nigris <onboarding@resend.dev>";
 
-  if (usingTestAccount) {
-    const previewUrl = nodemailer.getTestMessageUrl(info);
-    if (previewUrl) {
-      console.log("Preview URL: %s", previewUrl);
+  // 2. Production/Staging: Use Resend
+  if (resend) {
+    try {
+      const { data, error } = await resend.emails.send({
+        from,
+        to,
+        subject,
+        html,
+        text: text || "Please view this email in an HTML-compatible client.",
+      });
+
+      if (error) {
+        console.error("[Resend Error]:", error);
+        throw new Error(`Failed to send email via Resend: ${error.message}`);
+      }
+
+      console.log(`[Email Sent] ID: ${data.id} to ${to}`);
+      return data;
+    } catch (err) {
+      console.error("[Email Service Failure]:", err.message);
+      throw err;
     }
   }
 
-  return info;
+  // 3. Development Fallback: Use Ethereal
+  if (process.env.NODE_ENV !== "production") {
+    try {
+      if (!testTransporter) {
+        const testAccount = await nodemailer.createTestAccount();
+        testTransporter = nodemailer.createTransport({
+          host: "smtp.ethereal.email",
+          port: 587,
+          secure: false,
+          auth: {
+            user: testAccount.user,
+            pass: testAccount.pass,
+          },
+        });
+      }
+
+      const info = await testTransporter.sendMail({
+        from: `"Dev Nigris" <${testTransporter.options.auth.user}>`,
+        to,
+        subject,
+        html,
+        text: text || "HTML fallback",
+      });
+
+      const previewUrl = nodemailer.getTestMessageUrl(info);
+      console.log(`[Dev Email] Preview URL: ${previewUrl}`);
+      return { id: info.messageId, previewUrl };
+    } catch (err) {
+      console.error("[Ethereal Fallback Failure]:", err.message);
+      throw err;
+    }
+  }
+
+  throw new Error("Email service not configured (RESEND_API_KEY missing)");
 };
 
+/**
+ * Send Verification Email
+ */
 export const sendVerificationEmail = async (to, token) => {
   const url = `${process.env.APP_BASE_URL || "https://nigris.vercel.app"}/verify-email/${token}`;
-
-  return sendMail({
+  
+  return sendEmail({
     to,
     subject: "Verify your email - Nigris",
-    text: [
-      "Welcome to Nigris!",
-      "",
-      "Verify your email address to activate your account:",
-      url,
-      "",
-      "This link will expire in 24 hours.",
-    ].join("\n"),
-    html: `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #1e293b;">Welcome to Nigris!</h2>
-        <p>Please click the button below to verify your email address and activate your account.</p>
-        <div style="margin: 30px 0;">
-          <a href="${url}" style="background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">Verify Email</a>
-        </div>
-        <p style="color: #334155; font-size: 14px;">If the button does not work, copy and paste this link into your browser:<br>${url}</p>
-        <p style="color: #64748b; font-size: 14px;">This link will expire in 24 hours.</p>
-      </div>
-    `,
+    html: verificationTemplate(url),
+    text: `Welcome to Nigris! Verify your email at: ${url}`
   });
 };
 
+/**
+ * Send Password Reset Email
+ */
 export const sendResetPasswordEmail = async (to, token) => {
   const url = `${process.env.APP_BASE_URL || "https://nigris.vercel.app"}/reset-password?token=${token}`;
-
-  return sendMail({
+  
+  return sendEmail({
     to,
     subject: "Reset your password - Nigris",
-    html: `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #1e293b;">Reset Your Password</h2>
-        <p>You requested a password reset. Click the button below to choose a new password.</p>
-        <div style="margin: 30px 0;">
-          <a href="${url}" style="background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">Reset Password</a>
-        </div>
-        <p style="color: #64748b; font-size: 14px;">If you didn't request this, you can safely ignore this email.</p>
-        <p style="color: #64748b; font-size: 14px;">This link will expire in 1 hour.</p>
-      </div>
-    `,
+    html: passwordResetTemplate(url),
+    text: `You requested a password reset. Reset it here: ${url}`
+  });
+};
+
+/**
+ * Send Welcome Email
+ */
+export const sendWelcomeEmail = async (to, name) => {
+  return sendEmail({
+    to,
+    subject: "Welcome to Nigris!",
+    html: welcomeTemplate(name),
+    text: `Welcome to Nigris, ${name}! We're thrilled to have you on board.`
   });
 };

@@ -20,22 +20,22 @@ process.on("unhandledRejection", (err) => {
 });
 
 // ─── STARTUP ───────────────────────────────────
+// 1. Start Listening Immediately (Crucial for Render Port Detection)
+const server = app.listen(PORT, () => {
+  console.log(`==> 🚀 Nigris Server is listening on port ${PORT}`);
+  console.log(`==> 📡 Binding to 0.0.0.0 for Render compatibility`);
+});
+
 const startServer = async () => {
   try {
-    // 1. Connect to Database
+    // 2. Connect to Database in the background
     await connectDB();
-    
-    // 2. Start Listening
-    const server = app.listen(PORT, () => {
-      console.log(`==> 🚀 Nigris Server is live!`);
-      console.log(`==> 📡 Listening on port ${PORT}`);
-      console.log(`==> 🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-    });
+    console.log("==> ✅ Database connected successfully");
 
     // ─── GRACEFUL SHUTDOWN ───────────────────────────────────
     const shutdown = async (signal) => {
       console.log(`\n${signal} received. Starting graceful shutdown...`);
-      
+
       server.close(() => {
         console.log("HTTP server closed.");
       });
