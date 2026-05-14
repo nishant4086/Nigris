@@ -71,28 +71,36 @@ export const signup = asyncHandler(async (req, res) => {
     verificationTokenExpiry: expiresAt,
   });
 
-  try {
-    const skipVerification = process.env.SKIP_EMAIL_VERIFICATION === "true";
-    if (skipVerification) {
+  let emailSent = false;
+  const skipVerification = process.env.SKIP_EMAIL_VERIFICATION === "true";
+
+  if (skipVerification) {
+    user.emailVerified = true;
+    user.verificationToken = undefined;
+    user.verificationTokenExpiry = undefined;
+    await user.save();
+  } else {
+    try {
+      await sendVerificationEmail(user.email, verificationToken);
+      emailSent = true;
+    } catch (error) {
+      console.error("Failed to send verification email:", error.message);
+      // Auto-verify so the user isn't permanently locked out
       user.emailVerified = true;
       user.verificationToken = undefined;
       user.verificationTokenExpiry = undefined;
       await user.save();
-    } else {
-      await sendVerificationEmail(user.email, verificationToken);
     }
-  } catch (error) {
-    console.error("Failed to send verification email:", error.message);
-    // In production, we don't want to block signup if email fails but fallback was triggered
-    // However, if we're here, it means even the fallback failed or something else went wrong.
-    // We'll let the user be created anyway, they can try resending later.
   }
 
-  res.status(201).json({
-    message: user.emailVerified 
-      ? "Account created successfully" 
-      : "Account created. Check your email to verify your account (if email service is unavailable, contact support).",
-  });
+  let message;
+  if (emailSent) {
+    message = "Account created! Please check your email and click the verification link to activate your account.";
+  } else if (user.emailVerified) {
+    message = "Account created successfully. You can now log in.";
+  }
+
+  res.status(201).json({ message });
 });
 
 export const verifyEmail = asyncHandler(async (req, res) => {
