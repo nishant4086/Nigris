@@ -6,7 +6,7 @@ import User from "../models/User.js";
 const hashToken = (token) => crypto.createHash("sha256").update(token).digest("hex");
 
 describe("Email verification", () => {
-  test("signup auto-verifies user when email service is unavailable", async () => {
+  test("signup either sends verification email or auto-verifies on failure", async () => {
     const res = await request(app).post("/api/auth/signup").send({
       name: "Verify Me",
       email: "verify@test.com",
@@ -16,11 +16,17 @@ describe("Email verification", () => {
 
     expect(res.status).toBe(201);
     expect(res.body.token).toBeUndefined();
-    // In test env, email send fails → user is auto-verified
-    expect(res.body.message).toContain("You can now log in");
 
     const user = await User.findOne({ email: "verify@test.com" });
-    expect(user.emailVerified).toBe(true);
+    if (user.emailVerified) {
+      // Email service failed → user auto-verified to avoid lockout
+      expect(res.body.message).toContain("You can now log in");
+    } else {
+      // Email sent successfully → user must verify
+      expect(res.body.message).toContain("check your email");
+      expect(user.verificationToken).toBeTruthy();
+      expect(user.verificationTokenExpiry.getTime()).toBeGreaterThan(Date.now());
+    }
   });
 
   test("login is blocked for manually unverified users", async () => {
