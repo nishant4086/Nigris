@@ -5,21 +5,26 @@ import asyncHandler from "../../utils/asyncHandler.js";
 
 const sanitizeMailError = (error) => {
   const msg = error.message || "";
-  if (error.code === "EAUTH" || msg.includes("auth")) return "SMTP authentication failed. Check project SMTP settings.";
-  if (error.code === "ECONNREFUSED" || msg.includes("ECONNREFUSED")) return "Mail server connection refused.";
-  if (error.code === "ETIMEDOUT" || msg.includes("timeout")) return "Mail server timed out.";
+  if (msg.includes("No active SMTP")) return "No active SMTP configuration found for this project. Please configure SMTP in your project dashboard before sending emails.";
+  if (error.code === "EAUTH" || msg.includes("auth")) return "SMTP authentication failed. Check your SMTP username and password in project settings.";
+  if (error.code === "ECONNREFUSED" || msg.includes("ECONNREFUSED")) return "Mail server connection refused. Verify your SMTP host and port.";
+  if (error.code === "ETIMEDOUT" || msg.includes("timeout")) return "Mail server timed out. Check your SMTP host and port.";
   if (msg.includes("No recipients") || msg.includes("recipient")) return "Invalid recipient address.";
-  return "Email delivery failed. Please check your configuration.";
+  if (msg.includes("decrypt") || msg.includes("cipher")) return "SMTP credentials are corrupted. Please re-save your SMTP configuration.";
+  return "Email delivery failed. Please check your SMTP configuration.";
 };
 
 export const sendTemplatedEmail = asyncHandler(async (req, res) => {
   const { template: slug, to, variables } = req.body;
   const projectId = req.project._id; // Set by apiKeyMiddleware
 
+  if (!slug) return res.status(400).json({ error: "'template' (slug) is required." });
+  if (!to) return res.status(400).json({ error: "'to' (recipient email) is required." });
+
   const template = await EmailTemplate.findOne({ project: projectId, slug });
 
   if (!template) {
-    return res.status(404).json({ error: "Email template not found" });
+    return res.status(404).json({ error: `Email template '${slug}' not found. Create it in your project dashboard first.` });
   }
 
   try {
@@ -32,7 +37,8 @@ export const sendTemplatedEmail = asyncHandler(async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error("[Mail] sendTemplatedEmail error:", error.message);
-    res.status(400).json({ error: sanitizeMailError(error) });
+    const status = error.message?.includes("No active SMTP") ? 422 : 400;
+    res.status(status).json({ error: sanitizeMailError(error) });
   }
 });
 
@@ -61,7 +67,12 @@ export const testSendTemplate = asyncHandler(async (req, res) => {
 export const sendDirectEmail = asyncHandler(async (req, res) => {
   const { to, subject, html } = req.body;
   const projectId = req.project?._id || req.body.projectId;
-  
+
+  if (!to) return res.status(400).json({ error: "'to' (recipient email) is required." });
+  if (!subject) return res.status(400).json({ error: "'subject' is required." });
+  if (!html) return res.status(400).json({ error: "'html' (email body) is required." });
+  if (!projectId) return res.status(400).json({ error: "Could not determine project. Ensure you are using a valid API key." });
+
   try {
     const result = await mailService.sendDirectEmail({
       projectId,
@@ -72,7 +83,8 @@ export const sendDirectEmail = asyncHandler(async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error("[Mail] sendDirectEmail error:", error.message);
-    res.status(400).json({ error: sanitizeMailError(error) });
+    const status = error.message?.includes("No active SMTP") ? 422 : 400;
+    res.status(status).json({ error: sanitizeMailError(error) });
   }
 });
 
