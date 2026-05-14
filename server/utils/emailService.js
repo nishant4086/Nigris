@@ -46,6 +46,21 @@ export const sendEmail = async ({ to, subject, html, text }) => {
 
       if (error) {
         console.error("[Resend Error]:", error);
+        const msg = error.message || "";
+        if (msg.includes("verify a domain") || msg.includes("testing emails")) {
+          console.error(
+            "\n[Resend] ⚠️  You're using Resend's default sender (onboarding@resend.dev),\n" +
+            "    which can ONLY send to your own Resend account email.\n" +
+            "    To send to other recipients:\n" +
+            "      1. Verify a domain at https://resend.com/domains\n" +
+            "      2. Set EMAIL_FROM=Nigris <noreply@yourdomain.com> in .env\n" +
+            "      3. Restart the server\n"
+          );
+          throw new Error(
+            "Email service requires domain verification. " +
+            "Verify a domain at resend.com/domains and set EMAIL_FROM in .env."
+          );
+        }
         throw new Error(`Failed to send email via Resend: ${error.message}`);
       }
 
