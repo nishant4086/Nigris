@@ -117,15 +117,25 @@ export default function SecuritySettings() {
 
   const registerPasskey = async () => {
     setPasskeyLoading(true);
+    setError("");
     try {
       const optionsRes = await api.post("/auth/passkey/register-options");
-      const attestation = await startRegistration(optionsRes.data);
+      let attestation;
+      try {
+        attestation = await startRegistration({ optionsJSON: optionsRes.data });
+      } catch (browserErr) {
+        const e = browserErr as Error;
+        console.error("[Passkey] Browser error:", e);
+        setError(`Browser rejected passkey: ${e.name || ""} ${e.message || ""}`.trim());
+        return;
+      }
       await api.post("/auth/passkey/register-verify", { body: attestation });
       setSuccess(true);
       await refreshStatus();
     } catch (err) {
-      console.error(err);
-      setError("Passkey registration failed");
+      const e = err as { response?: { data?: { error?: string } }; message?: string };
+      console.error("[Passkey] Registration failed:", err);
+      setError(e.response?.data?.error || e.message || "Passkey registration failed");
     } finally {
       setPasskeyLoading(false);
     }

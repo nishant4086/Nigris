@@ -136,7 +136,7 @@ export function AuthForm({ defaultMode = "login" }: { defaultMode?: "login" | "s
     setLoading(true);
     try {
       const options = await api.post("/auth/passkey/login-options", { email });
-      const assertion = await startAuthentication(options.data);
+      const assertion = await startAuthentication({ optionsJSON: options.data });
       const res = await api.post("/auth/passkey/login-verify", { email, body: assertion });
       localStorage.setItem("token", res.data.token);
       if (res.data.user?.role === "admin") {
