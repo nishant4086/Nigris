@@ -10,7 +10,12 @@ import { generateToken, sendTokenResponse } from "../../utils/tokenUtils.js";
 
 const rpName = "Nigris SaaS";
 const rpID = process.env.RP_ID || "localhost";
-const origin = process.env.FRONTEND_URL || "http://localhost:3000";
+// Support multiple origins (apex + www, dev + preview) via comma-separated FRONTEND_URL
+const origins = (process.env.FRONTEND_URL || "http://localhost:3000")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+const expectedOrigin = origins.length === 1 ? origins[0] : origins;
 
 // 🆔 REGISTRATION
 export const generatePasskeyRegistrationOptions = asyncHandler(async (req, res) => {
@@ -38,17 +43,27 @@ export const generatePasskeyRegistrationOptions = asyncHandler(async (req, res) 
 
 export const verifyPasskeyRegistration = asyncHandler(async (req, res) => {
   const userId = req.user?.userId;
-  const { body } = req.body;
+  // Frontend may send the registration response as the body itself, or wrapped in { body: ... }
+  const registrationResponse = req.body?.body || req.body;
   const user = await User.findById(userId);
 
   const expectedChallenge = req.session.currentChallenge;
+  if (!expectedChallenge) {
+    return res.status(400).json({ error: "No active passkey challenge. Please restart registration." });
+  }
 
-  const verification = await verifyRegistrationResponse({
-    response: body,
-    expectedChallenge,
-    expectedOrigin: origin,
-    expectedRPID: rpID,
-  });
+  let verification;
+  try {
+    verification = await verifyRegistrationResponse({
+      response: registrationResponse,
+      expectedChallenge,
+      expectedOrigin,
+      expectedRPID: rpID,
+    });
+  } catch (err) {
+    console.error("[Passkey] Registration verification error:", err.message);
+    return res.status(400).json({ error: `Passkey verification failed: ${err.message}` });
+  }
 
   if (verification.verified) {
     const { registrationInfo } = verification;
@@ -66,6 +81,9 @@ export const verifyPasskeyRegistration = asyncHandler(async (req, res) => {
   } else {
     res.status(400).json({ error: "Passkey verification failed" });
   }
+
+  // Clear challenge after use
+  delete req.session.currentChallenge;
 });
 
 // 🔓 AUTHENTICATION
@@ -115,18 +133,24 @@ export const verifyPasskeyAuthentication = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: "Passkey not found" });
   }
 
-  const verification = await verifyAuthenticationResponse({
-    response: body,
-    expectedChallenge,
-    expectedOrigin: origin,
-    expectedRPID: rpID,
-    credential: {
-      id: passkey.credentialID,
-      publicKey: new Uint8Array(Buffer.from(passkey.publicKey, "base64url")),
-      counter: passkey.counter,
-      transports: passkey.transports && passkey.transports.length > 0 ? passkey.transports : undefined,
-    },
-  });
+  let verification;
+  try {
+    verification = await verifyAuthenticationResponse({
+      response: body,
+      expectedChallenge,
+      expectedOrigin,
+      expectedRPID: rpID,
+      credential: {
+        id: passkey.credentialID,
+        publicKey: new Uint8Array(Buffer.from(passkey.publicKey, "base64url")),
+        counter: passkey.counter,
+        transports: passkey.transports && passkey.transports.length > 0 ? passkey.transports : undefined,
+      },
+    });
+  } catch (err) {
+    console.error("[Passkey] Authentication verification error:", err.message);
+    return res.status(401).json({ error: `Authentication failed: ${err.message}` });
+  }
 
   if (verification.verified) {
     // Update counter
