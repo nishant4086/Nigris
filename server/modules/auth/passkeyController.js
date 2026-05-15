@@ -6,11 +6,10 @@ import {
 } from "@simplewebauthn/server";
 import User from "../../models/User.js";
 import asyncHandler from "../../utils/asyncHandler.js";
-import { generateToken, sendTokenResponse } from "../../utils/tokenUtils.js";
+import { sendTokenResponse } from "../../utils/tokenUtils.js";
 
 const rpName = "Nigris SaaS";
 const rpID = process.env.RP_ID || "localhost";
-// Support multiple origins (apex + www, dev + preview) via comma-separated FRONTEND_URL
 const origins = (process.env.FRONTEND_URL || "http://localhost:3000")
   .split(",")
   .map((o) => o.trim())
@@ -21,6 +20,7 @@ const expectedOrigin = origins.length === 1 ? origins[0] : origins;
 export const generatePasskeyRegistrationOptions = asyncHandler(async (req, res) => {
   const userId = req.user?.userId;
   const user = await User.findById(userId);
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
 
   const options = await generateRegistrationOptions({
     rpName,
@@ -34,20 +34,20 @@ export const generatePasskeyRegistrationOptions = asyncHandler(async (req, res) 
     },
   });
 
-  // Store challenge temporarily (e.g., in user doc or session)
-  // For simplicity, we'll use the user doc
-  req.session.currentChallenge = options.challenge;
+  // Persist challenge on the user document (sessions are unreliable for SPAs)
+  user.currentPasskeyChallenge = options.challenge;
+  await user.save();
 
   res.json(options);
 });
 
 export const verifyPasskeyRegistration = asyncHandler(async (req, res) => {
   const userId = req.user?.userId;
-  // Frontend may send the registration response as the body itself, or wrapped in { body: ... }
   const registrationResponse = req.body?.body || req.body;
-  const user = await User.findById(userId);
+  const user = await User.findById(userId).select("+currentPasskeyChallenge");
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
 
-  const expectedChallenge = req.session.currentChallenge;
+  const expectedChallenge = user.currentPasskeyChallenge;
   if (!expectedChallenge) {
     return res.status(400).json({ error: "No active passkey challenge. Please restart registration." });
   }
@@ -63,30 +63,26 @@ export const verifyPasskeyRegistration = asyncHandler(async (req, res) => {
   } catch (err) {
     console.error("[Passkey] Registration verification error:", err.message);
     console.error("[Passkey] Config — rpID:", rpID, "expectedOrigin:", expectedOrigin);
-    console.error("[Passkey] Response keys:", Object.keys(registrationResponse || {}));
-    console.error("[Passkey] Stack:", err.stack);
     return res.status(400).json({ error: `Passkey verification failed: ${err.message}` });
   }
 
-  if (verification.verified) {
-    const { registrationInfo } = verification;
-    const { credential } = registrationInfo;
-
-    user.passkeys.push({
-      credentialID: credential.id, // already a base64url string in v10+
-      publicKey: Buffer.from(credential.publicKey).toString("base64url"),
-      counter: credential.counter,
-      transports: credential.transports || [],
-    });
-
-    await user.save();
-    res.json({ verified: true });
-  } else {
-    res.status(400).json({ error: "Passkey verification failed" });
+  if (!verification.verified) {
+    return res.status(400).json({ error: "Passkey verification failed" });
   }
 
-  // Clear challenge after use
-  delete req.session.currentChallenge;
+  const { registrationInfo } = verification;
+  const { credential } = registrationInfo;
+
+  user.passkeys.push({
+    credentialID: credential.id,
+    publicKey: Buffer.from(credential.publicKey).toString("base64url"),
+    counter: credential.counter,
+    transports: credential.transports || [],
+  });
+  user.currentPasskeyChallenge = undefined; // single-use challenge
+  await user.save();
+
+  res.json({ verified: true });
 });
 
 // 🔓 AUTHENTICATION
@@ -112,14 +108,15 @@ export const generatePasskeyAuthenticationOptions = asyncHandler(async (req, res
     userVerification: "preferred",
   });
 
-  req.session.currentChallenge = options.challenge;
+  user.currentPasskeyChallenge = options.challenge;
+  await user.save();
 
   res.json(options);
 });
 
 export const verifyPasskeyAuthentication = asyncHandler(async (req, res) => {
   const { email, body } = req.body;
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).select("+currentPasskeyChallenge");
 
   if (!user) {
     return res.status(401).json({ error: "Authentication failed" });
@@ -129,9 +126,12 @@ export const verifyPasskeyAuthentication = asyncHandler(async (req, res) => {
     return res.status(403).json({ error: "Please verify your email before logging in" });
   }
 
-  const expectedChallenge = req.session.currentChallenge;
-  const passkey = user.passkeys.find((pk) => pk.credentialID === body.id);
+  const expectedChallenge = user.currentPasskeyChallenge;
+  if (!expectedChallenge) {
+    return res.status(400).json({ error: "No active passkey challenge. Please restart login." });
+  }
 
+  const passkey = user.passkeys.find((pk) => pk.credentialID === body.id);
   if (!passkey) {
     return res.status(400).json({ error: "Passkey not found" });
   }
@@ -155,13 +155,14 @@ export const verifyPasskeyAuthentication = asyncHandler(async (req, res) => {
     return res.status(401).json({ error: `Authentication failed: ${err.message}` });
   }
 
-  if (verification.verified) {
-    // Update counter
-    passkey.counter = verification.authenticationInfo.newCounter;
-    await user.save();
-
-    sendTokenResponse(user, 200, res);
-  } else {
-    res.status(401).json({ error: "Authentication failed" });
+  if (!verification.verified) {
+    return res.status(401).json({ error: "Authentication failed" });
   }
+
+  // Update counter and clear challenge
+  passkey.counter = verification.authenticationInfo.newCounter;
+  user.currentPasskeyChallenge = undefined;
+  await user.save();
+
+  sendTokenResponse(user, 200, res);
 });

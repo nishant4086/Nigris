@@ -122,7 +122,11 @@ const userSchema = new mongoose.Schema(
         transports: [String],
       }],
       default: []
-    }
+    },
+    currentPasskeyChallenge: {
+      type: String,
+      select: false,
+    },
   },
   { timestamps: true }
 );
