@@ -13,7 +13,15 @@ function getDepth(obj) {
   return maxDepth + 1;
 }
 
+// Routes with legitimately deep payloads (e.g. WebAuthn attestations)
+const DEPTH_CHECK_EXEMPT = [
+  "/api/auth/passkey/",
+];
+
 const depthCheckMiddleware = (req, res, next) => {
+  if (DEPTH_CHECK_EXEMPT.some((p) => req.path.startsWith(p))) {
+    return next();
+  }
   if (req.body) {
     const depth = getDepth(req.body);
     if (depth > MAX_DEPTH) {
