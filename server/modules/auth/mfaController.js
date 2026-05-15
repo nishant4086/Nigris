@@ -33,7 +33,8 @@ export const verifyAndEnableMFA = asyncHandler(async (req, res) => {
   const verified = speakeasy.totp.verify({
     secret: user.totpSecret,
     encoding: "base32",
-    token,
+    token: String(token).trim(),
+    window: 1, // allow ±30s clock drift
   });
 
   if (!verified) {
@@ -69,7 +70,8 @@ export const disableMFA = asyncHandler(async (req, res) => {
   const verified = speakeasy.totp.verify({
     secret: user.totpSecret,
     encoding: "base32",
-    token,
+    token: String(token).trim(),
+    window: 1, // allow ±30s clock drift
   });
 
   if (!verified) {
