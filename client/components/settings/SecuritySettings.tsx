@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { api } from "@/lib/api";
-import { Shield, Eye, EyeOff, Loader2, Lock, Smartphone, Fingerprint, X } from "lucide-react";
+import { Shield, Eye, EyeOff, Loader2, Lock, Smartphone, Fingerprint, X, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
 import { startRegistration } from "@simplewebauthn/browser";
 
@@ -24,8 +24,30 @@ export default function SecuritySettings() {
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
   const [mfaLoading, setMfaLoading] = useState(false);
 
+  // Disable MFA modal
+  const [isDisableModalOpen, setIsDisableModalOpen] = useState(false);
+  const [disableToken, setDisableToken] = useState("");
+
   // Passkey State
   const [passkeyLoading, setPasskeyLoading] = useState(false);
+
+  // Security status from server
+  const [mfaEnabled, setMfaEnabled] = useState(false);
+  const [passkeyCount, setPasskeyCount] = useState(0);
+
+  const refreshStatus = useCallback(async () => {
+    try {
+      const res = await api.get("/users/me");
+      setMfaEnabled(!!res.data.mfaEnabled);
+      setPasskeyCount(res.data.passkeyCount || 0);
+    } catch {
+      // ignore — user not loaded yet
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshStatus();
+  }, [refreshStatus]);
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,6 +91,22 @@ export default function SecuritySettings() {
       const res = await api.post("/auth/mfa/enable", { token: mfaToken });
       setRecoveryCodes(res.data.recoveryCodes);
       setMfaStep(2);
+      await refreshStatus();
+    } catch (err: unknown) {
+      const errorData = err as { response?: { data?: { error?: string } } };
+      alert(errorData.response?.data?.error || "Invalid MFA code");
+    } finally {
+      setMfaLoading(false);
+    }
+  };
+
+  const disableMfa = async () => {
+    setMfaLoading(true);
+    try {
+      await api.post("/auth/mfa/disable", { token: disableToken });
+      setIsDisableModalOpen(false);
+      setDisableToken("");
+      await refreshStatus();
     } catch (err: unknown) {
       const errorData = err as { response?: { data?: { error?: string } } };
       alert(errorData.response?.data?.error || "Invalid MFA code");
@@ -84,6 +122,7 @@ export default function SecuritySettings() {
       const attestation = await startRegistration(optionsRes.data);
       await api.post("/auth/passkey/register-verify", { body: attestation });
       setSuccess(true);
+      await refreshStatus();
     } catch (err) {
       console.error(err);
       setError("Passkey registration failed");
@@ -181,18 +220,40 @@ export default function SecuritySettings() {
             <Smartphone className="w-6 h-6" />
           </div>
           <div>
-            <h4 className="font-bold text-slate-900 dark:text-slate-100">Two-Factor Authentication (MFA)</h4>
-            <p className="text-xs text-slate-500 mt-0.5">Protect your account with an authenticator app.</p>
+            <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              Two-Factor Authentication (MFA)
+              {mfaEnabled && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
+                  <CheckCircle2 className="w-3 h-3" /> Active
+                </span>
+              )}
+            </h4>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {mfaEnabled
+                ? "MFA is currently protecting your account."
+                : "Protect your account with an authenticator app."}
+            </p>
           </div>
         </div>
-        <button
-          onClick={startMfaSetup}
-          disabled={mfaLoading}
-          className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2"
-        >
-          {mfaLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-          Enable MFA
-        </button>
+        {mfaEnabled ? (
+          <button
+            onClick={() => setIsDisableModalOpen(true)}
+            disabled={mfaLoading}
+            className="px-6 py-2.5 border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 text-sm font-bold rounded-xl transition-all flex items-center gap-2"
+          >
+            {mfaLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+            Disable MFA
+          </button>
+        ) : (
+          <button
+            onClick={startMfaSetup}
+            disabled={mfaLoading}
+            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2"
+          >
+            {mfaLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+            Enable MFA
+          </button>
+        )}
       </div>
 
       {/* Passkeys Card */}
@@ -202,7 +263,14 @@ export default function SecuritySettings() {
             <Fingerprint className="w-6 h-6" />
           </div>
           <div>
-            <h4 className="font-bold text-slate-900 dark:text-slate-100">Passkeys & Biometrics</h4>
+            <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              Passkeys & Biometrics
+              {passkeyCount > 0 && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 text-[10px] font-bold uppercase tracking-wider">
+                  {passkeyCount} active
+                </span>
+              )}
+            </h4>
             <p className="text-xs text-slate-500 mt-0.5">Sign in faster using TouchID, FaceID, or security keys.</p>
           </div>
         </div>
@@ -277,6 +345,36 @@ export default function SecuritySettings() {
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Disable MFA Modal */}
+      {isDisableModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+          <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="font-bold text-slate-900 dark:text-slate-100">Disable MFA</h3>
+              <button onClick={() => { setIsDisableModalOpen(false); setDisableToken(""); }} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-slate-500">Enter the 6-digit code from your authenticator app to confirm disabling MFA.</p>
+              <input
+                type="text"
+                placeholder="000000"
+                value={disableToken}
+                onChange={(e) => setDisableToken(e.target.value)}
+                className="w-full text-center text-2xl font-black tracking-[0.5em] py-3 bg-slate-50 dark:bg-slate-950/50 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl focus:ring-2 focus:ring-red-500 outline-none"
+              />
+              <button
+                onClick={disableMfa}
+                disabled={mfaLoading || disableToken.length < 6}
+                className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl shadow-lg shadow-red-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {mfaLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                Confirm & Disable
+              </button>
             </div>
           </div>
         </div>

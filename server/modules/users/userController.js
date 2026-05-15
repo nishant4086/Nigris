@@ -32,6 +32,8 @@ export const getMe = asyncHandler(async (req, res) => {
     nextBillingDate: user.nextBillingDate,
     requestLimit: plan?.requestLimit || 0,
     createdAt: user.createdAt,
+    mfaEnabled: !!user.mfaEnabled,
+    passkeyCount: user.passkeys?.length || 0,
   });
 });
 

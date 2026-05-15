@@ -62,6 +62,9 @@ export const verifyPasskeyRegistration = asyncHandler(async (req, res) => {
     });
   } catch (err) {
     console.error("[Passkey] Registration verification error:", err.message);
+    console.error("[Passkey] Config — rpID:", rpID, "expectedOrigin:", expectedOrigin);
+    console.error("[Passkey] Response keys:", Object.keys(registrationResponse || {}));
+    console.error("[Passkey] Stack:", err.stack);
     return res.status(400).json({ error: `Passkey verification failed: ${err.message}` });
   }
 
