@@ -142,7 +142,7 @@ export default function PrivacyPolicyPage() {
           <div>
             <h2 className="text-xl font-semibold text-white mb-4">Contact</h2>
             <p>For questions regarding this Privacy Policy, contact:</p>
-            <p className="mt-2"><a href="mailto:support@nigris.com" className="text-[#3b82f6] hover:underline">support@nigris.com</a></p>
+            <p className="mt-2"><a href="mailto:nigris@zoriopea.resend.app" className="text-[#3b82f6] hover:underline">nigris@zoriopea.resend.app</a></p>
           </div>
         </div>
       </section>
