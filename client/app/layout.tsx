@@ -9,8 +9,76 @@ import { Providers } from "./providers";
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
-  title: "Nigris",
-  description: "SaaS dashboard for API products",
+  metadataBase: new URL("https://nigris.app"),
+  title: {
+    default: "Nigris — Ship APIs, Databases & Authentication Instantly",
+    template: "%s | Nigris",
+  },
+  description:
+    "Nigris is the complete backend platform for API products. Build dynamic MongoDB schemas, manage scoped API keys, meter request usage, and monetize with Stripe in one dashboard.",
+  keywords: [
+    "Backend as a Service",
+    "BaaS",
+    "API Key Management",
+    "Dynamic Schemas",
+    "Usage Metering",
+    "Next.js Backend",
+    "SaaS Infrastructure",
+    "MongoDB Provisioning",
+    "Developer Tools",
+    "API Gateway",
+    "Stripe Billing Sync",
+  ],
+  authors: [{ name: "Nigris Team", url: "https://nigris.app" }],
+  creator: "Nigris Platform",
+  publisher: "Nigris Inc.",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://nigris.app",
+    siteName: "Nigris",
+    title: "Nigris — Ship APIs, Databases & Authentication Instantly",
+    description:
+      "Nigris is the complete backend platform for API products. Build dynamic MongoDB schemas, manage scoped API keys, meter request usage, and monetize with Stripe in one dashboard.",
+    images: [
+      {
+        url: "/icon.png",
+        width: 1200,
+        height: 630,
+        alt: "Nigris Platform Dashboard",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Nigris — Ship APIs, Databases & Authentication Instantly",
+    description:
+      "Nigris is the complete backend platform for API products. Build dynamic MongoDB schemas, manage scoped API keys, meter request usage, and monetize with Stripe in one dashboard.",
+    images: ["/icon.png"],
+    creator: "@nigrisapp",
+  },
+  alternates: {
+    canonical: "https://nigris.app",
+    languages: {
+      "en-US": "https://nigris.app",
+    },
+  },
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({
@@ -28,6 +96,30 @@ export default function RootLayout({
     }
   `;
 
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Nigris",
+    url: "https://nigris.app",
+    logo: "https://nigris.app/icon.png",
+    sameAs: [
+      "https://twitter.com/nigrisapp",
+      "https://github.com/nishant4086/Nigris",
+    ],
+  };
+
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Nigris",
+    url: "https://nigris.app",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: "https://nigris.app/docs?q={search_term_string}",
+      "query-input": "required name=search_term_string",
+    },
+  };
+
   return (
     <html
       lang="en"
@@ -35,9 +127,17 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head suppressHydrationWarning>
-        {/* Critical CSS for theme initialization before React hydration */}
         <style dangerouslySetInnerHTML={{ __html: themeInitCss }} suppressHydrationWarning />
-        {/* Theme class will be set by ThemeProvider during hydration */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+          suppressHydrationWarning
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+          suppressHydrationWarning
+        />
       </head>
       <body className="min-h-full flex flex-col text-slate-900 dark:text-slate-100" suppressHydrationWarning>
         <ThemeInitializer />
