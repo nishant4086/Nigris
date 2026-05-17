@@ -8,19 +8,68 @@ import User from "../../models/User.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { sendTokenResponse } from "../../utils/tokenUtils.js";
 
-const rpName = "Nigris SaaS";
-const rpID = process.env.RP_ID || "localhost";
-const origins = (process.env.FRONTEND_URL || "http://localhost:3000")
-  .split(",")
-  .map((o) => o.trim())
-  .filter(Boolean);
-const expectedOrigin = origins.length === 1 ? origins[0] : origins;
+const getWebAuthnConfig = (req) => {
+  const originHeader = req.get("origin") || req.get("referer");
+
+  let currentOrigin = "http://localhost:3000";
+  let currentRPID = process.env.RP_ID || "localhost";
+
+  if (originHeader) {
+    try {
+      const parsedUrl = new URL(originHeader);
+      currentOrigin = parsedUrl.origin;
+      currentRPID = parsedUrl.hostname;
+    } catch (err) {
+      // Ignore URL parsing errors
+    }
+  }
+
+  const allowedOrigins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://nigris.app",
+    "https://api.nigris.app",
+    "https://www.nigris.app",
+    "https://app.nigris.app",
+    "https://nigris.org",
+    "https://api.nigris.org",
+    "https://www.nigris.org",
+    "https://app.nigris.org",
+    "https://www.app.nigris.org",
+    "https://app.nigris.org",
+    "https://app.nigris.org",
+    "https://app.nigris.org",
+    ...(process.env.CLIENT_URL ? process.env.CLIENT_URL.split(",").map((o) => o.trim()) : []),
+    ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(",").map((o) => o.trim()) : [])
+  ];
+
+  const validOrigins = Array.from(new Set(allowedOrigins.filter(Boolean)));
+  const validRPIDs = Array.from(new Set(validOrigins.map((u) => {
+    try { return new URL(u).hostname; } catch (e) { return null; }
+  }).filter(Boolean)));
+
+  if (!validRPIDs.includes(currentRPID)) {
+    validRPIDs.push(currentRPID);
+  }
+  if (!validOrigins.includes(currentOrigin)) {
+    validOrigins.push(currentOrigin);
+  }
+
+  return {
+    rpName: "Nigris SaaS",
+    rpID: currentRPID,
+    expectedOrigin: validOrigins,
+    expectedRPID: validRPIDs,
+  };
+};
 
 // 🆔 REGISTRATION
 export const generatePasskeyRegistrationOptions = asyncHandler(async (req, res) => {
   const userId = req.user?.userId;
   const user = await User.findById(userId);
   if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+  const { rpName, rpID } = getWebAuthnConfig(req);
 
   const options = await generateRegistrationOptions({
     rpName,
@@ -52,17 +101,19 @@ export const verifyPasskeyRegistration = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: "No active passkey challenge. Please restart registration." });
   }
 
+  const { expectedOrigin, expectedRPID } = getWebAuthnConfig(req);
+
   let verification;
   try {
     verification = await verifyRegistrationResponse({
       response: registrationResponse,
       expectedChallenge,
       expectedOrigin,
-      expectedRPID: rpID,
+      expectedRPID,
     });
   } catch (err) {
     console.error("[Passkey] Registration verification error:", err.message);
-    console.error("[Passkey] Config — rpID:", rpID, "expectedOrigin:", expectedOrigin);
+    console.error("[Passkey] Config — expectedRPID:", expectedRPID, "expectedOrigin:", expectedOrigin);
     return res.status(400).json({ error: `Passkey verification failed: ${err.message}` });
   }
 
@@ -97,6 +148,8 @@ export const generatePasskeyAuthenticationOptions = asyncHandler(async (req, res
   if (!user.emailVerified) {
     return res.status(403).json({ error: "Please verify your email before logging in" });
   }
+
+  const { rpID } = getWebAuthnConfig(req);
 
   const options = await generateAuthenticationOptions({
     rpID,
@@ -136,13 +189,15 @@ export const verifyPasskeyAuthentication = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: "Passkey not found" });
   }
 
+  const { expectedOrigin, expectedRPID } = getWebAuthnConfig(req);
+
   let verification;
   try {
     verification = await verifyAuthenticationResponse({
       response: body,
       expectedChallenge,
       expectedOrigin,
-      expectedRPID: rpID,
+      expectedRPID,
       credential: {
         id: passkey.credentialID,
         publicKey: new Uint8Array(Buffer.from(passkey.publicKey, "base64url")),

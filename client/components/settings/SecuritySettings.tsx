@@ -46,7 +46,10 @@ export default function SecuritySettings() {
   }, []);
 
   useEffect(() => {
-    refreshStatus();
+    const run = async () => {
+      await refreshStatus();
+    };
+    void run();
   }, [refreshStatus]);
 
   const handlePasswordChange = async (e: React.FormEvent) => {

@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api, getApiErrorMessage } from "@/lib/api";
 import { ReferenceOption, FieldValue } from "@/lib/types";
-import { Plus, ArrowLeft, FileText, Search, GripVertical, Edit3, Trash2, Save, X, Eye, Pencil } from "lucide-react";
+import { Plus, ArrowLeft, FileText, Search, GripVertical, Trash2, Save, X, Eye, Pencil } from "lucide-react";
 import FieldRenderer from "@/components/collections/FieldRenderer";
 import AddFieldModal from "@/components/collections/AddFieldModal";
 import {

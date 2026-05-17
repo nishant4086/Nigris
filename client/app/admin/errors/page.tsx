@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { api } from "@/lib/api";
 import { 
   AlertCircle, 
@@ -13,12 +13,24 @@ import {
   ShieldCheck
 } from "lucide-react";
 
-export default function AdminErrorsPage() {
-  const [errors, setErrors] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedError, setSelectedError] = useState<any | null>(null);
+interface SystemErrorItem {
+  _id: string;
+  statusCode?: number;
+  method?: string;
+  route?: string;
+  message?: string;
+  stackTrace?: string;
+  traceId?: string;
+  resolved?: boolean;
+  createdAt: string;
+}
 
-  const fetchErrors = async () => {
+export default function AdminErrorsPage() {
+  const [errors, setErrors] = useState<SystemErrorItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedError, setSelectedError] = useState<SystemErrorItem | null>(null);
+
+  const fetchErrors = useCallback(async () => {
     try {
       const res = await api.get("/admin/errors");
       setErrors(res.data.errors);
@@ -27,11 +39,14 @@ export default function AdminErrorsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchErrors();
-  }, []);
+    const run = async () => {
+      await fetchErrors();
+    };
+    void run();
+  }, [fetchErrors]);
 
   const handleResolve = async (id: string) => {
     try {

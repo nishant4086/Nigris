@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { api } from "@/lib/api";
 import { toast } from "react-hot-toast";
 import GlassCard from "@/components/ui/GlassCard";
@@ -17,10 +17,10 @@ export default function TemplateEditor() {
   const [sendingTest, setSendingTest] = useState(false);
   const [isTestOpen, setIsTestOpen] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
-  const { register, handleSubmit, watch, reset, setValue } = useForm();
+  const { register, handleSubmit, reset, setValue, control } = useForm();
 
-  const htmlContent = watch("html", "");
-  const subject = watch("subject", "");
+  const htmlContent = useWatch({ control, name: "html", defaultValue: "" });
+  const subject = useWatch({ control, name: "subject", defaultValue: "" });
 
   const fetchTemplate = useCallback(async () => {
     try {

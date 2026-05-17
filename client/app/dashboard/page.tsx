@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { api } from "@/lib/api";
 import { useProjects } from "@/lib/hooks/useProjects";
 import { 
@@ -229,8 +229,8 @@ export default function Dashboard() {
     nextResetAt: null,
   });
   const [plan, setPlan] = useState("free");
-  const { data: fetchedProjects, isLoading: isProjectsLoading } = useProjects();
-  const projects = fetchedProjects || [];
+  const { data: fetchedProjects } = useProjects();
+  const projects = useMemo(() => fetchedProjects || [], [fetchedProjects]);
   const [apiKeys, setApiKeys] = useState<ApiKeyPreview[]>([]);
   const [chartData, setChartData] = useState<ChartPoint[]>([]);
   const [chartLoading, setChartLoading] = useState(true);
@@ -300,7 +300,7 @@ export default function Dashboard() {
     };
 
     load();
-  }, []);
+  }, [projects]);
 
   useEffect(() => {
     Promise.resolve().then(() => {

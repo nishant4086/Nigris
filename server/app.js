@@ -48,6 +48,8 @@ app.set("trust proxy", 1);
 // ================== ✅ CORS FIX ==================
 const allowedOrigins = [
   "http://localhost:3000",
+  "https://nigris.app",
+  "https://www.nigris.app",
   ...(process.env.CLIENT_URL
     ? process.env.CLIENT_URL.split(",").map((o) => o.trim())
     : [])

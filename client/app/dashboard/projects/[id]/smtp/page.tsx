@@ -32,7 +32,7 @@ export default function SmtpSettings() {
   const [isComposeOpen, setIsComposeOpen] = useState(false);
   const [sendingDirect, setSendingDirect] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const { register, handleSubmit, reset, watch, getValues } = useForm();
+  const { register, handleSubmit, reset, getValues } = useForm();
 
   const fetchConfigs = useCallback(async () => {
     try {
@@ -233,7 +233,7 @@ export default function SmtpSettings() {
 
           <div className="flex justify-between items-center pt-4 border-t border-slate-800">
             <div>
-              {watch("_id") && isEditing && (
+              {configs.length > 0 && isEditing && (
                 <button
                   type="button"
                   onClick={() => setIsDeleteOpen(true)}
