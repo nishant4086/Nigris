@@ -51,21 +51,12 @@ export const metadata: Metadata = {
     title: "Nigris — Ship APIs, Databases & Authentication Instantly",
     description:
       "Nigris is the complete backend platform for API products. Build dynamic MongoDB schemas, manage scoped API keys, meter request usage, and monetize with Stripe in one dashboard.",
-    images: [
-      {
-        url: "/icon.png",
-        width: 1200,
-        height: 630,
-        alt: "Nigris Platform Dashboard",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Nigris — Ship APIs, Databases & Authentication Instantly",
     description:
       "Nigris is the complete backend platform for API products. Build dynamic MongoDB schemas, manage scoped API keys, meter request usage, and monetize with Stripe in one dashboard.",
-    images: ["/icon.png"],
     creator: "@nigrisapp",
   },
   alternates: {
@@ -73,11 +64,6 @@ export const metadata: Metadata = {
     languages: {
       "en-US": "https://nigris.app",
     },
-  },
-  icons: {
-    icon: "/icon.png",
-    shortcut: "/icon.png",
-    apple: "/icon.png",
   },
 };
 
