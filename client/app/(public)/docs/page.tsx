@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
-import Link from "next/link";
+import { useState } from "react";
 import {
   BookOpen,
   Terminal,
@@ -15,7 +14,6 @@ import {
   Server,
   Copy,
   Check,
-  ChevronRight,
   Menu,
   X,
   Info,
@@ -25,16 +23,12 @@ import {
   Sliders,
   Sparkles
 } from "lucide-react";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
 
 export default function DocsPage() {
   const [activeSection, setActiveSection] = useState("overview");
   const [frameworkTab, setFrameworkTab] = useState("react");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -139,7 +133,7 @@ export default function DocsPage() {
   };
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-[#09090b] text-white pt-24 lg:pt-32">
+    <div className="min-h-screen bg-[#09090b] text-white pt-24 lg:pt-32">
       <div className="mx-auto max-w-[1440px] px-6 flex flex-col lg:flex-row gap-12">
         {/* ── Mobile Header Drawer Toggle ── */}
         <div className="lg:hidden flex items-center justify-between border-b border-[#1c1c1f] pb-4 mb-4">
