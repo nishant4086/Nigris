@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import Image from "next/image";
 import { api } from "@/lib/api";
 import { Bell, Search, Menu, LogOut, ChevronDown, Command } from "lucide-react";
 import ThemeToggle3D from "@/components/ui/ThemeToggle3D";
@@ -23,6 +24,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
   
   const [plan, setPlan] = useState("...");
   const [name, setName] = useState("");
+  const [avatar, setAvatar] = useState<string | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -42,9 +44,11 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
         const res = await api.get("/users/me");
         setPlan(res.data?.plan || "free");
         setName(res.data?.name || "User");
+        setAvatar(res.data?.avatar || null);
       } catch {
         setPlan("free");
         setName("User");
+        setAvatar(null);
       }
     };
     
@@ -65,7 +69,15 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
     };
     window.addEventListener("keydown", handleGlobalKey);
 
-    return () => window.removeEventListener("keydown", handleGlobalKey);
+    const handleProfileUpdate = () => {
+      loadProfile();
+    };
+    window.addEventListener("user-profile-updated", handleProfileUpdate);
+
+    return () => {
+      window.removeEventListener("keydown", handleGlobalKey);
+      window.removeEventListener("user-profile-updated", handleProfileUpdate);
+    };
   }, []);
 
   const logout = () => {
@@ -136,8 +148,12 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
             aria-haspopup="menu"
             aria-expanded={dropdownOpen}
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-indigo-500 text-sm font-bold text-white shadow-lg shadow-blue-500/20">
-              {name.charAt(0).toUpperCase()}
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-indigo-500 text-sm font-bold text-white shadow-lg shadow-blue-500/20 overflow-hidden">
+              {avatar ? (
+                <Image src={avatar} alt={name} width={32} height={32} className="w-full h-full object-cover" unoptimized />
+              ) : (
+                name.charAt(0).toUpperCase()
+              )}
             </div>
             <div className="hidden md:block text-left">
               <p className="text-sm font-medium text-slate-700 dark:text-slate-200 leading-none">{name}</p>

@@ -2,6 +2,11 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemeInitializer } from "@/components/ThemeInitializer";
+import { Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
+import { Providers } from "./providers";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: "Nigris",
@@ -26,7 +31,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className="h-full antialiased"
+      className={cn("h-full antialiased", "font-sans", geist.variable)}
       suppressHydrationWarning
     >
       <head suppressHydrationWarning>
@@ -37,7 +42,9 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col text-slate-900 dark:text-slate-100" suppressHydrationWarning>
         <ThemeInitializer />
         <ThemeProvider>
-          {children}
+          <Providers>
+            {children}
+          </Providers>
         </ThemeProvider>
       </body>
     </html>

@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api, getApiErrorMessage } from "@/lib/api";
 import { ReferenceOption, FieldValue } from "@/lib/types";
-import { Plus, ArrowLeft, FileText, Search, GripVertical, Edit3, Trash2, Save, X } from "lucide-react";
+import { Plus, ArrowLeft, FileText, Search, GripVertical, Edit3, Trash2, Save, X, Eye, Pencil } from "lucide-react";
 import FieldRenderer from "@/components/collections/FieldRenderer";
 import AddFieldModal from "@/components/collections/AddFieldModal";
 import {
@@ -49,6 +49,7 @@ export default function CollectionDataPage() {
   const [isAddFieldOpen, setIsAddFieldOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
+  const [isModalEditing, setIsModalEditing] = useState(false);
   const [fieldsOrder, setFieldsOrder] = useState<string[]>([]);
   const [isReorderMode, setIsReorderMode] = useState(false);
 
@@ -139,6 +140,8 @@ export default function CollectionDataPage() {
       // Prepend to list
       setData([res.data, ...data]);
       setTotal(prev => prev + 1);
+      setEditingEntry(res.data);
+      setIsModalEditing(true); // Open in edit mode for newly created entry
     } catch (err) {
       alert(getApiErrorMessage(err, "Failed to create entry. Ensure required fields are handled or wait for modal."));
     }
@@ -181,6 +184,7 @@ export default function CollectionDataPage() {
     try {
       await api.put(`/data/${editingEntry._id}`, editingEntry);
       setData(prev => prev.map(d => d._id === editingEntry._id ? editingEntry : d));
+      setIsModalEditing(false);
       setEditingEntry(null);
       alert("Entry updated successfully");
     } catch (err) {
@@ -347,11 +351,14 @@ export default function CollectionDataPage() {
                         {/* Actions Button */}
                         <td className="px-4 py-2 border-r border-slate-100 dark:border-slate-800 text-center">
                           <button
-                            onClick={() => setEditingEntry({ ...row })}
-                            className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded transition-all"
-                            title="Edit Entry"
+                            onClick={() => {
+                              setEditingEntry({ ...row });
+                              setIsModalEditing(false); // Read-only by default
+                            }}
+                            className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all"
+                            title="View / Edit Entry"
                           >
-                            <Edit3 className="w-4 h-4" />
+                            <Eye className="w-4 h-4" />
                           </button>
                         </td>
 
@@ -365,6 +372,7 @@ export default function CollectionDataPage() {
                               collectionId={collectionId}
                               onUpdate={handleInlineUpdate}
                               refData={refData}
+                              isReadOnly={true}
                             />
                           </td>
                         ))}
@@ -418,14 +426,27 @@ export default function CollectionDataPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-slate-900/50 backdrop-blur-xl rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className="sticky top-0 flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 backdrop-blur-xl">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Edit Entry</h2>
-              <button
-                onClick={() => setEditingEntry(null)}
-                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
+            <div className="sticky top-0 flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 backdrop-blur-xl z-10">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                {isModalEditing ? "Edit Entry" : "Entry Details"}
+              </h2>
+              <div className="flex items-center gap-2">
+                {!isModalEditing && (
+                  <button
+                    onClick={() => setIsModalEditing(true)}
+                    className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                    Edit Mode
+                  </button>
+                )}
+                <button
+                  onClick={() => setEditingEntry(null)}
+                  className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Modal Content */}
@@ -443,34 +464,48 @@ export default function CollectionDataPage() {
                     collectionId={collectionId}
                     onUpdate={(_, fieldName, val) => setEditingEntry({ ...editingEntry, [fieldName]: val })}
                     refData={refData}
+                    isReadOnly={!isModalEditing}
                   />
                 </div>
               ))}
             </div>
 
             {/* Modal Footer */}
-            <div className="sticky bottom-0 flex items-center justify-between p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 backdrop-blur-md gap-3">
-              <button
-                onClick={() => handleDeleteEntry(editingEntry._id)}
-                className="px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors flex items-center gap-2"
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete
-              </button>
+            <div className="sticky bottom-0 flex items-center justify-between p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 backdrop-blur-md gap-3 z-10">
+              {isModalEditing && (
+                <button
+                  onClick={() => handleDeleteEntry(editingEntry._id)}
+                  className="px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors flex items-center gap-2 font-medium"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete
+                </button>
+              )}
               <div className="flex gap-3 ml-auto">
-                <button
-                  onClick={() => setEditingEntry(null)}
-                  className="px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#252525] rounded-lg transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSaveEntry}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors flex items-center gap-2"
-                >
-                  <Save className="w-4 h-4" />
-                  Save Changes
-                </button>
+                {!isModalEditing ? (
+                  <button
+                    onClick={() => setEditingEntry(null)}
+                    className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors font-medium"
+                  >
+                    Close
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => setIsModalEditing(false)}
+                      className="px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#252525] rounded-lg transition-colors font-medium"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSaveEntry}
+                      className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors flex items-center gap-2 font-semibold shadow-sm shadow-indigo-600/20"
+                    >
+                      <Save className="w-4 h-4" />
+                      Save Changes
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>

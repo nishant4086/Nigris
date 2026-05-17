@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { api } from "@/lib/api";
 import { toast } from "react-hot-toast";
 import GlassCard from "@/components/ui/GlassCard";
-import { Loader2, Send, Save, Trash2, CheckCircle2, XCircle, Mail as MailIcon } from "lucide-react";
+import { Loader2, Send, Save, Trash2, CheckCircle2, XCircle, Mail as MailIcon, Pencil, X } from "lucide-react";
 import { ConfirmDeleteModal, ComposeModal } from "@/components/mail/TemplateModals";
 
 interface SmtpConfig {
@@ -31,6 +31,7 @@ export default function SmtpSettings() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isComposeOpen, setIsComposeOpen] = useState(false);
   const [sendingDirect, setSendingDirect] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const { register, handleSubmit, reset, watch, getValues } = useForm();
 
   const fetchConfigs = useCallback(async () => {
@@ -39,6 +40,9 @@ export default function SmtpSettings() {
       setConfigs(data);
       if (data.length > 0) {
         reset(data[0]);
+        setIsEditing(false); // Read-only by default if config exists
+      } else {
+        setIsEditing(true); // Edit mode if no config exists
       }
     } catch {
       toast.error("Failed to fetch SMTP settings");
@@ -90,6 +94,7 @@ export default function SmtpSettings() {
       toast.success("SMTP Configuration deleted");
       setConfigs([]);
       reset({ provider: "custom", host: "", port: 587, secure: false, username: "", password: "", fromName: "", fromEmail: "" });
+      setIsEditing(true);
     } catch {
       toast.error("Failed to delete SMTP settings");
     } finally {
@@ -142,7 +147,8 @@ export default function SmtpSettings() {
               <label className="text-sm font-medium text-slate-300">Provider</label>
               <select
                 {...register("provider")}
-                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-2.5 text-white"
+                disabled={!isEditing}
+                className={`w-full bg-slate-900/50 border border-slate-700 rounded-lg p-2.5 text-white ${!isEditing ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
                 <option value="custom">Custom SMTP</option>
                 <option value="gmail">Gmail</option>
@@ -155,8 +161,9 @@ export default function SmtpSettings() {
               <label className="text-sm font-medium text-slate-300">SMTP Host</label>
               <input
                 {...register("host", { required: true })}
+                disabled={!isEditing}
                 placeholder="smtp.example.com"
-                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                className={`w-full bg-slate-900/50 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none ${!isEditing ? 'opacity-70 cursor-not-allowed' : ''}`}
               />
             </div>
 
@@ -165,14 +172,15 @@ export default function SmtpSettings() {
               <input
                 {...register("port", { required: true, valueAsNumber: true })}
                 type="number"
+                disabled={!isEditing}
                 placeholder="587"
-                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                className={`w-full bg-slate-900/50 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none ${!isEditing ? 'opacity-70 cursor-not-allowed' : ''}`}
               />
             </div>
 
             <div className="flex flex-col space-y-2 pt-6">
               <div className="flex items-center space-x-2">
-                <input type="checkbox" {...register("secure")} id="secure" className="w-4 h-4 rounded border-slate-700 bg-slate-900" />
+                <input type="checkbox" {...register("secure")} disabled={!isEditing} id="secure" className={`w-4 h-4 rounded border-slate-700 bg-slate-900 ${!isEditing ? 'opacity-70 cursor-not-allowed' : ''}`} />
                 <label htmlFor="secure" className="text-sm font-medium text-slate-300">Use Secure Connection (SSL/TLS)</label>
               </div>
               <p className="text-xs text-slate-500 italic">
@@ -184,8 +192,9 @@ export default function SmtpSettings() {
               <label className="text-sm font-medium text-slate-300">Username</label>
               <input
                 {...register("username", { required: true })}
+                disabled={!isEditing}
                 placeholder="user@example.com"
-                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                className={`w-full bg-slate-900/50 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none ${!isEditing ? 'opacity-70 cursor-not-allowed' : ''}`}
               />
             </div>
 
@@ -194,8 +203,9 @@ export default function SmtpSettings() {
               <input
                 {...register("password")}
                 type="password"
-                placeholder="••••••••"
-                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                disabled={!isEditing}
+                placeholder={!isEditing ? "•••••••• (Encrypted)" : "••••••••"}
+                className={`w-full bg-slate-900/50 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none ${!isEditing ? 'opacity-70 cursor-not-allowed' : ''}`}
               />
               <p className="text-xs text-slate-500">Leave empty to keep existing password</p>
             </div>
@@ -204,8 +214,9 @@ export default function SmtpSettings() {
               <label className="text-sm font-medium text-slate-300">From Name</label>
               <input
                 {...register("fromName", { required: true })}
+                disabled={!isEditing}
                 placeholder="Nigris System"
-                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                className={`w-full bg-slate-900/50 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none ${!isEditing ? 'opacity-70 cursor-not-allowed' : ''}`}
               />
             </div>
 
@@ -213,15 +224,16 @@ export default function SmtpSettings() {
               <label className="text-sm font-medium text-slate-300">From Email</label>
               <input
                 {...register("fromEmail", { required: true })}
+                disabled={!isEditing}
                 placeholder="noreply@example.com"
-                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                className={`w-full bg-slate-900/50 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none ${!isEditing ? 'opacity-70 cursor-not-allowed' : ''}`}
               />
             </div>
           </div>
 
-          <div className="flex justify-between items-center pt-4">
+          <div className="flex justify-between items-center pt-4 border-t border-slate-800">
             <div>
-              {watch("_id") && (
+              {watch("_id") && isEditing && (
                 <button
                   type="button"
                   onClick={() => setIsDeleteOpen(true)}
@@ -233,22 +245,49 @@ export default function SmtpSettings() {
               )}
             </div>
             <div className="flex space-x-4">
-            <button
-              type="button"
-              onClick={handleSubmit(onTest)}
-              disabled={testing}
-              className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-all flex items-center space-x-2 border border-slate-700"
-            >
-              {testing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              <span>Test Connection</span>
-            </button>
-            <button
-              type="submit"
-              className="px-8 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-all shadow-lg shadow-blue-500/20 flex items-center space-x-2"
-            >
-              <Save className="w-4 h-4" />
-              <span>Save Configuration</span>
-            </button>
+              <button
+                type="button"
+                onClick={handleSubmit(onTest)}
+                disabled={testing}
+                className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-all flex items-center space-x-2 border border-slate-700"
+              >
+                {testing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                <span>Test Connection</span>
+              </button>
+
+              {!isEditing ? (
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="px-8 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-semibold transition-all shadow-lg shadow-indigo-500/20 flex items-center space-x-2"
+                >
+                  <Pencil className="w-4 h-4" />
+                  <span>Edit Settings</span>
+                </button>
+              ) : (
+                <>
+                  {configs.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        reset(configs[0]);
+                        setIsEditing(false);
+                      }}
+                      className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-all flex items-center space-x-2 border border-slate-700"
+                    >
+                      <X className="w-4 h-4" />
+                      <span>Cancel</span>
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    className="px-8 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-all shadow-lg shadow-blue-500/20 flex items-center space-x-2"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>Save Configuration</span>
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </form>

@@ -35,6 +35,7 @@ import passport from "./config/passportConfig.js";
 import smtpRoutes from "./modules/smtp/smtpRoutes.js";
 import emailTemplateRoutes from "./modules/emailTemplate/emailTemplateRoutes.js";
 import mailRoutes from "./modules/mail/mailRoutes.js";
+import sdkRoutes from "./modules/sdk/sdkRoutes.js";
 
 const MongoStore = MongoDBStore(session);
 
@@ -271,6 +272,7 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/smtp", smtpRoutes);
 app.use("/api/email-templates", emailTemplateRoutes);
 app.use("/api/mail", mailRoutes);
+app.use("/api/sdk", sdkRoutes);
 
 // Public blog posts endpoint (no auth)
 app.get("/api/blogs", async (req, res) => {

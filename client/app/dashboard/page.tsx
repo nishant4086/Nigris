@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
+import { useProjects } from "@/lib/hooks/useProjects";
 import { 
   BarChart, 
   Activity, 
@@ -228,7 +229,8 @@ export default function Dashboard() {
     nextResetAt: null,
   });
   const [plan, setPlan] = useState("free");
-  const [projects, setProjects] = useState<ProjectPreview[]>([]);
+  const { data: fetchedProjects, isLoading: isProjectsLoading } = useProjects();
+  const projects = fetchedProjects || [];
   const [apiKeys, setApiKeys] = useState<ApiKeyPreview[]>([]);
   const [chartData, setChartData] = useState<ChartPoint[]>([]);
   const [chartLoading, setChartLoading] = useState(true);
@@ -273,24 +275,19 @@ export default function Dashboard() {
     const load = async () => {
       setLoading(true);
       try {
-        const [usageRes, meRes, projRes] = await Promise.all([
+        const [usageRes, meRes] = await Promise.all([
           api.get("/keys/summary"),
           api.get("/users/me"),
-          api.get("/projects"),
         ]);
         setSummary(usageRes.data);
         setPlan(meRes.data?.plan || "free");
-        const projectList = (projRes.data || []) as ProjectPreview[];
-        setProjects(projectList);
+        
         const keysRes = await api.get("/keys");
         setApiKeys(Array.isArray(keysRes.data) ? keysRes.data : []);
 
         // Fetch recent templates across all projects (or just recent ones)
-        // Since we don't have a global recent templates API yet, let's just fetch from the first project or similar
-        // For now, let's assume we might need a new API endpoint for global recent templates
-        // But we can try to fetch from all projects if they are few
-        if (projectList.length > 0) {
-           const templatePromises = projectList.slice(0, 3).map(p => api.get(`/email-templates/${p._id}`));
+        if (projects && projects.length > 0) {
+           const templatePromises = projects.slice(0, 3).map(p => api.get(`/email-templates/${p._id}`));
            const templateResults = await Promise.all(templatePromises);
            const allTemplates = templateResults.flatMap(res => res.data).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
            setRecentTemplates(allTemplates.slice(0, 5));

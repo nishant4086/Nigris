@@ -4,6 +4,7 @@ import adminMiddleware from "../middleware/adminMiddleware.js";
 import ContactMessage from "../models/ContactMessage.js";
 import BlogPost from "../models/BlogPost.js";
 import ActivityLog from "../models/ActivityLog.js";
+import SystemError from "../models/SystemError.js";
 
 const router = express.Router();
 
@@ -198,6 +199,65 @@ router.get("/stats", async (req, res) => {
     res.json({ messageCount, unreadCount, blogCount, publishedCount, activityCount });
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch stats" });
+  }
+});
+
+// ==================== SYSTEM ERRORS ====================
+
+// GET /api/admin/errors
+router.get("/errors", async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+    
+    // Optional filter by resolved status
+    const filter = {};
+    if (req.query.resolved === "true") filter.resolved = true;
+    if (req.query.resolved === "false") filter.resolved = false;
+
+    const [errors, total] = await Promise.all([
+      SystemError.find(filter)
+        .populate("resolvedBy", "name email")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      SystemError.countDocuments(filter),
+    ]);
+
+    const unresolvedCount = await SystemError.countDocuments({ resolved: false });
+
+    res.json({ errors, total, unresolvedCount, page, pages: Math.ceil(total / limit) });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch errors" });
+  }
+});
+
+// PATCH /api/admin/errors/:id/resolve
+router.patch("/errors/:id/resolve", async (req, res) => {
+  try {
+    const errorDoc = await SystemError.findByIdAndUpdate(
+      req.params.id,
+      { 
+        resolved: true, 
+        resolvedAt: new Date(),
+        resolvedBy: req.user.userId 
+      },
+      { new: true }
+    );
+    if (!errorDoc) return res.status(404).json({ error: "Error not found" });
+    
+    await ActivityLog.create({
+      action: "error_resolved",
+      resource: "SystemError",
+      resourceId: errorDoc._id.toString(),
+      userId: req.user.userId,
+      details: `Resolved error: ${errorDoc.message}`,
+    });
+
+    res.json(errorDoc);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to resolve error" });
   }
 });
 

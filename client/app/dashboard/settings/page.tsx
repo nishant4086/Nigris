@@ -25,7 +25,7 @@ interface User {
   name: string;
   email: string;
   role: string;
-  avatar?: string;
+  avatar?: string | null;
   plan: string;
 }
 
@@ -45,6 +45,7 @@ export default function SettingsPage() {
     try {
       const res = await api.patch("/users/me", data);
       setUser(res.data.user);
+      window.dispatchEvent(new CustomEvent("user-profile-updated"));
     } catch (err) {
       throw err;
     }

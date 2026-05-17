@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import Link from "next/link";
-import { LogOut, Home, Mail, FileText, Activity, ShieldCheck } from "lucide-react";
+import { LogOut, Home, Mail, FileText, Activity, ShieldCheck, AlertCircle } from "lucide-react";
 import Logo from "@/components/ui/Logo";
 
 export default function AdminLayout({
@@ -49,6 +49,7 @@ export default function AdminLayout({
     { href: "/admin/messages", label: "Messages", icon: Mail },
     { href: "/admin/blogs", label: "Blogs", icon: FileText },
     { href: "/admin/activity", label: "Activity", icon: Activity },
+    { href: "/admin/errors", label: "System Errors", icon: AlertCircle },
   ];
 
   return (

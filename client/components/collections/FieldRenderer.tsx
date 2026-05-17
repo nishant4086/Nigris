@@ -10,6 +10,7 @@ type FieldProps = {
   collectionId?: string;
   onUpdate: (rowId: string, fieldName: string, newValue: FieldValue) => void;
   refData?: Record<string, ReferenceOption[]>;
+  isReadOnly?: boolean;
 };
 
 const mediaAcceptByType: Record<string, string> = {
@@ -42,7 +43,7 @@ const getFormValue = (fieldValue: FieldValue) => {
   return "";
 };
 
-export default function FieldRenderer({ field, value, rowId, onUpdate, refData }: FieldProps) {
+export default function FieldRenderer({ field, value, rowId, onUpdate, refData, isReadOnly = false }: FieldProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState<FieldValue>(value);
   const [saving, setSaving] = useState(false);
@@ -139,7 +140,9 @@ export default function FieldRenderer({ field, value, rowId, onUpdate, refData }
            <input 
              type="checkbox"
              checked={!!displayValue}
+             disabled={isReadOnly}
              onChange={(e) => {
+                if (isReadOnly) return;
                 const checked = e.target.checked;
                 setLocalValue(checked);
                 onUpdate(rowId, field.name, checked);
@@ -148,7 +151,7 @@ export default function FieldRenderer({ field, value, rowId, onUpdate, refData }
                    onUpdate(rowId, field.name, displayValue);
                 });
              }}
-             className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"
+             className={`w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 ${isReadOnly ? 'opacity-60 cursor-default' : 'cursor-pointer'}`}
            />
         );
       
@@ -286,17 +289,15 @@ export default function FieldRenderer({ field, value, rowId, onUpdate, refData }
     }
   };
 
-  // Skip click-to-edit for booleans as they edit directly via the checkbox
   const handleClick = () => {
-    if (field.type !== "boolean") {
-      setLocalValue(value);
-      setIsEditing(true);
-    }
+    if (isReadOnly || field.type === "boolean") return;
+    setLocalValue(value);
+    setIsEditing(true);
   };
 
   return (
     <div 
-      className={`min-h-[28px] flex items-center w-full ${!isEditing && field.type !== "boolean" ? "cursor-text hover:bg-slate-100 dark:hover:bg-slate-800 -mx-2 px-2 rounded transition-colors" : ""}`}
+      className={`min-h-[28px] flex items-center w-full ${!isEditing && !isReadOnly && field.type !== "boolean" ? "cursor-text hover:bg-slate-100 dark:hover:bg-slate-800 -mx-2 px-2 rounded transition-colors" : ""}`}
       onClick={handleClick}
     >
       {isEditing ? renderEditor() : renderDisplay()}

@@ -3,6 +3,7 @@ import { validateEnv } from "./utils/envValidation.js";
 import app from "./app.js";
 import connectDB from "./config/db.js";
 import "./workers/webhookWorker.js";
+import "./workers/analyticsWorker.js";
 
 // Validate environment variables before anything else
 validateEnv();
@@ -61,6 +62,12 @@ const startServer = async () => {
         if (webhookWorker) {
           await webhookWorker.close();
           console.log("Webhook worker closed.");
+        }
+
+        const { analyticsWorker } = await import("./workers/analyticsWorker.js");
+        if (analyticsWorker) {
+          await analyticsWorker.close();
+          console.log("Analytics worker closed.");
         }
 
         console.log("Shutdown complete. Goodbye! 👋");

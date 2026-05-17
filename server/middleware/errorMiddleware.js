@@ -1,3 +1,6 @@
+import SystemError from "../models/SystemError.js";
+import { sendAdminErrorAlert } from "../utils/adminMailer.js";
+
 const normalizeError = (err) => {
   const status =
     err.status ||
@@ -61,6 +64,22 @@ const errorMiddleware = (err, req, res, next) => {
   // Scrub malformed JSON messages that might reveal internal parser details
   if (!isDev && payload.error.includes("SyntaxError")) {
     payload.error = "Malformed JSON";
+  }
+
+  // Log 500+ errors to DB and send alert asynchronously
+  if (status >= 500) {
+    SystemError.create({
+      message: err.message || "Internal Server Error",
+      stackTrace: err.stack,
+      route: req.originalUrl,
+      method: req.method,
+      statusCode: status,
+      traceId: traceId,
+    })
+      .then((errorDoc) => {
+        sendAdminErrorAlert(errorDoc);
+      })
+      .catch((e) => console.error("[SystemError] Failed to log error:", e.message));
   }
 
 
