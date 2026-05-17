@@ -27,14 +27,14 @@ const baseTemplate = (content) => `
 <body>
   <div class="container">
     <div class="header">
-      <a href="https://nigris.vercel.app" class="logo">NIGRIS</a>
+      <a href="https://nigris.app" class="logo">NIGRIS</a>
     </div>
     <div class="content">
       ${content}
     </div>
     <div class="footer">
       <p>&copy; ${new Date().getFullYear()} Nigris Platform. All rights reserved.</p>
-      <p>If you have any questions, contact us at support@nigris.com</p>
+      <p>If you have any questions, contact us at support@nigris.app</p>
     </div>
   </div>
 </body>
@@ -77,7 +77,7 @@ export const welcomeTemplate = (name) => baseTemplate(`
     <li>Team collaboration tools</li>
   </ul>
   <div style="text-align: center;">
-    <a href="https://nigris.vercel.app/dashboard" class="button">Go to Dashboard</a>
+    <a href="https://nigris.app/dashboard" class="button">Go to Dashboard</a>
   </div>
   <p>Best regards,<br>The Nigris Team</p>
 `);

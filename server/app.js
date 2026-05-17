@@ -1,5 +1,18 @@
 import "dotenv/config";
 
+// Auto-correct any cached or legacy cloud environment variables pointing to vercel.app
+if (process.env.APP_BASE_URL && process.env.APP_BASE_URL.includes("nigris.vercel.app")) {
+  process.env.APP_BASE_URL = "https://nigris.app";
+}
+if (process.env.FRONTEND_URL && process.env.FRONTEND_URL.includes("nigris.vercel.app")) {
+  process.env.FRONTEND_URL = "https://nigris.app";
+}
+if (process.env.CLIENT_URL && process.env.CLIENT_URL.includes("nigris.vercel.app")) {
+  if (!process.env.CLIENT_URL.includes("nigris.app")) {
+    process.env.CLIENT_URL = "https://nigris.app,https://www.nigris.app," + process.env.CLIENT_URL;
+  }
+}
+
 import express from "express";
 import cors from "cors";
 import rateLimit from "express-rate-limit";

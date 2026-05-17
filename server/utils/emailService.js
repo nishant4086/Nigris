@@ -112,7 +112,7 @@ export const sendEmail = async ({ to, subject, html, text }) => {
  * Send Verification Email
  */
 export const sendVerificationEmail = async (to, token) => {
-  const url = `${process.env.APP_BASE_URL || "https://nigris.vercel.app"}/verify-email/${token}`;
+  const url = `${process.env.APP_BASE_URL || "https://nigris.app"}/verify-email/${token}`;
   
   return sendEmail({
     to,
@@ -126,7 +126,7 @@ export const sendVerificationEmail = async (to, token) => {
  * Send Password Reset Email
  */
 export const sendResetPasswordEmail = async (to, token) => {
-  const url = `${process.env.APP_BASE_URL || "https://nigris.vercel.app"}/reset-password?token=${token}`;
+  const url = `${process.env.APP_BASE_URL || "https://nigris.app"}/reset-password?token=${token}`;
   
   return sendEmail({
     to,
