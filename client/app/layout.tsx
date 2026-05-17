@@ -10,6 +10,9 @@ const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://nigris.app"),
+  verification: {
+    google: "EgU21Lmr30Jj9HVTCgpqH73cYR9hwSVb8TdeFpIW1Jk",
+  },
   title: {
     default: "Nigris — Ship APIs, Databases & Authentication Instantly",
     template: "%s | Nigris",
