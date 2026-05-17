@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRef } from "react";
-import { ArrowRight, Check } from "lucide-react";
+import { useRef, useState } from "react";
+import { ArrowRight, Check, Plus, Minus } from "lucide-react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -13,6 +13,30 @@ if (typeof window !== "undefined") {
 
 export default function Home() {
   const container = useRef<HTMLDivElement>(null);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  const faqs = [
+    {
+      q: "What is Nigris?",
+      a: "Nigris is a modern backend platform that helps developers quickly build APIs, authentication systems, dynamic databases, SDKs, and scalable applications without creating everything from scratch.",
+    },
+    {
+      q: "What can I build with Nigris?",
+      a: "You can build SaaS platforms, mobile app backends, dynamic CRUD APIs, authentication systems, admin dashboards, AI-powered apps, analytics platforms, multi-tenant systems, developer tools, and SDKs.",
+    },
+    {
+      q: "Does Nigris support API keys?",
+      a: "Yes. Nigris includes an API key system that allows developers to generate secure API keys, control API access, track usage, apply rate limits, and create Free and Pro plans.",
+    },
+    {
+      q: "Which technologies does Nigris use?",
+      a: "Nigris is built using modern technologies including Node.js, Express.js, MongoDB, Redis, React, JWT Authentication, Docker, and a robust SDK architecture.",
+    },
+    {
+      q: "Is Nigris production ready?",
+      a: "Nigris already includes many production-grade features such as JWT authentication, API key middleware, usage tracking, security middleware, modular architecture, and dynamic route systems. Additional hardening like monitoring, advanced rate limiting, CI/CD, and webhook reliability can further improve production readiness.",
+    },
+  ];
 
   useGSAP(() => {
     // Hero entrance — staggered center-out (Vite-style)
@@ -266,6 +290,42 @@ console.log(user._id);`}</code></pre>
                 Try the dashboard <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ ── */}
+      <section className="py-24 lg:py-32 border-t border-[#1c1c1f]">
+        <div className="mx-auto max-w-[800px] px-6">
+          <div className="scroll-reveal text-center mb-16">
+            <p className="text-[13px] font-medium tracking-wide text-[#3b82f6] uppercase mb-3">Got questions?</p>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Frequently Asked Questions</h2>
+            <p className="mt-3 text-[15px] text-[#71717a]">Everything you need to know about the Nigris platform.</p>
+          </div>
+          <div className="scroll-reveal space-y-4">
+            {faqs.map((faq, i) => (
+              <div
+                key={i}
+                className="rounded-xl border border-[#1c1c1f] bg-[#111113] overflow-hidden transition-all duration-200"
+              >
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="flex w-full items-center justify-between px-6 py-5 text-left text-[16px] font-semibold text-white transition hover:text-[#3b82f6]"
+                >
+                  <span>{faq.q}</span>
+                  {openFaq === i ? (
+                    <Minus className="h-5 w-5 text-[#3b82f6] shrink-0 ml-4" />
+                  ) : (
+                    <Plus className="h-5 w-5 text-[#71717a] shrink-0 ml-4" />
+                  )}
+                </button>
+                {openFaq === i && (
+                  <div className="px-6 pb-6 text-[15px] leading-relaxed text-[#a1a1aa] border-t border-[#1c1c1f]/50 pt-4 animate-in fade-in duration-200">
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </section>
