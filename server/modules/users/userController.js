@@ -34,21 +34,41 @@ export const getMe = asyncHandler(async (req, res) => {
     createdAt: user.createdAt,
     mfaEnabled: !!user.mfaEnabled,
     passkeyCount: user.passkeys?.length || 0,
+    avatar: user.avatar || null,
   });
 });
 
 // ✏️ UPDATE PROFILE
 export const updateProfile = asyncHandler(async (req, res) => {
   const userId = req.user?.userId;
-  const { name } = req.body;
+  const { name, avatar } = req.body;
 
-  if (!name || !name.trim()) {
-    return res.status(400).json({ error: "Name is required" });
+  const updates = {};
+
+  if (typeof name === "string") {
+    if (!name.trim()) {
+      return res.status(400).json({ error: "Name cannot be empty" });
+    }
+    updates.name = name.trim();
+  }
+
+  if (typeof avatar !== "undefined") {
+    if (avatar === null || avatar === "") {
+      updates.avatar = null;
+    } else if (typeof avatar === "string" && /^https?:\/\//.test(avatar)) {
+      updates.avatar = avatar;
+    } else {
+      return res.status(400).json({ error: "Avatar must be a valid URL" });
+    }
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return res.status(400).json({ error: "No valid fields to update" });
   }
 
   const user = await User.findByIdAndUpdate(
     userId,
-    { name: name.trim() },
+    updates,
     { new: true, runValidators: true }
   ).select("-password");
 
