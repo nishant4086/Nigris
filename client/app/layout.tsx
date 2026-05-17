@@ -68,6 +68,14 @@ export const metadata: Metadata = {
       "en-US": "https://nigris.app",
     },
   },
+  icons: {
+    icon: [
+      { url: "/logo.png", type: "image/png" },
+    ],
+    apple: [
+      { url: "/logo.png", type: "image/png" },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -90,7 +98,7 @@ export default function RootLayout({
     "@type": "Organization",
     name: "Nigris",
     url: "https://nigris.app",
-    logo: "https://nigris.app/icon.png",
+    logo: "https://nigris.app/logo.png",
     sameAs: [
       "https://twitter.com/nigrisapp",
       "https://github.com/nishant4086/Nigris",
