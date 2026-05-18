@@ -301,6 +301,21 @@ app.get("/api/blogs", async (req, res) => {
   }
 });
 
+app.get("/api/blogs/:slug", async (req, res) => {
+  try {
+    const blog = await BlogPost.findOne({ slug: req.params.slug, status: "published" })
+      .populate("author", "name");
+    
+    if (!blog) {
+      return res.status(404).json({ error: "Blog post not found" });
+    }
+    
+    res.json(blog);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch blog post" });
+  }
+});
+
 
 // ================== 404 ==================
 app.use((req, res) => {
