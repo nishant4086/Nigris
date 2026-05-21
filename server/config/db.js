@@ -20,7 +20,7 @@ const ensureApiKeyIndexes = async (conn) => {
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
+    const conn = await mongoose.connect(process.env.MONGODB_URI || process.env.MONGO_URI, {
       maxPoolSize: 10,
       // tls: true,
       // tlsAllowInvalidCertificates: true, // 👈 accept self-signed/untrusted cert

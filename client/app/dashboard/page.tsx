@@ -3,10 +3,10 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { api } from "@/lib/api";
 import { useProjects } from "@/lib/hooks/useProjects";
-import { 
-  BarChart, 
-  Activity, 
-  CreditCard, 
+import {
+  BarChart,
+  Activity,
+  CreditCard,
   Key,
   ArrowUpRight,
   Database,
@@ -15,14 +15,14 @@ import {
   type LucideIcon
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer 
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
 } from "recharts";
 import Link from "next/link";
 import PendingInvites from "@/components/dashboard/PendingInvites";
@@ -138,7 +138,7 @@ function UsageChart({
       <div className="mb-6 flex flex-col gap-4">
         <div className="flex items-center justify-between gap-4">
           <div>
-          <h3 className="text-lg font-bold text-slate-950 dark:text-white">Daily API Usage</h3>
+            <h3 className="text-lg font-bold text-slate-950 dark:text-white">Daily API Usage</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>
           </div>
           <div className="glass-pill rounded-full px-3 py-1 text-xs font-bold text-blue-600 dark:text-blue-300">
@@ -199,14 +199,14 @@ function UsageChart({
             <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorUsage" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--chart-grid)" />
               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
               <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-              <Tooltip 
+              <Tooltip
                 contentStyle={{ borderRadius: '14px', border: '1px solid var(--glass-border)', boxShadow: 'var(--glass-shadow)', background: 'var(--glass-bg-strong)', backdropFilter: 'blur(20px)' }}
                 itemStyle={{ color: '#3B82F6', fontWeight: 600 }}
               />
@@ -281,16 +281,16 @@ export default function Dashboard() {
         ]);
         setSummary(usageRes.data);
         setPlan(meRes.data?.plan || "free");
-        
+
         const keysRes = await api.get("/keys");
         setApiKeys(Array.isArray(keysRes.data) ? keysRes.data : []);
 
         // Fetch recent templates across all projects (or just recent ones)
         if (projects && projects.length > 0) {
-           const templatePromises = projects.slice(0, 3).map(p => api.get(`/email-templates/${p._id}`));
-           const templateResults = await Promise.all(templatePromises);
-           const allTemplates = templateResults.flatMap(res => res.data).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-           setRecentTemplates(allTemplates.slice(0, 5));
+          const templatePromises = projects.slice(0, 3).map(p => api.get(`/email-templates/${p._id}`));
+          const templateResults = await Promise.all(templatePromises);
+          const allTemplates = templateResults.flatMap(res => res.data).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          setRecentTemplates(allTemplates.slice(0, 5));
         }
       } catch (_err) {
         console.error(_err);
@@ -338,33 +338,33 @@ export default function Dashboard() {
       <PendingInvites />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatsCard 
-          title="Total API Requests" 
-          value={summary.totalUsage.toLocaleString()} 
+        <StatsCard
+          title="Total API Requests"
+          value={summary.totalUsage.toLocaleString()}
           subtext="Requests made in current cycle"
           icon={Activity}
           loading={loading}
           delay={0.02}
         />
-        <StatsCard 
-          title="Remaining Quota" 
-          value={summary.remaining.toLocaleString()} 
+        <StatsCard
+          title="Remaining Quota"
+          value={summary.remaining.toLocaleString()}
           subtext={`Resets on ${resetLabel}`}
           icon={BarChart}
           loading={loading}
           delay={0.06}
         />
-        <StatsCard 
-          title="Active Projects" 
-          value={projects.length} 
+        <StatsCard
+          title="Active Projects"
+          value={projects.length}
           subtext="Managed under your account"
           icon={Database}
           loading={loading}
           delay={0.1}
         />
-        <StatsCard 
-          title="Current Plan" 
-          value={plan.charAt(0).toUpperCase() + plan.slice(1)} 
+        <StatsCard
+          title="Current Plan"
+          value={plan.charAt(0).toUpperCase() + plan.slice(1)}
           subtext={`${summary.totalLimit.toLocaleString()} reqs / cycle`}
           icon={CreditCard}
           loading={loading}
@@ -396,11 +396,11 @@ export default function Dashboard() {
               View all <ArrowUpRight className="w-4 h-4" />
             </Link>
           </div>
-          
+
           <div className="flex-1 overflow-y-auto pr-2">
             {loading ? (
               <div className="space-y-4">
-                {[1,2,3].map(i => (
+                {[1, 2, 3].map(i => (
                   <div key={i} className="flex items-center gap-3 animate-pulse">
                     <div className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-lg"></div>
                     <div className="space-y-2 flex-1">
@@ -435,18 +435,18 @@ export default function Dashboard() {
           </div>
         </GlassCard>
 
-        <GlassCard className="flex flex-col" hover={false} delay={0.28}>
+        <GlassCard className="flex flex-col mt-12" hover={false} delay={0.28}>
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Recent Templates</h3>
             <Link href="/dashboard/projects" className="text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 flex items-center gap-1">
               View projects <ArrowUpRight className="w-4 h-4" />
             </Link>
           </div>
-          
+
           <div className="flex-1 overflow-y-auto pr-2">
             {loading ? (
               <div className="space-y-4">
-                {[1,2].map(i => (
+                {[1, 2].map(i => (
                   <div key={i} className="flex items-center gap-3 animate-pulse">
                     <div className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-lg"></div>
                     <div className="space-y-2 flex-1">
@@ -465,8 +465,8 @@ export default function Dashboard() {
             ) : (
               <div className="space-y-4">
                 {recentTemplates.map(t => (
-                  <div 
-                    key={t._id} 
+                  <div
+                    key={t._id}
                     onClick={() => {
                       // We need the project ID to navigate. 
                       // If t.project is an object, use t.project._id, otherwise use t.project

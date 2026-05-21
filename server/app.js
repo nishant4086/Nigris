@@ -23,6 +23,10 @@ import { pino } from "pino";
 import crypto from "crypto";
 
 import authRoutes from "./routes/authRoutes.js";
+import { initSentry, prometheusMiddleware, getMetrics } from "./modules/intelligence/monitoring.js";
+import * as Sentry from "@sentry/node";
+
+initSentry();
 import projectRoutes from "./routes/projectRoutes.js";
 import errorMiddleware from "./middleware/errorMiddleware.js";
 import collectionRoutes from "./routes/collectionRoutes.js";
@@ -41,6 +45,7 @@ import usageRoutes from "./routes/usageRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
+import intelligenceRoutes from "./routes/intelligence.js";
 import BlogPost from "./models/BlogPost.js";
 import session from "express-session";
 import MongoDBStore from "connect-mongodb-session";
@@ -157,6 +162,9 @@ app.use(
 );
 
 // ================== 📊 OBSERVABILITY ==================
+app.use(prometheusMiddleware);
+app.get("/metrics", getMetrics);
+
 const isTest = process.env.NODE_ENV === "test";
 const logger = pino({
   level: isTest ? "silent" : (process.env.LOG_LEVEL || "info"),
@@ -288,6 +296,7 @@ app.use("/api/smtp", smtpRoutes);
 app.use("/api/email-templates", emailTemplateRoutes);
 app.use("/api/mail", mailRoutes);
 app.use("/api/sdk", sdkRoutes);
+app.use("/api/intelligence", intelligenceRoutes);
 
 // Public blog posts endpoint (no auth)
 app.get("/api/blogs", async (req, res) => {
@@ -305,11 +314,11 @@ app.get("/api/blogs/:slug", async (req, res) => {
   try {
     const blog = await BlogPost.findOne({ slug: req.params.slug, status: "published" })
       .populate("author", "name");
-    
+
     if (!blog) {
       return res.status(404).json({ error: "Blog post not found" });
     }
-    
+
     res.json(blog);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch blog post" });
@@ -324,6 +333,7 @@ app.use((req, res) => {
 
 
 // ================== ERROR ==================
+Sentry.setupExpressErrorHandler(app);
 app.use(errorMiddleware);
 
 export default app;

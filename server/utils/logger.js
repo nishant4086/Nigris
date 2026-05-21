@@ -1,23 +1,17 @@
-import { pino } from "pino";
+import pino from 'pino';
 
-const logger = pino({
-  level: process.env.LOG_LEVEL || "info",
-  ...(process.env.NODE_ENV !== "production" && {
-    transport: { target: "pino-pretty", options: { colorize: true } },
-  }),
-  base: { service: "nigris-api" },
-  timestamp: pino.stdTimeFunctions.isoTime,
-  redact: {
-    paths: [
-      "req.headers.authorization",
-      "req.headers.cookie",
-      "req.headers[\"x-api-key\"]",
-      "*.password",
-      "*.token",
-      "*.secret",
-    ],
-    censor: "[REDACTED]",
-  },
+const isProduction = process.env.NODE_ENV === 'production';
+
+export const logger = pino({
+  level: process.env.LOG_LEVEL || 'info',
+  transport: isProduction
+    ? undefined
+    : {
+        target: 'pino-pretty',
+        options: {
+          colorize: true,
+          translateTime: 'SYS:standard',
+          ignore: 'pid,hostname',
+        },
+      },
 });
-
-export default logger;

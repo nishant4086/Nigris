@@ -4,6 +4,8 @@ import app from "./app.js";
 import connectDB from "./config/db.js";
 import "./workers/webhookWorker.js";
 import "./workers/analyticsWorker.js";
+import "./workers/aiWorker.js";
+import "./jobs/cronJobs.js";
 
 // Validate environment variables before anything else
 validateEnv();
@@ -68,6 +70,12 @@ const startServer = async () => {
         if (analyticsWorker) {
           await analyticsWorker.close();
           console.log("Analytics worker closed.");
+        }
+
+        const { aiWorker } = await import("./workers/aiWorker.js");
+        if (aiWorker) {
+          await aiWorker.close();
+          console.log("AI worker closed.");
         }
 
         console.log("Shutdown complete. Goodbye! 👋");

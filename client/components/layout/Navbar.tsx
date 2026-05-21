@@ -86,7 +86,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
   };
 
   return (
-    <header className="glass-nav z-10 m-3 flex h-16 items-center justify-between rounded-2xl px-4 transition-all duration-300 md:m-4 md:px-6">
+    <header className="glass-nav z-50 relative m-3 flex h-16 items-center justify-between rounded-2xl px-4 transition-all duration-300 md:m-4 md:px-6">
       <div className="flex items-center gap-4">
         {toggleSidebar && (
           <button 

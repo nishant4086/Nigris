@@ -40,12 +40,12 @@ export default function Home() {
 
   useGSAP(() => {
     // Hero entrance — staggered center-out (Vite-style)
-    const tl = gsap.timeline({ delay: 1.5 }); // wait for loading screen
-    tl.fromTo(".hero-glow", { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 1.2, ease: "power2.out" })
-      .fromTo(".hero-title", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, "-=0.8")
-      .fromTo(".hero-sub", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, "-=0.5")
-      .fromTo(".hero-cta", { y: 15, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, "-=0.4")
-      .fromTo(".hero-visual", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 1, ease: "power3.out" }, "-=0.3");
+    const tl = gsap.timeline({ delay: 0.1 }); // fast entrance
+    tl.fromTo(".hero-glow", { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.8, ease: "power2.out" })
+      .fromTo(".hero-title", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, "-=0.6")
+      .fromTo(".hero-sub", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, "-=0.4")
+      .fromTo(".hero-cta", { y: 15, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, "-=0.3")
+      .fromTo(".hero-visual", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, "-=0.2");
 
     // Glow pulse animation (Vite-style)
     gsap.to(".hero-glow", { scale: 1.05, opacity: 0.8, duration: 3, repeat: -1, yoyo: true, ease: "sine.inOut" });
