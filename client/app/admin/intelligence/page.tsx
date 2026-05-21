@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import { Brain, Activity, Shield, Zap, AlertTriangle, CheckCircle, RefreshCcw } from "lucide-react";
+import { Brain, Shield, Zap, AlertTriangle, CheckCircle, RefreshCcw } from "lucide-react";
 import GlassCard from "@/components/ui/GlassCard";
-import { motion } from "framer-motion";
 
 interface AiReport {
   _id: string;
@@ -34,6 +33,7 @@ export default function IntelligenceDashboard() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchLatestReport();
   }, []);
 
@@ -42,7 +42,7 @@ export default function IntelligenceDashboard() {
       setGenerating(true);
       await api.post("/intelligence/generate");
       alert("AI Report generation queued successfully. It may take a few minutes.");
-    } catch (err) {
+    } catch {
       alert("Failed to queue generation");
     } finally {
       setGenerating(false);
