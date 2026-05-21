@@ -15,7 +15,7 @@ if (process.env.CLIENT_URL && process.env.CLIENT_URL.includes("nigris.vercel.app
 
 import express from "express";
 import cors from "cors";
-import rateLimit from "express-rate-limit";
+
 import helmet from "helmet";
 import compression from "compression";
 import { pinoHttp } from "pino-http";
@@ -187,12 +187,7 @@ app.use(compression());
 
 
 // ================== RATE LIMIT ==================
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10000,
-  message: "Too many requests from this IP",
-});
-
+import { globalLimiter } from "./middleware/redisRateLimit.js";
 
 // ================== WEBHOOK RAW ==================
 app.use(
@@ -206,7 +201,6 @@ app.use(
   express.raw({ type: "application/json" }),
   handleRazorpayWebhook
 );
-
 
 // ================== BODY PARSER ==================
 const publicJsonParser = express.json({ limit: "100kb" });
@@ -237,7 +231,6 @@ app.use((req, res, next) => {
 // ================== DEPTH CHECK ==================
 app.use(depthCheckMiddleware);
 
-
 // ================== SANITIZE ==================
 app.use((req, res, next) => {
   if (req.body) req.body = mongoSanitize.sanitize(req.body);
@@ -250,9 +243,8 @@ app.use((req, res, next) => {
   next();
 });
 
-
 // ================== ROUTES ==================
-app.use("/api", limiter);
+app.use("/api", globalLimiter);
 
 app.get("/", (req, res) => {
   res.json({ status: "ok", message: "Server is running" });

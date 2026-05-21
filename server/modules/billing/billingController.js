@@ -11,6 +11,8 @@ import {
 import getRazorpayInstance from "../../config/razorpay.js";
 import { createNotification } from "../../utils/notificationUtils.js";
 import ProcessedEvent from "../../models/ProcessedEvent.js";
+import { billingQueue } from "../../queues/billingQueue.js";
+import logger from "../../utils/logger.js";
 
 const getStripeClient = () => {
   if (!process.env.STRIPE_SECRET_KEY) {
@@ -20,7 +22,7 @@ const getStripeClient = () => {
   return new Stripe(process.env.STRIPE_SECRET_KEY);
 };
 
-const applyPlanToUser = async (user, planName, options = {}) => {
+export const applyPlanToUser = async (user, planName, options = {}) => {
   const plan = await getPlanByName(planName);
   if (!plan) {
     return null;
@@ -127,6 +129,7 @@ export const createCheckoutSession = asyncHandler(async (req, res) => {
 });
 
 export const handleStripeWebhook = async (req, res) => {
+  const startTime = Date.now();
   let stripe;
   try {
     stripe = getStripeClient();
@@ -171,85 +174,19 @@ export const handleStripeWebhook = async (req, res) => {
   }
 
   try {
-    switch (event.type) {
-      case "checkout.session.completed": {
-        const session = event.data.object;
-        const planName = session.metadata?.plan;
-        const userId = session.metadata?.userId;
-        const customerId = session.customer;
-        const subscriptionId = session.subscription;
+    // 🚀 QUEUE THE EVENT FOR ASYNC PROCESSING
+    await billingQueue.add('billing-event', { provider: 'stripe', event }, {
+      attempts: 5,
+      backoff: { type: 'exponential', delay: 5000 },
+      jobId: `stripe-${event.id}`, // Extra safety
+    });
 
-        const user = userId
-          ? await User.findById(userId)
-          : await User.findOne({ stripeCustomerId: customerId });
+    const latency = Date.now() - startTime;
+    logger.info({ route: "/api/billing/webhook", provider: "stripe", latency, queueTime: Date.now() });
 
-        if (user && planName) {
-          await applyPlanToUser(user, planName, {
-            status: "active",
-            customerId,
-            subscriptionId,
-          });
-        }
-        break;
-      }
-      case "customer.subscription.updated":
-      case "customer.subscription.created": {
-        const subscription = event.data.object;
-        const customerId = subscription.customer;
-        const priceId = subscription.items?.data?.[0]?.price?.id || null;
-        const plan = await getPlanByPriceId(priceId);
-        const user = await User.findOne({ stripeCustomerId: customerId });
-
-        if (user && plan) {
-          const renewsAt = subscription.current_period_end
-            ? new Date(subscription.current_period_end * 1000)
-            : null;
-
-          await applyPlanToUser(user, plan.name, {
-            status: subscription.status,
-            customerId,
-            subscriptionId: subscription.id,
-            priceId,
-            renewsAt,
-          });
-        }
-        break;
-      }
-      case "customer.subscription.deleted": {
-        const subscription = event.data.object;
-        const customerId = subscription.customer;
-        const user = await User.findOne({ stripeCustomerId: customerId });
-
-        if (user) {
-          await applyPlanToUser(user, "free", {
-            status: "canceled",
-            subscriptionId: null,
-            priceId: null,
-            renewsAt: null,
-          });
-        }
-        break;
-      }
-      case "invoice.payment_failed": {
-        const invoice = event.data.object;
-        const customerId = invoice.customer;
-        const user = await User.findOne({ stripeCustomerId: customerId });
-
-        if (user) {
-          user.planStatus = "past_due";
-          await user.save();
-          // 🔔 Create Notification
-          await createNotification(user._id, "billing", "Payment failed for your subscription. Please update your payment method.");
-        }
-        break;
-      }
-      default:
-        break;
-    }
-
-    res.json({ received: true });
+    res.status(200).json({ received: true });
   } catch (error) {
-    console.error("[Billing] Stripe webhook handler error:", error.message);
+    console.error("[Billing] Stripe webhook queueing error:", error.message);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -511,6 +448,7 @@ export const cancelRazorpaySubscription = asyncHandler(async (req, res) => {
 });
 
 export const handleRazorpayWebhook = async (req, res) => {
+  const startTime = Date.now();
   console.log("[Billing] Razorpay webhook received");
 
   const signature = req.headers["x-razorpay-signature"];
@@ -562,89 +500,19 @@ export const handleRazorpayWebhook = async (req, res) => {
   console.log("[Billing] Webhook event:", eventType);
 
   try {
-    switch (eventType) {
-      case "subscription.activated": {
-        const sub = payload.subscription?.entity;
-        const userId = sub?.notes?.userId;
-        console.log("[Billing] subscription.activated for userId:", userId);
-        if (userId) {
-          const user = await User.findById(userId);
-          if (user) {
-            user.subscriptionStatus = "active";
-            user.razorpaySubscriptionId = sub.id;
-            if (sub.charge_at) {
-              user.nextBillingDate = new Date(sub.charge_at * 1000);
-            }
-            await user.save();
+    // 🚀 QUEUE THE EVENT FOR ASYNC PROCESSING
+    await billingQueue.add('billing-event', { provider: 'razorpay', event }, {
+      attempts: 5,
+      backoff: { type: 'exponential', delay: 5000 },
+      jobId: `razorpay-${event.id}`, // Extra safety
+    });
 
-            await applyPlanToUser(user, "pro", { status: "active" });
-            console.log("[Billing] ✅ User plan updated to pro via webhook:", userId);
-          } else {
-            console.error("[Billing] User not found for webhook userId:", userId);
-          }
-        }
-        break;
-      }
+    const latency = Date.now() - startTime;
+    logger.info({ route: "/api/billing/razorpay-webhook", provider: "razorpay", latency, queueTime: Date.now() });
 
-      case "subscription.charged": {
-        const sub = payload.subscription?.entity;
-        const userId = sub?.notes?.userId;
-        if (userId) {
-          const user = await User.findById(userId);
-          if (user) {
-            user.subscriptionStatus = "active";
-            if (sub.charge_at) {
-              user.nextBillingDate = new Date(sub.charge_at * 1000);
-            }
-            await user.save();
-          }
-        }
-        break;
-      }
-
-      case "subscription.completed":
-      case "subscription.cancelled": {
-        const sub = payload.subscription?.entity;
-        const userId = sub?.notes?.userId;
-        if (userId) {
-          const user = await User.findById(userId);
-          if (user) {
-            user.subscriptionStatus = "cancelled";
-            user.razorpaySubscriptionId = null;
-            user.nextBillingDate = null;
-            await user.save();
-
-            await applyPlanToUser(user, "free", {
-              status: "canceled",
-              renewsAt: null,
-            });
-          }
-        }
-        break;
-      }
-
-      case "subscription.halted": {
-        const sub = payload.subscription?.entity;
-        const userId = sub?.notes?.userId;
-        if (userId) {
-          const user = await User.findById(userId);
-          if (user) {
-            user.subscriptionStatus = "halted";
-            user.planStatus = "past_due";
-            await user.save();
-          }
-        }
-        break;
-      }
-
-      default:
-        break;
-    }
-
-    console.log("[Billing] Webhook processed successfully:", eventType);
-    res.json({ received: true });
+    res.status(200).json({ received: true });
   } catch (error) {
-    console.error("[Billing] Razorpay webhook error:", error.message, error.stack);
+    console.error("[Billing] Razorpay webhook queueing error:", error.message, error.stack);
     res.status(500).send("Internal Server Error");
   }
 };

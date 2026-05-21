@@ -1,6 +1,6 @@
 import express from "express";
 import publicApiKeyMiddleware, { requireApiKeyPermission } from "../middleware/publicApiKeyMiddleware.js";
-import { redisRateLimit } from "../middleware/redisRateLimit.js";
+import { apiKeyLimiter } from "../middleware/redisRateLimit.js";
 import usageTracker from "../middleware/usageTracker.js";
 import depthCheckMiddleware from "../middleware/depthCheckMiddleware.js";
 import {
@@ -24,19 +24,19 @@ router.use(publicApiKeyMiddleware);
 router.use(usageTracker);
 
 // Collection endpoints
-router.get("/collections", requireApiKeyPermission("read"), redisRateLimit(100, 60), publicGetCollections);
-router.get("/collections/:id", requireApiKeyPermission("read"), redisRateLimit(100, 60), publicGetCollection);
-router.get("/collections/:id/schema", requireApiKeyPermission("read"), redisRateLimit(100, 60), publicGetCollectionSchema);
-router.post("/collections/:id/entries", requireApiKeyPermission("write"), redisRateLimit(50, 60), depthCheckMiddleware, publicCreateEntry);
-router.get("/entries/:entryId", requireApiKeyPermission("read"), redisRateLimit(100, 60), publicGetEntry);
+router.get("/collections", requireApiKeyPermission("read"), apiKeyLimiter, publicGetCollections);
+router.get("/collections/:id", requireApiKeyPermission("read"), apiKeyLimiter, publicGetCollection);
+router.get("/collections/:id/schema", requireApiKeyPermission("read"), apiKeyLimiter, publicGetCollectionSchema);
+router.post("/collections/:id/entries", requireApiKeyPermission("write"), apiKeyLimiter, depthCheckMiddleware, publicCreateEntry);
+router.get("/entries/:entryId", requireApiKeyPermission("read"), apiKeyLimiter, publicGetEntry);
 
 // Entry endpoints
-router.get("/collections/:id/entries", requireApiKeyPermission("read"), redisRateLimit(100, 60), getEntries);
-router.patch("/entries/:entryId", requireApiKeyPermission("write"), redisRateLimit(50, 60), depthCheckMiddleware, updateEntry);
-router.delete("/entries/:entryId", requireApiKeyPermission("write"), redisRateLimit(30, 60), deleteEntry);
+router.get("/collections/:id/entries", requireApiKeyPermission("read"), apiKeyLimiter, getEntries);
+router.patch("/entries/:entryId", requireApiKeyPermission("write"), apiKeyLimiter, depthCheckMiddleware, updateEntry);
+router.delete("/entries/:entryId", requireApiKeyPermission("write"), apiKeyLimiter, deleteEntry);
 
 // Mail endpoints (SDK-compatible, API-key auth)
-router.post("/mail/send", requireApiKeyPermission("write"), redisRateLimit(20, 60), sendTemplatedEmail);
-router.post("/mail/send-direct", requireApiKeyPermission("write"), redisRateLimit(20, 60), sendDirectEmail);
+router.post("/mail/send", requireApiKeyPermission("write"), apiKeyLimiter, sendTemplatedEmail);
+router.post("/mail/send-direct", requireApiKeyPermission("write"), apiKeyLimiter, sendDirectEmail);
 
 export default router;

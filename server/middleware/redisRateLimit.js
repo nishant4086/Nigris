@@ -16,7 +16,7 @@ const PLAN_MULTIPLIERS = {
 /**
  * Robust Rate Limiter with Redis Atomicity and Local Fallback
  */
-export const redisRateLimit = (baseLimit, windowSeconds) => {
+export const createRateLimiter = (baseLimit, windowSeconds, type = "api") => {
   return async (req, res, next) => {
     try {
       const apiKeyId = req.apiKey?._id?.toString?.() || null;
@@ -25,10 +25,15 @@ export const redisRateLimit = (baseLimit, windowSeconds) => {
       const multiplier = PLAN_MULTIPLIERS[plan] || 1;
       const totalLimit = baseLimit * multiplier;
 
-      // Key construction
-      const keyPartition = apiKeyId
-        ? `k:${apiKeyId}`
-        : `ip:${req.ip || req.headers['x-forwarded-for'] || 'unknown'}`;
+      const userId = req.user?.id || req.user?.userId || null;
+
+      // Key construction strategy
+      let keyPartition = `ip:${req.ip || req.headers['x-forwarded-for'] || 'unknown'}`;
+      if (type === "api" && apiKeyId) {
+        keyPartition = `k:${apiKeyId}`;
+      } else if (userId) {
+        keyPartition = `u:${userId}`;
+      }
       
       const tenantPartition = tenantId || 'system';
       const redisKey = `rate:${tenantPartition}:${keyPartition}`;
@@ -73,3 +78,17 @@ export const redisRateLimit = (baseLimit, windowSeconds) => {
     }
   };
 };
+
+// ─── SPECIFIC LIMITERS ──────────────────────────────────────────────
+
+// Public API Limiter: Used for unauthenticated or public data routes
+export const publicApiLimiter = createRateLimiter(60, 60, "public"); // 60 req / min
+
+// Auth Limiter: Strict limits for login/signup to prevent brute force
+export const authLimiter = createRateLimiter(5, 15 * 60, "auth"); // 5 req / 15 min
+
+// API Key Limiter: Dynamic limits based on SaaS plans
+export const apiKeyLimiter = createRateLimiter(100, 60, "api"); // 100 req / min (multiplied by plan)
+
+// Global Limiter: Fallback for generic routes
+export const globalLimiter = createRateLimiter(1000, 60, "global");
