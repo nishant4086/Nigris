@@ -38,6 +38,7 @@ services:
       - MONGO_URI=mongodb://mongodb:27017/nigris
       - REDIS_URL=redis://redis:6379
       - NODE_ENV=development
+      - OLLAMA_URL=http://host.docker.internal:11434/api/generate
     volumes:
       - ./server:/app
       - /app/node_modules
