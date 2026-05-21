@@ -68,3 +68,7 @@ services:
         sync: false
       - key: RESEND_API_KEY
         sync: false
+      - key: OLLAMA_URL
+        sync: false
+      - key: OLLAMA_MODEL
+        sync: false
