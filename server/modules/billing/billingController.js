@@ -12,7 +12,7 @@ import getRazorpayInstance from "../../config/razorpay.js";
 import { createNotification } from "../../utils/notificationUtils.js";
 import ProcessedEvent from "../../models/ProcessedEvent.js";
 import { billingQueue } from "../../queues/billingQueue.js";
-import logger from "../../utils/logger.js";
+import { logger } from "../../utils/logger.js";
 
 const getStripeClient = () => {
   if (!process.env.STRIPE_SECRET_KEY) {

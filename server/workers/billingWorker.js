@@ -5,7 +5,7 @@ import { getPlanByPriceId } from '../utils/planUtils.js';
 import { createNotification } from '../utils/notificationUtils.js';
 import { applyPlanToUser } from '../modules/billing/billingController.js';
 import * as Sentry from '@sentry/node';
-import logger from '../utils/logger.js';
+import { logger } from '../utils/logger.js';
 
 export const billingWorker = redisConnection 
   ? new Worker('billing-jobs', async (job) => {

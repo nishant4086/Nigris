@@ -80,15 +80,16 @@ export const createRateLimiter = (baseLimit, windowSeconds, type = "api") => {
 };
 
 // ─── SPECIFIC LIMITERS ──────────────────────────────────────────────
+const isTest = process.env.NODE_ENV === "test";
 
 // Public API Limiter: Used for unauthenticated or public data routes
-export const publicApiLimiter = createRateLimiter(60, 60, "public"); // 60 req / min
+export const publicApiLimiter = createRateLimiter(isTest ? 10000 : 60, 60, "public"); // 60 req / min
 
 // Auth Limiter: Strict limits for login/signup to prevent brute force
-export const authLimiter = createRateLimiter(5, 15 * 60, "auth"); // 5 req / 15 min
+export const authLimiter = createRateLimiter(isTest ? 10000 : 5, 15 * 60, "auth"); // 5 req / 15 min
 
 // API Key Limiter: Dynamic limits based on SaaS plans
-export const apiKeyLimiter = createRateLimiter(100, 60, "api"); // 100 req / min (multiplied by plan)
+export const apiKeyLimiter = createRateLimiter(isTest ? 10000 : 100, 60, "api"); // 100 req / min (multiplied by plan)
 
 // Global Limiter: Fallback for generic routes
-export const globalLimiter = createRateLimiter(1000, 60, "global");
+export const globalLimiter = createRateLimiter(isTest ? 10000 : 1000, 60, "global");
