@@ -1,5 +1,4 @@
 import axios from "axios";
-import crypto from "crypto";
 import pino from "pino";
 
 const logger = pino();
@@ -156,7 +155,8 @@ export const generateAiInsights = async (
       });
 
       throw new Error(
-        "Failed to parse Ollama JSON"
+        "Failed to parse Ollama JSON",
+        { cause: parseError }
       );
     }
 
