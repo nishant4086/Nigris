@@ -6,7 +6,7 @@ Nigris is a modern developer platform with a built-in headless database, collect
 
 ## 🧠 AI Intelligence Feature & Deployed Applications
 
-Nigris features a built-in **Intelligence Dashboard** powered by **Ollama** (`llama3`).
+Nigris features a built-in **Intelligence Dashboard** powered by your choice of local or cloud AI models.
 
 ### How it Works:
 - **Local Development**:
@@ -14,8 +14,10 @@ Nigris features a built-in **Intelligence Dashboard** powered by **Ollama** (`ll
 - **Local Docker Setup**:
   - Automatically bridges to the host Mac's global Ollama instance at `http://host.docker.internal:11434/api/generate` (defined in `docker-compose.yml`).
 - **Deployed Applications (e.g., Render/Cloud)**:
-  - **With Custom Ollama Server**: If you host Ollama in the cloud (e.g., on a VPS, RunPod, or tunnel it securely), set the `OLLAMA_URL` environment variable on your Render backend to your public endpoint.
-  - **Graceful Fallback Mode**: If `OLLAMA_URL` is offline or not configured, the backend automatically activates the **Intelligent Mock Fallback Mode**. This generates realistic, rich, and randomized insights (health scores, recommendations, predictive scaling, and security anomalies) so the dashboard works perfectly and remains interactive in production.
+  - **Google Gemini (Recommended)**: Set the `GEMINI_API_KEY` environment variable in your cloud provider dashboard (e.g., Render). The application will query `gemini-2.5-flash` to generate real AI insights for free/production use.
+  - **OpenAI**: Set the `OPENAI_API_KEY` environment variable in your cloud provider dashboard to query `gpt-4o-mini` for live AI reports.
+  - **Custom Ollama Server**: Alternatively, if you host Ollama in the cloud, set the `OLLAMA_URL` environment variable.
+  - **Graceful Fallback Mode**: If no cloud keys/endpoints are configured or they are offline, the backend automatically activates the **Intelligent Mock Fallback Mode** so the dashboard works perfectly and remains interactive in production.
 
 ---
 
@@ -23,8 +25,10 @@ Nigris features a built-in **Intelligence Dashboard** powered by **Ollama** (`ll
 
 Configure the AI features using the following environment variables in your deployment panel (e.g., Render) or `.env` files:
 
-| Variable | Description | Default | Example |
+| Variable | Description | Default / Recommended | Example |
 |---|---|---|---|
+| `GEMINI_API_KEY` | Google Gemini API key (for live cloud AI) | None | `AIzaSy...` |
+| `OPENAI_API_KEY` | OpenAI API key (for live cloud AI) | None | `sk-proj-...` |
 | `OLLAMA_URL` | The endpoint of the Ollama generation API | `http://localhost:11434/api/generate` | `https://your-public-ollama-api.com/api/generate` |
 | `OLLAMA_MODEL` | The model to use for generating insights | `llama3` | `llama3` / `mistral` |
 

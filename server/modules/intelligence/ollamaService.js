@@ -110,6 +110,112 @@ export const generateAiInsights = async (
 ) => {
   const start = Date.now();
 
+  // 1. Try Google Gemini API if key is present
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      logger.info({
+        event: "gemini_request_started",
+        model: "gemini-2.5-flash",
+      });
+
+      const response = await axios.post(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+        {
+          contents: [{
+            parts: [{ text: prompt }]
+          }],
+          generationConfig: {
+            responseMimeType: "application/json"
+          }
+        },
+        {
+          timeout: REQUEST_TIMEOUT,
+        }
+      );
+
+      const latency = Date.now() - start;
+      logger.info({
+        event: "gemini_response_received",
+        latency,
+      });
+
+      const text = response?.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) {
+        throw new Error("Empty response from Gemini API");
+      }
+
+      const parsedData = JSON.parse(text);
+
+      return {
+        success: true,
+        source: "gemini",
+        latency,
+        data: parsedData,
+        raw: text,
+      };
+    } catch (geminiError) {
+      logger.warn({
+        event: "gemini_failed",
+        error: geminiError.message,
+      });
+      // Fall through to other providers
+    }
+  }
+
+  // 2. Try OpenAI API if key is present
+  if (process.env.OPENAI_API_KEY) {
+    try {
+      logger.info({
+        event: "openai_request_started",
+        model: "gpt-4o-mini",
+      });
+
+      const response = await axios.post(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          model: "gpt-4o-mini",
+          messages: [{ role: "user", content: prompt }],
+          response_format: { type: "json_object" }
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          },
+          timeout: REQUEST_TIMEOUT,
+        }
+      );
+
+      const latency = Date.now() - start;
+      logger.info({
+        event: "openai_response_received",
+        latency,
+      });
+
+      const text = response?.data?.choices?.[0]?.message?.content;
+      if (!text) {
+        throw new Error("Empty response from OpenAI API");
+      }
+
+      const parsedData = JSON.parse(text);
+
+      return {
+        success: true,
+        source: "openai",
+        latency,
+        data: parsedData,
+        raw: text,
+      };
+    } catch (openaiError) {
+      logger.warn({
+        event: "openai_failed",
+        error: openaiError.message,
+      });
+      // Fall through to other providers
+    }
+  }
+
+  // 3. Fallback to local Ollama
   try {
     logger.info({
       event: "ollama_request_started",
