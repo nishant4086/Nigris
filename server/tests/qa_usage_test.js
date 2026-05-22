@@ -55,8 +55,8 @@ async function runTests() {
     }
   }
 
-  // Wait for async usage tracking
-  await new Promise(r => setTimeout(r, 2000));
+  // Wait for async usage tracking to flush (flush interval is 5s)
+  await new Promise(r => setTimeout(r, 7000));
 
   console.log("Fetching summary...");
   const sumRes = await axios.get(`${BASE_URL}/usage/summary?projectId=${proj1}`, authConf);

@@ -29,12 +29,12 @@ async function run() {
   const projectIds = projects.map(p => p._id);
   console.log("User Projects:", projectIds);
 
-  const matchStage = { project: { $in: projectIds } };
+  const matchStage = { projectId: { $in: projectIds } };
   console.log("Match Stage:", JSON.stringify(matchStage, null, 2));
 
   const totalResult = await Usage.aggregate([
     { $match: matchStage },
-    { $group: { _id: null, totalRequests: { $sum: "$count" } } }
+    { $group: { _id: null, totalRequests: { $sum: 1 } } }
   ]);
   
   console.log("Total Result:", totalResult);
