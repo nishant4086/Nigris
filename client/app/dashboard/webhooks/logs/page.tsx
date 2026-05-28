@@ -59,14 +59,14 @@ export default function WebhookLogsPage() {
   };
 
   return (
-    <div className="p-8 max-w-6xl mx-auto text-white">
-      <h1 className="text-3xl font-bold mb-6 text-indigo-400">Webhook Logs</h1>
-
+    <div className="p-8 max-w-6xl mx-auto text-slate-900 dark:text-white">
+      <h1 className="text-3xl font-bold mb-6 text-indigo-500 dark:text-indigo-400">Webhook Logs</h1>
+ 
       <div className="mb-6 flex gap-4">
         <input
           type="text"
           placeholder="Enter Project API Key..."
-          className="px-4 py-2 bg-gray-800 border border-gray-700 rounded w-96 text-white focus:outline-none focus:border-indigo-500"
+          className="px-4 py-2 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded w-96 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
           value={apiKey}
           onChange={(e) => setApiKey(e.target.value)}
         />
@@ -78,16 +78,16 @@ export default function WebhookLogsPage() {
           {loading ? "Loading..." : "Fetch Logs"}
         </button>
       </div>
-
+ 
       {message && (
-        <div className="mb-4 p-4 rounded bg-gray-800 text-gray-200 border border-gray-700">
+        <div className="mb-4 p-4 rounded bg-white dark:bg-gray-800 text-slate-800 dark:text-gray-200 border border-slate-200 dark:border-gray-700">
           {message}
         </div>
       )}
-
-      <div className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 shadow-xl">
+ 
+      <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-slate-200 dark:border-gray-700 shadow-xl">
         <table className="w-full text-left">
-          <thead className="bg-gray-900 border-b border-gray-700 text-gray-400">
+          <thead className="bg-slate-50 dark:bg-gray-900 border-b border-slate-200 dark:border-gray-700 text-slate-500 dark:text-gray-400">
             <tr>
               <th className="p-4 font-semibold text-sm">Status</th>
               <th className="p-4 font-semibold text-sm">Event</th>
@@ -97,24 +97,24 @@ export default function WebhookLogsPage() {
               <th className="p-4 font-semibold text-sm">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-700 text-sm">
+          <tbody className="divide-y divide-slate-100 dark:divide-gray-700 text-sm">
             {logs.length === 0 ? (
               <tr>
-                <td colSpan={6} className="p-8 text-center text-gray-500">No logs found</td>
+                <td colSpan={6} className="p-8 text-center text-slate-500">No logs found</td>
               </tr>
             ) : logs.map((log) => (
-              <tr key={log._id} className="hover:bg-gray-750 transition-colors">
+              <tr key={log._id} className="hover:bg-slate-50/50 dark:hover:bg-gray-750 transition-colors">
                 <td className="p-4">
-                  <span className={`px-2 py-1 rounded text-xs font-bold ${log.status === 'success' ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'}`}>
+                  <span className={`px-2 py-1 rounded text-xs font-bold ${log.status === 'success' ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-450' : 'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-400'}`}>
                     {log.status.toUpperCase()}
                   </span>
                 </td>
-                <td className="p-4 text-gray-300 font-medium">{log.event}</td>
-                <td className="p-4 text-gray-400 truncate max-w-xs">{log.url}</td>
-                <td className="p-4 text-gray-400 truncate max-w-xs">
+                <td className="p-4 text-slate-800 dark:text-gray-300 font-medium">{log.event}</td>
+                <td className="p-4 text-slate-500 dark:text-gray-400 truncate max-w-xs">{log.url}</td>
+                <td className="p-4 text-slate-500 dark:text-gray-400 truncate max-w-xs">
                   {log.status === "success" ? `HTTP ${log.responseCode}` : log.errorMessage}
                 </td>
-                <td className="p-4 text-gray-400">
+                <td className="p-4 text-slate-500 dark:text-gray-400">
                   {log.retryCount || 0} / 5
                   {log.lastRetryAt && <div className="text-xs opacity-50 mt-1">Last: {new Date(log.lastRetryAt).toLocaleTimeString()}</div>}
                 </td>
@@ -123,7 +123,7 @@ export default function WebhookLogsPage() {
                     <button
                       onClick={() => handleRetry(log._id)}
                       disabled={retryingId === log._id || log.retryCount >= 5}
-                      className="text-indigo-400 hover:text-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm transition"
+                      className="text-indigo-650 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm transition"
                     >
                       {retryingId === log._id ? "Retrying..." : "Retry"}
                     </button>

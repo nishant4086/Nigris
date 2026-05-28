@@ -162,7 +162,7 @@ export default function ApiKeysPage() {
   });
 
   return (
-    <div className="pb-24 animate-in fade-in duration-500 max-w-6xl mx-auto">
+    <div className="pb-24 animate-in fade-in duration-500">
       {/* Header */}
       <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>

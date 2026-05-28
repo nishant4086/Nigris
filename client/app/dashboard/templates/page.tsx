@@ -51,7 +51,7 @@ export default function GlobalTemplatesPage() {
   if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin" /></div>;
 
   return (
-    <div className="p-6 space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-8">
       <div>
         <h1 className="text-4xl font-black dark:text-white text-black tracking-tight">Email Templates</h1>
         <p className="text-slate-400 mt-2">Manage and design your transactional email templates across all projects.</p>

@@ -61,7 +61,7 @@ export default function PendingInvites() {
   if (loading || invites.length === 0) return null;
 
   return (
-    <GlassCard className="mb-8 border border-white/20" hover={false} delay={0.08}>
+    <GlassCard className="mb-8 border border-slate-100/60 dark:border-white/20" hover={false} delay={0.08}>
       <div className="flex items-center gap-3 mb-4">
         <div className="p-2 rounded-xl bg-linear-to-br from-blue-500/20 to-indigo-500/20 text-blue-600 dark:text-blue-200">
           <Mail className="w-5 h-5" />
@@ -86,7 +86,7 @@ export default function PendingInvites() {
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => handleAccept(invite.project._id)}
-                className="flex-1 md:flex-none px-4 py-2 bg-white text-indigo-600 hover:bg-indigo-50 font-bold text-sm rounded-lg transition-colors flex items-center justify-center gap-2"
+                className="flex-1 md:flex-none px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2"
               >
                 <Check className="w-4 h-4" />
                 Accept

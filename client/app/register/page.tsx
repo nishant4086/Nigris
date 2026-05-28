@@ -7,8 +7,8 @@ import { Loader2 } from "lucide-react";
 export default function RegisterPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0a0a0a]">
-        <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+      <div className="h-screen flex items-center justify-center bg-[#050510]">
+        <Loader2 className="w-10 h-10 text-indigo-500 animate-spin" />
       </div>
     }>
       <AuthForm defaultMode="signup" />

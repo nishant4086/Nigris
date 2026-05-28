@@ -153,7 +153,7 @@ export default function UsageDashboard() {
   const topAlert = alerts.length > 0 ? alerts[0] : null;
 
   return (
-    <div className="pb-24 animate-in fade-in duration-500 max-w-7xl mx-auto">
+    <div className="pb-24 animate-in fade-in duration-500">
       <AlertBanner
         alert={topAlert}
         onDismiss={() => setAlerts(prev => prev.filter(a => a._id !== topAlert?._id))}
