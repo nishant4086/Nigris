@@ -1,0 +1,22 @@
+{
+  "watch": [
+    "server.js",
+    "app.js",
+    "config",
+    "middleware",
+    "models",
+    "modules",
+    "routes",
+    "services",
+    "utils",
+    "workers",
+    "jobs"
+  ],
+  "ext": "js,mjs,cjs,json",
+  "ignore": [
+    "node_modules",
+    "tests",
+    "coverage",
+    ".git"
+  ]
+}

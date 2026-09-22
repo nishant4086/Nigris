@@ -1,7 +1,7 @@
 import crypto from "crypto";
 
 const getEncryptionKey = () => {
-  const secret = process.env.SMTP_ENCRYPTION_SECRET || process.env.JWT_SECRET || "nigris_smtp_fallback_secret";
+  const secret = process.env.SMTP_ENCRYPTION_KEY || process.env.SMTP_ENCRYPTION_SECRET || process.env.JWT_SECRET || "nigris_smtp_fallback_secret";
   return crypto.createHash("sha256").update(secret).digest();
 };
 
