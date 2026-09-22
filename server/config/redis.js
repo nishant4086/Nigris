@@ -13,6 +13,7 @@ if (REDIS_URL) {
     connection = new Redis(REDIS_URL, {
       maxRetriesPerRequest: null, // Required by BullMQ
       enableReadyCheck: false,
+      connectTimeout: 3000, // Don't block for more than 3s if Redis is unreachable
       // Reconnect with exponential back-off, cap at 5 s
       retryStrategy(times) {
         if (times > 10) {

@@ -22,9 +22,13 @@ const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGODB_URI || process.env.MONGO_URI, {
       maxPoolSize: 10,
+      minPoolSize: 2,                  // keep warm connections ready
+      serverSelectionTimeoutMS: 3000,  // fail fast on bad connections
+      socketTimeoutMS: 20000,          // don't hang on slow queries
+      heartbeatFrequencyMS: 10000,     // detect failures faster
+      maxIdleTimeMS: 30000,            // recycle idle connections
       // tls: true,
       // tlsAllowInvalidCertificates: true, // 👈 accept self-signed/untrusted cert
-      serverSelectionTimeoutMS: 5000,
     });
     console.log(`MongoDB connected: ${conn.connection.host}`);
     await ensureApiKeyIndexes(conn);

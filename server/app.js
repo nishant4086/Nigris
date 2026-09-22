@@ -87,8 +87,8 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // ================== SESSION & PASSPORT ==================
-// In production we use Mongo-backed sessions.
-// In tests, MongoDB session store must not attempt localhost connections.
+// Sessions are ONLY needed for OAuth flows (Google/GitHub callbacks).
+// JWT-based routes (login, signup, API) skip sessions entirely for speed.
 const mongoSessionUri =
   process.env.MONGODB_URI ||
   process.env.MONGO_URI ||
@@ -99,6 +99,10 @@ if (mongoSessionUri) {
   store = new MongoStore({
     uri: mongoSessionUri,
     collection: "sessions",
+    connectionOptions: {
+      maxPoolSize: 3,          // sessions need very few connections
+      serverSelectionTimeoutMS: 3000,
+    },
   });
 } else {
   console.warn(
@@ -106,23 +110,32 @@ if (mongoSessionUri) {
   );
 }
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "nigris_dev_secret_key",
-    resave: false,
-    saveUninitialized: false,
-    store: store || undefined,
-    cookie: {
-      secure: process.env.NODE_ENV === "production",
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 24h
-    },
-  })
-);
+const sessionMiddleware = session({
+  secret: process.env.SESSION_SECRET || "nigris_dev_secret_key",
+  resave: false,
+  saveUninitialized: false,
+  store: store || undefined,
+  cookie: {
+    secure: process.env.NODE_ENV === "production",
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000, // 24h
+  },
+});
 
+// Only apply session + passport on OAuth routes that actually need them.
+// This avoids a MongoDB round-trip on every login/signup/API request.
+const OAUTH_PATHS = ["/api/auth/google", "/api/auth/github"];
 
-app.use(passport.initialize());
-app.use(passport.session());
+app.use((req, res, next) => {
+  if (OAUTH_PATHS.some((p) => req.path.startsWith(p))) {
+    return sessionMiddleware(req, res, () => {
+      passport.initialize()(req, res, () => {
+        passport.session()(req, res, next);
+      });
+    });
+  }
+  next();
+});
 
 
 // ================== SECURITY ==================
@@ -170,9 +183,13 @@ const logger = pino({
   level: isTest ? "silent" : (process.env.LOG_LEVEL || "info"),
 });
 
+// Skip request logging for high-frequency health checks
+const SKIP_LOG_PATHS = ["/api/health", "/metrics", "/"];
 app.use(pinoHttp({
   logger,
-  autoLogging: !isTest,
+  autoLogging: {
+    ignore: (req) => SKIP_LOG_PATHS.includes(req.url),
+  },
   genReqId: (req) => req.headers["x-request-id"] || crypto.randomUUID(),
   serializers: {
     req: (req) => ({
@@ -244,7 +261,11 @@ app.use((req, res, next) => {
 });
 
 // ================== ROUTES ==================
-app.use("/api", globalLimiter);
+// Apply global limiter but skip /api/auth — those routes have their own stricter authLimiter
+app.use("/api", (req, res, next) => {
+  if (req.path.startsWith("/auth")) return next();
+  globalLimiter(req, res, next);
+});
 
 app.get("/", (req, res) => {
   res.json({ status: "ok", message: "Server is running" });
